@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgis/postgis:18-3.6-alpine
+    environment:
+      POSTGRES_USER: nimap
+      POSTGRES_PASSWORD: nimap
+      POSTGRES_DB: nimap
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/18/docker
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U nimap -d nimap" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  nimap:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - SERVICE_ENV=development
+      - SERVICE_PORT=8080
+      - SERVICE_DATABASE_URL=postgres://nimap:nimap@localhost:5432/nimap?sslmode=disable
+      - SERVICE_MEDIA_DIR=/data/media
+      - SERVICE_SESSION_KEY=
+      - SERVICE_LOG_LEVEL=debug
+      - SERVICE_LOG_FORMAT=text
+      - SERVICE_AUTO_MIGRATE=true
+    ports:
+      - "8080:8080"
+    volumes:
+      - media-data:/data/media
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  db-data:
+  media-data:
