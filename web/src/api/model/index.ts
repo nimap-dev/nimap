@@ -5,7 +5,14 @@
  * OpenAPI spec version: dev
  */
 
+export * from './buildingResponse.ts';
+export * from './createBuildingRequest.ts';
 export * from './errorDetail.ts';
 export * from './errorModel.ts';
 export * from './loginInputBody.ts';
+export * from './multiPolygon.ts';
+export * from './multiPolygonType.ts';
+export * from './point.ts';
+export * from './pointType.ts';
+export * from './updateBuildingRequest.ts';
 export * from './user.ts';

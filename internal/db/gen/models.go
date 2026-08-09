@@ -31,3 +31,14 @@ type AuthUser struct {
 	UpdatedAt    time.Time
 	DeletedAt    *time.Time
 }
+
+type Building struct {
+	ID                  uuid.UUID
+	Name                string
+	Footprint           interface{}
+	RepresentativePoint interface{}
+	Notes               *string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	DeletedAt           *time.Time
+}

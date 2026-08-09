@@ -10,17 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedMapRouteImport } from './routes/_authenticated/_map'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthenticatedMapIndexRouteImport } from './routes/_authenticated/_map/index'
+import { Route as AuthenticatedMapBuildingsRouteImport } from './routes/_authenticated/_map/buildings'
 import { Route as AuthenticatedAuthAccountRouteImport } from './routes/_authenticated/auth/account'
+import { Route as AuthenticatedMapBuildingsIndexRouteImport } from './routes/_authenticated/_map/buildings.index'
+import { Route as AuthenticatedMapBuildingsBuildingIdRouteImport } from './routes/_authenticated/_map/buildings.$buildingId'
+import { Route as AuthenticatedMapBuildingsNewRouteImport } from './routes/_authenticated/_map/buildings.new'
+import { Route as AuthenticatedMapBuildingsBuildingIdEditRouteImport } from './routes/_authenticated/_map/buildings.$buildingId_.edit'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthenticatedMapRoute = AuthenticatedMapRouteImport.update({
+  id: '/_map',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
@@ -28,41 +33,112 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedMapIndexRoute = AuthenticatedMapIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedMapRoute,
+} as any)
+const AuthenticatedMapBuildingsRoute =
+  AuthenticatedMapBuildingsRouteImport.update({
+    id: '/buildings',
+    path: '/buildings',
+    getParentRoute: () => AuthenticatedMapRoute,
+  } as any)
 const AuthenticatedAuthAccountRoute =
   AuthenticatedAuthAccountRouteImport.update({
     id: '/auth/account',
     path: '/auth/account',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedMapBuildingsIndexRoute =
+  AuthenticatedMapBuildingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedMapBuildingsRoute,
+  } as any)
+const AuthenticatedMapBuildingsBuildingIdRoute =
+  AuthenticatedMapBuildingsBuildingIdRouteImport.update({
+    id: '/$buildingId',
+    path: '/$buildingId',
+    getParentRoute: () => AuthenticatedMapBuildingsRoute,
+  } as any)
+const AuthenticatedMapBuildingsNewRoute =
+  AuthenticatedMapBuildingsNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedMapBuildingsRoute,
+  } as any)
+const AuthenticatedMapBuildingsBuildingIdEditRoute =
+  AuthenticatedMapBuildingsBuildingIdEditRouteImport.update({
+    id: '/$buildingId_/edit',
+    path: '/$buildingId/edit',
+    getParentRoute: () => AuthenticatedMapBuildingsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute
+  '/': typeof AuthenticatedMapIndexRoute
   '/auth/login': typeof AuthLoginRoute
+  '/buildings': typeof AuthenticatedMapBuildingsRouteWithChildren
   '/auth/account': typeof AuthenticatedAuthAccountRoute
+  '/buildings/$buildingId': typeof AuthenticatedMapBuildingsBuildingIdRoute
+  '/buildings/new': typeof AuthenticatedMapBuildingsNewRoute
+  '/buildings/': typeof AuthenticatedMapBuildingsIndexRoute
+  '/buildings/$buildingId/edit': typeof AuthenticatedMapBuildingsBuildingIdEditRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof AuthenticatedMapIndexRoute
   '/auth/login': typeof AuthLoginRoute
-  '/': typeof AuthenticatedIndexRoute
   '/auth/account': typeof AuthenticatedAuthAccountRoute
+  '/buildings/$buildingId': typeof AuthenticatedMapBuildingsBuildingIdRoute
+  '/buildings/new': typeof AuthenticatedMapBuildingsNewRoute
+  '/buildings': typeof AuthenticatedMapBuildingsIndexRoute
+  '/buildings/$buildingId/edit': typeof AuthenticatedMapBuildingsBuildingIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated/_map': typeof AuthenticatedMapRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/_map/buildings': typeof AuthenticatedMapBuildingsRouteWithChildren
   '/_authenticated/auth/account': typeof AuthenticatedAuthAccountRoute
+  '/_authenticated/_map/': typeof AuthenticatedMapIndexRoute
+  '/_authenticated/_map/buildings/$buildingId': typeof AuthenticatedMapBuildingsBuildingIdRoute
+  '/_authenticated/_map/buildings/new': typeof AuthenticatedMapBuildingsNewRoute
+  '/_authenticated/_map/buildings/': typeof AuthenticatedMapBuildingsIndexRoute
+  '/_authenticated/_map/buildings/$buildingId_/edit': typeof AuthenticatedMapBuildingsBuildingIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth/login' | '/auth/account'
+  fullPaths:
+    | '/'
+    | '/auth/login'
+    | '/buildings'
+    | '/auth/account'
+    | '/buildings/$buildingId'
+    | '/buildings/new'
+    | '/buildings/'
+    | '/buildings/$buildingId/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth/login' | '/' | '/auth/account'
+  to:
+    | '/'
+    | '/auth/login'
+    | '/auth/account'
+    | '/buildings/$buildingId'
+    | '/buildings/new'
+    | '/buildings'
+    | '/buildings/$buildingId/edit'
   id:
     | '__root__'
     | '/_authenticated'
+    | '/_authenticated/_map'
     | '/auth/login'
-    | '/_authenticated/'
+    | '/_authenticated/_map/buildings'
     | '/_authenticated/auth/account'
+    | '/_authenticated/_map/'
+    | '/_authenticated/_map/buildings/$buildingId'
+    | '/_authenticated/_map/buildings/new'
+    | '/_authenticated/_map/buildings/'
+    | '/_authenticated/_map/buildings/$buildingId_/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -79,11 +155,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/': {
-      id: '/_authenticated/'
-      path: '/'
+    '/_authenticated/_map': {
+      id: '/_authenticated/_map'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      preLoaderRoute: typeof AuthenticatedMapRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/auth/login': {
@@ -93,6 +169,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/_map/': {
+      id: '/_authenticated/_map/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedMapIndexRouteImport
+      parentRoute: typeof AuthenticatedMapRoute
+    }
+    '/_authenticated/_map/buildings': {
+      id: '/_authenticated/_map/buildings'
+      path: '/buildings'
+      fullPath: '/buildings'
+      preLoaderRoute: typeof AuthenticatedMapBuildingsRouteImport
+      parentRoute: typeof AuthenticatedMapRoute
+    }
     '/_authenticated/auth/account': {
       id: '/_authenticated/auth/account'
       path: '/auth/account'
@@ -100,16 +190,79 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAuthAccountRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/_map/buildings/': {
+      id: '/_authenticated/_map/buildings/'
+      path: '/'
+      fullPath: '/buildings/'
+      preLoaderRoute: typeof AuthenticatedMapBuildingsIndexRouteImport
+      parentRoute: typeof AuthenticatedMapBuildingsRoute
+    }
+    '/_authenticated/_map/buildings/$buildingId': {
+      id: '/_authenticated/_map/buildings/$buildingId'
+      path: '/$buildingId'
+      fullPath: '/buildings/$buildingId'
+      preLoaderRoute: typeof AuthenticatedMapBuildingsBuildingIdRouteImport
+      parentRoute: typeof AuthenticatedMapBuildingsRoute
+    }
+    '/_authenticated/_map/buildings/new': {
+      id: '/_authenticated/_map/buildings/new'
+      path: '/new'
+      fullPath: '/buildings/new'
+      preLoaderRoute: typeof AuthenticatedMapBuildingsNewRouteImport
+      parentRoute: typeof AuthenticatedMapBuildingsRoute
+    }
+    '/_authenticated/_map/buildings/$buildingId_/edit': {
+      id: '/_authenticated/_map/buildings/$buildingId_/edit'
+      path: '/$buildingId/edit'
+      fullPath: '/buildings/$buildingId/edit'
+      preLoaderRoute: typeof AuthenticatedMapBuildingsBuildingIdEditRouteImport
+      parentRoute: typeof AuthenticatedMapBuildingsRoute
+    }
   }
 }
 
+interface AuthenticatedMapBuildingsRouteChildren {
+  AuthenticatedMapBuildingsBuildingIdRoute: typeof AuthenticatedMapBuildingsBuildingIdRoute
+  AuthenticatedMapBuildingsNewRoute: typeof AuthenticatedMapBuildingsNewRoute
+  AuthenticatedMapBuildingsIndexRoute: typeof AuthenticatedMapBuildingsIndexRoute
+  AuthenticatedMapBuildingsBuildingIdEditRoute: typeof AuthenticatedMapBuildingsBuildingIdEditRoute
+}
+
+const AuthenticatedMapBuildingsRouteChildren: AuthenticatedMapBuildingsRouteChildren =
+  {
+    AuthenticatedMapBuildingsBuildingIdRoute:
+      AuthenticatedMapBuildingsBuildingIdRoute,
+    AuthenticatedMapBuildingsNewRoute: AuthenticatedMapBuildingsNewRoute,
+    AuthenticatedMapBuildingsIndexRoute: AuthenticatedMapBuildingsIndexRoute,
+    AuthenticatedMapBuildingsBuildingIdEditRoute:
+      AuthenticatedMapBuildingsBuildingIdEditRoute,
+  }
+
+const AuthenticatedMapBuildingsRouteWithChildren =
+  AuthenticatedMapBuildingsRoute._addFileChildren(
+    AuthenticatedMapBuildingsRouteChildren,
+  )
+
+interface AuthenticatedMapRouteChildren {
+  AuthenticatedMapBuildingsRoute: typeof AuthenticatedMapBuildingsRouteWithChildren
+  AuthenticatedMapIndexRoute: typeof AuthenticatedMapIndexRoute
+}
+
+const AuthenticatedMapRouteChildren: AuthenticatedMapRouteChildren = {
+  AuthenticatedMapBuildingsRoute: AuthenticatedMapBuildingsRouteWithChildren,
+  AuthenticatedMapIndexRoute: AuthenticatedMapIndexRoute,
+}
+
+const AuthenticatedMapRouteWithChildren =
+  AuthenticatedMapRoute._addFileChildren(AuthenticatedMapRouteChildren)
+
 interface AuthenticatedRouteChildren {
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedMapRoute: typeof AuthenticatedMapRouteWithChildren
   AuthenticatedAuthAccountRoute: typeof AuthenticatedAuthAccountRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedMapRoute: AuthenticatedMapRouteWithChildren,
   AuthenticatedAuthAccountRoute: AuthenticatedAuthAccountRoute,
 }
 

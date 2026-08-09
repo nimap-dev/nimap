@@ -14,7 +14,7 @@ INSERT INTO auth.roles (id, name) VALUES
 CREATE TABLE auth.users (
   id UUID PRIMARY KEY DEFAULT uuidv7(),
   username TEXT NOT NULL,
-  e mail TEXT NOT NULL,
+  email TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   role_id SMALLINT NOT NULL DEFAULT 1 REFERENCES auth.roles(id) ON DELETE RESTRICT,
 

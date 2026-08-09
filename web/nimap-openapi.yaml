@@ -1,5 +1,60 @@
 components:
   schemas:
+    BuildingResponse:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/BuildingResponse.json
+          format: uri
+          readOnly: true
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        footprint:
+          $ref: "#/components/schemas/MultiPolygon"
+        id:
+          type: string
+        name:
+          type: string
+        notes:
+          type: string
+        representativePoint:
+          $ref: "#/components/schemas/Point"
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - footprint
+        - representativePoint
+        - createdAt
+        - updatedAt
+      type: object
+    CreateBuildingRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/CreateBuildingRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        footprint:
+          $ref: "#/components/schemas/MultiPolygon"
+        name:
+          minLength: 1
+          type: string
+        notes:
+          type: string
+      required:
+        - name
+        - footprint
+      type: object
     ErrorDetail:
       additionalProperties: false
       properties:
@@ -31,9 +86,7 @@ components:
           description: Optional list of individual error details
           items:
             $ref: "#/components/schemas/ErrorDetail"
-          type:
-            - array
-            - "null"
+          type: array
         instance:
           description: A URI reference that identifies the specific occurrence of the problem.
           examples:
@@ -82,6 +135,71 @@ components:
       required:
         - username
         - password
+      type: object
+    MultiPolygon:
+      additionalProperties: false
+      properties:
+        coordinates:
+          description: An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring's first entry is its exterior boundary and the rest are holes
+          items:
+            items:
+              items:
+                items:
+                  format: double
+                  type: number
+                type: array
+              type: array
+            type: array
+          type: array
+        type:
+          description: GeoJSON geometry type
+          enum:
+            - MultiPolygon
+          type: string
+      required:
+        - type
+        - coordinates
+      type: object
+    Point:
+      additionalProperties: false
+      properties:
+        coordinates:
+          description: A [longitude, latitude] position, optionally with elevation
+          items:
+            format: double
+            type: number
+          maxItems: 3
+          minItems: 2
+          type: array
+        type:
+          description: GeoJSON geometry type
+          enum:
+            - Point
+          type: string
+      required:
+        - type
+        - coordinates
+      type: object
+    UpdateBuildingRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateBuildingRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        footprint:
+          $ref: "#/components/schemas/MultiPolygon"
+        name:
+          minLength: 1
+          type: string
+        notes:
+          type: string
+      required:
+        - name
+        - footprint
       type: object
     User:
       additionalProperties: false
@@ -179,4 +297,124 @@ paths:
       summary: Return the currently authenticated user
       tags:
         - auth
+  /api/buildings:
+    get:
+      operationId: list-buildings
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/BuildingResponse"
+                type: array
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns all buildings
+      tags:
+        - buildings
+    post:
+      operationId: create-building
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBuildingRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BuildingResponse"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Creates a building
+      tags:
+        - buildings
+  /api/buildings/{id}:
+    delete:
+      operationId: delete-building
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Soft deletes the building with the provided id
+      tags:
+        - buildings
+    get:
+      operationId: get-building
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BuildingResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns building with the provided id
+      tags:
+        - buildings
+    put:
+      operationId: update-building
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBuildingRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BuildingResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Updates the building with the provided id
+      tags:
+        - buildings
 

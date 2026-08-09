@@ -14,8 +14,11 @@ import (
 // document (see the `openapi` command): handlers are registered but never
 // invoked during specification generation.
 func NewAPI(router chi.Router, version string, pool *pgxpool.Pool, sessions *scs.SessionManager) huma.API {
+	huma.DefaultArrayNullable = false
+
 	api := humachi.New(router, huma.DefaultConfig("nimap API", version))
 	api.UseMiddleware(NewAuthMiddleware(api, sessions))
 	RegisterAuth(api, pool, sessions)
+	RegisterBuildings(api, pool, sessions)
 	return api
 }

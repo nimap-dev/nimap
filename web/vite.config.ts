@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite'
-import { devtools } from '@tanstack/devtools-vite'
 
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
@@ -9,11 +8,13 @@ import tailwindcss from '@tailwindcss/vite'
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [
-    devtools(),
     tailwindcss(),
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     viteReact(),
   ],
+  optimizeDeps: {
+    exclude: ['maplibre-gl'],
+  },
   server: {
     proxy: {
       '/api': {

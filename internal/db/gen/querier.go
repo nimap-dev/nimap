@@ -11,9 +11,14 @@ import (
 )
 
 type Querier interface {
+	CreateBuilding(ctx context.Context, arg CreateBuildingParams) (CreateBuildingRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
+	DeleteBuilding(ctx context.Context, id uuid.UUID) (int64, error)
+	GetBuilding(ctx context.Context, id uuid.UUID) (GetBuildingRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
 	GetUserByUsername(ctx context.Context, lower string) (GetUserByUsernameRow, error)
+	ListBuildings(ctx context.Context) ([]ListBuildingsRow, error)
+	UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) (UpdateBuildingRow, error)
 	UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) error
 }
 
