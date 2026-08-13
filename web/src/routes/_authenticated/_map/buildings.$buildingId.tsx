@@ -3,11 +3,24 @@ import {
   getListBuildingsQueryKey,
   useDeleteBuilding,
   useGetBuilding,
+  useUpdateBuildingStatus,
 } from '#/api/buildings/buildings'
+import type { BuildingResponseStatus } from '#/api/model'
 import { Button } from '#/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '#/components/ui/select'
 import { Skeleton } from '#/components/ui/skeleton'
 import { toast } from '#/components/ui/toast'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/formate-date'
+import {
+  lifecycleStatusLabels,
+  lifecycleStatusOptions,
+} from '#/lib/lifecycle'
 import { useWorldMap } from '#/lib/map'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
@@ -32,6 +45,7 @@ function ViewBuilding() {
   const { buildingId } = Route.useParams()
   const { data, isPending } = useGetBuilding(buildingId)
   const deleteBuilding = useDeleteBuilding()
+  const updateStatus = useUpdateBuildingStatus()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { flyTo } = useWorldMap()
@@ -73,6 +87,42 @@ function ViewBuilding() {
 
   // Captured before the request: after a successful delete the query is gone.
   const name = building.name
+
+  async function handleStatusChange(status: BuildingResponseStatus) {
+    try {
+      const res = await updateStatus.mutateAsync({
+        id: buildingId,
+        data: { status },
+      })
+
+      if (res.status !== 200) {
+        toast.add({
+          type: "error",
+          title: "Could not change the status",
+          description: res.data?.detail ?? `${name} stayed as it was`,
+        })
+        return
+      }
+    } catch {
+      toast.add({
+        type: "error",
+        title: "Could not change the status",
+        description: "The request failed, check your connection and retry",
+      })
+      return
+    }
+
+    await queryClient.invalidateQueries({
+      queryKey: getGetBuildingQueryKey(buildingId),
+    })
+    await queryClient.invalidateQueries({
+      queryKey: getListBuildingsQueryKey(),
+    })
+    toast.add({
+      type: "success",
+      description: `${name} is now ${lifecycleStatusLabels[status].toLowerCase()}`,
+    })
+  }
 
   async function handleDelete() {
     try {
@@ -141,6 +191,28 @@ function ViewBuilding() {
             {building.notes}
           </p>
         )}
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="shrink-0 text-muted-foreground">Status</span>
+          <Select
+            items={lifecycleStatusLabels}
+            value={building.status}
+            onValueChange={(value) =>
+              handleStatusChange(value as BuildingResponseStatus)
+            }
+            disabled={updateStatus.isPending}
+          >
+            <SelectTrigger size="sm" aria-label="Building status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {lifecycleStatusOptions.map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <dl className="grid gap-2 text-sm">
           {longitude !== undefined && latitude !== undefined && (
             <Detail label="Position">
@@ -162,8 +234,11 @@ function ViewBuilding() {
           </AlertDialogMedia>
           <AlertDialogTitle>Delete {building.name}?</AlertDialogTitle>
           <AlertDialogDescription>
-            Its footprint and notes disappear from the map and the buildings
-            list. You can't undo this from here.
+            Deleting is for fixing mistakes: a duplicate, or a footprint drawn
+            by accident. If the building went out of service, set its status to
+            Decommissioned instead: it keeps its history, stays searchable, and
+            only drops off the map. Deletion is refused once floors, devices or
+            cables reference this building, and you can't undo it from here.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

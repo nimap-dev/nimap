@@ -18,9 +18,10 @@ import (
 )
 
 type CreateBuildingRequest struct {
-	Name      string       `json:"name" minLength:"1"`
-	Footprint MultiPolygon `json:"footprint"`
-	Notes     *string      `json:"notes,omitempty"`
+	Name      string          `json:"name" minLength:"1"`
+	Footprint MultiPolygon    `json:"footprint"`
+	Notes     *string         `json:"notes,omitempty"`
+	Status    LifecycleStatus `json:"status"`
 }
 
 type CreateBuildingInput struct {
@@ -33,13 +34,26 @@ type UpdateBuildingRequest struct {
 	Notes     *string      `json:"notes,omitempty"`
 }
 
+type UpdateBuildingStatusRequest struct {
+	Status LifecycleStatus `json:"status"`
+}
+
 type UpdateBuildingInput struct {
 	ID   uuid.UUID `path:"id"`
 	Body UpdateBuildingRequest
 }
 
+type UpdateBuildingStatusInput struct {
+	ID   uuid.UUID `path:"id"`
+	Body UpdateBuildingStatusRequest
+}
+
 type GetBuildingInput struct {
 	ID uuid.UUID `path:"id"`
+}
+
+type ListBuildingsInput struct {
+	Status []LifecycleStatus `query:"status" doc:"Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup."`
 }
 
 type DeleteBuildingInput struct {
@@ -47,13 +61,14 @@ type DeleteBuildingInput struct {
 }
 
 type BuildingResponse struct {
-	ID                  uuid.UUID    `json:"id"`
-	Name                string       `json:"name"`
-	Footprint           MultiPolygon `json:"footprint"`
-	RepresentativePoint Point        `json:"representativePoint"`
-	Notes               *string      `json:"notes,omitempty"`
-	CreatedAt           time.Time    `json:"createdAt"`
-	UpdatedAt           time.Time    `json:"updatedAt"`
+	ID                  uuid.UUID       `json:"id"`
+	Name                string          `json:"name"`
+	Footprint           MultiPolygon    `json:"footprint"`
+	RepresentativePoint Point           `json:"representativePoint"`
+	Notes               *string         `json:"notes,omitempty"`
+	Status              LifecycleStatus `json:"status"`
+	CreatedAt           time.Time       `json:"createdAt"`
+	UpdatedAt           time.Time       `json:"updatedAt"`
 }
 
 type GetBuildingOutput struct {
@@ -107,6 +122,7 @@ func RegisterBuildings(
 			building.Footprint,
 			building.RepresentativePoint,
 			building.Notes,
+			LifecycleStatus(building.Status),
 			building.CreatedAt,
 			building.UpdatedAt,
 		)
@@ -128,9 +144,14 @@ func RegisterBuildings(
 		Metadata:    map[string]any{requireAuthMetaKey: true},
 	}, func(
 		ctx context.Context,
-		in *struct{},
+		in *ListBuildingsInput,
 	) (*ListBuildingsOutput, error) {
-		buildings, err := q.ListBuildings(ctx)
+		statuses := in.Status
+		if len(statuses) == 0 {
+			statuses = ActiveLifecycleStatuses
+		}
+
+		buildings, err := q.ListBuildings(ctx, lifecycleStatusStrings(statuses))
 		if err != nil {
 			return nil, huma.Error500InternalServerError(
 				"building list failed",
@@ -146,6 +167,7 @@ func RegisterBuildings(
 				building.Footprint,
 				building.RepresentativePoint,
 				building.Notes,
+				LifecycleStatus(building.Status),
 				building.CreatedAt,
 				building.UpdatedAt,
 			)
@@ -188,6 +210,7 @@ func RegisterBuildings(
 				Name:      in.Body.Name,
 				Footprint: string(footprint),
 				Notes:     in.Body.Notes,
+				Status:    gen.LifecycleStatus(in.Body.Status),
 			},
 		)
 		if err != nil {
@@ -210,6 +233,7 @@ func RegisterBuildings(
 			building.Footprint,
 			building.RepresentativePoint,
 			building.Notes,
+			LifecycleStatus(building.Status),
 			building.CreatedAt,
 			building.UpdatedAt,
 		)
@@ -273,12 +297,60 @@ func RegisterBuildings(
 			building.Footprint,
 			building.RepresentativePoint,
 			building.Notes,
+			LifecycleStatus(building.Status),
 			building.CreatedAt,
 			building.UpdatedAt,
 		)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(
 				"building update failed",
+			)
+		}
+
+		return &UpdateBuildingOutput{Body: body}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "update-building-status",
+		Method:      http.MethodPatch,
+		Path:        "/api/buildings/{id}/status",
+		Summary:     "Updates the building status of the building with provided id",
+		Tags:        []string{"buildings"},
+		Metadata:    map[string]any{requireAuthMetaKey: true},
+	}, func(
+		ctx context.Context,
+		in *UpdateBuildingStatusInput,
+	) (*UpdateBuildingOutput, error) {
+		building, err := q.UpdateBuildingStatus(
+			ctx,
+			gen.UpdateBuildingStatusParams{
+				ID:     in.ID,
+				Status: gen.LifecycleStatus(in.Body.Status),
+			},
+		)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, huma.Error404NotFound("building not found")
+			}
+
+			return nil, huma.Error500InternalServerError(
+				"building status update failed",
+			)
+		}
+
+		body, err := buildingResponse(
+			building.ID,
+			building.Name,
+			building.Footprint,
+			building.RepresentativePoint,
+			building.Notes,
+			LifecycleStatus(building.Status),
+			building.CreatedAt,
+			building.UpdatedAt,
+		)
+		if err != nil {
+			return nil, huma.Error500InternalServerError(
+				"building status update failed",
 			)
 		}
 
@@ -318,6 +390,7 @@ func buildingResponse(
 	footprint string,
 	representativePoint string,
 	notes *string,
+	status LifecycleStatus,
 	createdAt time.Time,
 	updatedAt time.Time,
 ) (BuildingResponse, error) {
@@ -337,6 +410,7 @@ func buildingResponse(
 		Footprint:           fp,
 		RepresentativePoint: rp,
 		Notes:               notes,
+		Status:              status,
 		CreatedAt:           createdAt,
 		UpdatedAt:           updatedAt,
 	}, nil

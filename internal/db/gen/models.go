@@ -5,10 +5,56 @@
 package gen
 
 import (
+	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+type LifecycleStatus string
+
+const (
+	LifecycleStatusPlanned        LifecycleStatus = "planned"
+	LifecycleStatusActive         LifecycleStatus = "active"
+	LifecycleStatusDecommissioned LifecycleStatus = "decommissioned"
+	LifecycleStatusArchived       LifecycleStatus = "archived"
+)
+
+func (e *LifecycleStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LifecycleStatus(s)
+	case string:
+		*e = LifecycleStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LifecycleStatus: %T", src)
+	}
+	return nil
+}
+
+type NullLifecycleStatus struct {
+	LifecycleStatus LifecycleStatus
+	Valid           bool // Valid is true if LifecycleStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLifecycleStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.LifecycleStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LifecycleStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLifecycleStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LifecycleStatus), nil
+}
 
 type AuthRole struct {
 	ID   int16
@@ -41,4 +87,5 @@ type Building struct {
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 	DeletedAt           *time.Time
+	Status              LifecycleStatus
 }

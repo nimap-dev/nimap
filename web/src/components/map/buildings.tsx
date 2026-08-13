@@ -11,6 +11,7 @@ function convertBuildings(data: listBuildingsResponse) {
       properties: {
         name: building.name,
         id: building.id,
+        status: building.status,
       },
       geometry: building.footprint,
     })),
@@ -18,7 +19,7 @@ function convertBuildings(data: listBuildingsResponse) {
 }
 
 export function BuildingsSource() {
-  const { data } = useListBuildings({
+  const { data } = useListBuildings(undefined, {
     query: {
       select: convertBuildings,
     },
@@ -32,7 +33,17 @@ export function BuildingsSource() {
         id="buildings"
         type="fill"
         paint={{
-          "fill-color": "#ff0000",
+          "fill-color": [
+            "match",
+            ["get", "status"],
+            "planned",
+            "#2563eb",
+            "active",
+            "#ff0000",
+            // Decommissioned and archived are filtered out by the API, so grey
+            // only shows if a caller ever asks for them by status.
+            "#71717a",
+          ],
           "fill-opacity": 0.4,
         }}
       />

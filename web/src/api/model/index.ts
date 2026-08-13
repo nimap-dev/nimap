@@ -6,13 +6,19 @@
  */
 
 export * from './buildingResponse.ts';
+export * from './buildingResponseStatus.ts';
 export * from './createBuildingRequest.ts';
+export * from './createBuildingRequestStatus.ts';
 export * from './errorDetail.ts';
 export * from './errorModel.ts';
+export * from './listBuildingsParams.ts';
+export * from './listBuildingsStatusItem.ts';
 export * from './loginInputBody.ts';
 export * from './multiPolygon.ts';
 export * from './multiPolygonType.ts';
 export * from './point.ts';
 export * from './pointType.ts';
 export * from './updateBuildingRequest.ts';
+export * from './updateBuildingStatusRequest.ts';
+export * from './updateBuildingStatusRequestStatus.ts';
 export * from './user.ts';

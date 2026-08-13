@@ -17,8 +17,9 @@ type Querier interface {
 	GetBuilding(ctx context.Context, id uuid.UUID) (GetBuildingRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
 	GetUserByUsername(ctx context.Context, lower string) (GetUserByUsernameRow, error)
-	ListBuildings(ctx context.Context) ([]ListBuildingsRow, error)
+	ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error)
 	UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) (UpdateBuildingRow, error)
+	UpdateBuildingStatus(ctx context.Context, arg UpdateBuildingStatusParams) (UpdateBuildingStatusRow, error)
 	UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) error
 }
 

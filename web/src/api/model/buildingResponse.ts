@@ -4,6 +4,7 @@
  * nimap API
  * OpenAPI spec version: dev
  */
+import type { BuildingResponseStatus } from './buildingResponseStatus.ts';
 import type { MultiPolygon } from './multiPolygon.ts';
 import type { Point } from './point.ts';
 
@@ -16,5 +17,6 @@ export interface BuildingResponse {
   name: string;
   notes?: string;
   representativePoint: Point;
+  status: BuildingResponseStatus;
   updatedAt: string;
 }

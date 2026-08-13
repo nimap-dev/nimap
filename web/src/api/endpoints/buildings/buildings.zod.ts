@@ -10,6 +10,10 @@ import * as zod from 'zod';
 /**
  * @summary Returns all buildings
  */
+export const ListBuildingsQueryParams = zod.object({
+  "status": zod.array(zod.enum(['planned', 'active', 'decommissioned', 'archived'])).optional().describe('Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup.')
+})
+
 export const listBuildingsResponseRepresentativePointCoordinatesMin = 2;
 export const listBuildingsResponseRepresentativePointCoordinatesMax = 3;
 
@@ -29,6 +33,7 @@ export const ListBuildingsResponseItem = zod.object({
   "coordinates": zod.array(zod.number()).min(listBuildingsResponseRepresentativePointCoordinatesMin).max(listBuildingsResponseRepresentativePointCoordinatesMax).describe('A [longitude, latitude] position, optionally with elevation'),
   "type": zod.enum(['Point']).describe('GeoJSON geometry type')
 }),
+  "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
   "updatedAt": zod.iso.datetime({"offset":true})
 })
 export const ListBuildingsResponse = zod.array(ListBuildingsResponseItem)
@@ -45,7 +50,8 @@ export const CreateBuildingBody = zod.object({
   "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
 }),
   "name": zod.string().min(1),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "status": zod.enum(['planned', 'active', 'decommissioned', 'archived'])
 })
 
 export const createBuildingResponseRepresentativePointCoordinatesMin = 2;
@@ -67,6 +73,7 @@ export const CreateBuildingResponse = zod.object({
   "coordinates": zod.array(zod.number()).min(createBuildingResponseRepresentativePointCoordinatesMin).max(createBuildingResponseRepresentativePointCoordinatesMax).describe('A [longitude, latitude] position, optionally with elevation'),
   "type": zod.enum(['Point']).describe('GeoJSON geometry type')
 }),
+  "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
   "updatedAt": zod.iso.datetime({"offset":true})
 })
 
@@ -105,6 +112,7 @@ export const GetBuildingResponse = zod.object({
   "coordinates": zod.array(zod.number()).min(getBuildingResponseRepresentativePointCoordinatesMin).max(getBuildingResponseRepresentativePointCoordinatesMax).describe('A [longitude, latitude] position, optionally with elevation'),
   "type": zod.enum(['Point']).describe('GeoJSON geometry type')
 }),
+  "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
   "updatedAt": zod.iso.datetime({"offset":true})
 })
 
@@ -146,6 +154,41 @@ export const UpdateBuildingResponse = zod.object({
   "coordinates": zod.array(zod.number()).min(updateBuildingResponseRepresentativePointCoordinatesMin).max(updateBuildingResponseRepresentativePointCoordinatesMax).describe('A [longitude, latitude] position, optionally with elevation'),
   "type": zod.enum(['Point']).describe('GeoJSON geometry type')
 }),
+  "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
+  "updatedAt": zod.iso.datetime({"offset":true})
+})
+
+/**
+ * @summary Updates the building status of the building with provided id
+ */
+export const UpdateBuildingStatusParams = zod.object({
+  "id": zod.string()
+})
+
+export const UpdateBuildingStatusBody = zod.object({
+  "status": zod.enum(['planned', 'active', 'decommissioned', 'archived'])
+})
+
+export const updateBuildingStatusResponseRepresentativePointCoordinatesMin = 2;
+export const updateBuildingStatusResponseRepresentativePointCoordinatesMax = 3;
+
+
+
+export const UpdateBuildingStatusResponse = zod.object({
+  "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "createdAt": zod.iso.datetime({"offset":true}),
+  "footprint": zod.object({
+  "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),
+  "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
+}),
+  "id": zod.string(),
+  "name": zod.string(),
+  "notes": zod.string().optional(),
+  "representativePoint": zod.object({
+  "coordinates": zod.array(zod.number()).min(updateBuildingStatusResponseRepresentativePointCoordinatesMin).max(updateBuildingStatusResponseRepresentativePointCoordinatesMax).describe('A [longitude, latitude] position, optionally with elevation'),
+  "type": zod.enum(['Point']).describe('GeoJSON geometry type')
+}),
+  "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
   "updatedAt": zod.iso.datetime({"offset":true})
 })
 

@@ -25,6 +25,8 @@ type BuildingResult = {
   id: string
   label: string
   detail: string | undefined
+  longitude: number
+  latitude: number
 }
 
 type PlaceResult = {
@@ -95,7 +97,7 @@ function useDebounced(value: string, delay: number) {
  * toggle, and clear of the navigation control on narrow screens.
  */
 export function MapSearch() {
-  const { flyTo, fitBounds } = useWorldMap()
+  const { flyTo, fitBounds, isDrawing } = useWorldMap()
   const navigate = useNavigate()
 
   const [query, setQuery] = useState("")
@@ -134,13 +136,19 @@ export function MapSearch() {
     return buildingsResponse.data
       .filter((building) => building.name.toLowerCase().includes(needle))
       .slice(0, MAX_BUILDING_RESULTS)
-      .map((building) => ({
-        kind: "building",
-        key: `building-${building.id}`,
-        id: building.id,
-        label: building.name,
-        detail: building.notes,
-      }))
+      .map((building) => {
+        const [longitude, latitude] = building.representativePoint.coordinates
+
+        return {
+          kind: "building",
+          key: `building-${building.id}`,
+          id: building.id,
+          label: building.name,
+          detail: building.notes,
+          longitude,
+          latitude,
+        }
+      })
   }, [buildingsResponse, trimmedQuery])
 
   const results: Result[] = [
@@ -156,6 +164,12 @@ export function MapSearch() {
 
     if (result.kind === "building") {
       setSelectedPlace(null)
+
+      if (isDrawing) {
+        flyTo(result.longitude, result.latitude, MAX_RESULT_ZOOM)
+        return
+      }
+
       navigate({ to: "/buildings/$buildingId", params: { buildingId: result.id } })
       return
     }
@@ -279,7 +293,7 @@ export function MapSearch() {
                 <span className="min-w-0 flex-1 truncate">{result.label}</span>
                 {result.kind === "building" && (
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    Building
+                    {isDrawing ? "Show on map" : "Building"}
                   </span>
                 )}
               </li>

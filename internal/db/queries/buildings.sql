@@ -5,6 +5,7 @@ SELECT
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
+  status,
   created_at,
   updated_at
 FROM building
@@ -18,22 +19,26 @@ SELECT
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
+  status,
   created_at,
   updated_at
 FROM building
 WHERE deleted_at IS NULL
+  AND status::text = ANY(sqlc.arg(statuses)::text[])
 ORDER BY created_at DESC;
 
 -- name: CreateBuilding :one
 INSERT INTO building (
   name,
   footprint,
-  notes
+  notes,
+  status
 )
 VALUES (
   sqlc.arg(name),
   ST_GeomFromGeoJSON(sqlc.arg(footprint)::text),
-  sqlc.narg(notes)
+  sqlc.narg(notes),
+  sqlc.arg(status)
 )
 RETURNING
   id,
@@ -41,6 +46,7 @@ RETURNING
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
+  status,
   created_at,
   updated_at;
 
@@ -59,6 +65,24 @@ RETURNING
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
+  status,
+  created_at,
+  updated_at;
+
+-- name: UpdateBuildingStatus :one
+UPDATE building
+SET
+  status = sqlc.arg(status),
+  updated_at = now()
+WHERE id = sqlc.arg(id)
+  AND deleted_at IS NULL
+RETURNING
+  id,
+  name,
+  ST_AsGeoJSON(footprint)::text AS footprint,
+  ST_AsGeoJSON(representative_point)::text AS representative_point,
+  notes,
+  status,
   created_at,
   updated_at;
 

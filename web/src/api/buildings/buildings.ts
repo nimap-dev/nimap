@@ -27,7 +27,9 @@ import type {
   BuildingResponse,
   CreateBuildingRequest,
   ErrorModel,
-  UpdateBuildingRequest
+  ListBuildingsParams,
+  UpdateBuildingRequest,
+  UpdateBuildingStatusRequest
 } from '../model';
 
 
@@ -102,20 +104,27 @@ export type listBuildingsResponseError = (listBuildingsResponseDefault) & {
 
 export type listBuildingsResponse = (listBuildingsResponseSuccess | listBuildingsResponseError)
 
-export const getListBuildingsUrl = () => {
+export const getListBuildingsUrl = (params?: ListBuildingsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/buildings`
+  return stringifiedParams.length > 0 ? `/api/buildings?${stringifiedParams}` : `/api/buildings`
 }
 
 /**
  * @summary Returns all buildings
  */
-export const listBuildings = async ( options?: RequestInit): Promise<listBuildingsResponse> => {
+export const listBuildings = async (params?: ListBuildingsParams, options?: RequestInit): Promise<listBuildingsResponse> => {
 
-  const res = await fetch(getListBuildingsUrl(),
+  const res = await fetch(getListBuildingsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -135,23 +144,23 @@ export const listBuildings = async ( options?: RequestInit): Promise<listBuildin
 
 
 
-export const getListBuildingsQueryKey = () => {
+export const getListBuildingsQueryKey = (params?: ListBuildingsParams,) => {
     return [
-    `/api/buildings`
+    `/api/buildings`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListBuildingsQueryOptions = <TData = Awaited<ReturnType<typeof listBuildings>>, TError = ErrorModel>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBuildings>>, TError, TData>>, fetch?: RequestInit}
+export const getListBuildingsQueryOptions = <TData = Awaited<ReturnType<typeof listBuildings>>, TError = ErrorModel>(params?: ListBuildingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBuildings>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListBuildingsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListBuildingsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBuildings>>> = ({ signal }) => listBuildings({ signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBuildings>>> = ({ signal }) => listBuildings(params, { signal, ...fetchOptions });
 
 
 
@@ -165,7 +174,7 @@ export type ListBuildingsQueryError = ErrorModel
 
 
 export function useListBuildings<TData = Awaited<ReturnType<typeof listBuildings>>, TError = ErrorModel>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBuildings>>, TError, TData>> & Pick<
+ params: undefined |  ListBuildingsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBuildings>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listBuildings>>,
           TError,
@@ -175,7 +184,7 @@ export function useListBuildings<TData = Awaited<ReturnType<typeof listBuildings
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListBuildings<TData = Awaited<ReturnType<typeof listBuildings>>, TError = ErrorModel>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBuildings>>, TError, TData>> & Pick<
+ params?: ListBuildingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBuildings>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listBuildings>>,
           TError,
@@ -185,7 +194,7 @@ export function useListBuildings<TData = Awaited<ReturnType<typeof listBuildings
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListBuildings<TData = Awaited<ReturnType<typeof listBuildings>>, TError = ErrorModel>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBuildings>>, TError, TData>>, fetch?: RequestInit}
+ params?: ListBuildingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBuildings>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -193,11 +202,11 @@ export function useListBuildings<TData = Awaited<ReturnType<typeof listBuildings
  */
 
 export function useListBuildings<TData = Awaited<ReturnType<typeof listBuildings>>, TError = ErrorModel>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBuildings>>, TError, TData>>, fetch?: RequestInit}
+ params?: ListBuildingsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listBuildings>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListBuildingsQueryOptions(options)
+  const queryOptions = getListBuildingsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -623,4 +632,101 @@ export const useUpdateBuilding = <TError = ErrorModel,
         TContext
       > => {
       return useMutation(getUpdateBuildingMutationOptions(options), queryClient);
+    }
+    export type updateBuildingStatusResponse200 = {
+  data: BuildingResponse
+  status: 200
+}
+
+export type updateBuildingStatusResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 200>
+}
+
+export type updateBuildingStatusResponseSuccess = (updateBuildingStatusResponse200) & {
+  headers: Headers;
+};
+export type updateBuildingStatusResponseError = (updateBuildingStatusResponseDefault) & {
+  headers: Headers;
+};
+
+export type updateBuildingStatusResponse = (updateBuildingStatusResponseSuccess | updateBuildingStatusResponseError)
+
+export const getUpdateBuildingStatusUrl = (id: string,) => {
+
+
+
+
+  return `/api/buildings/${id}/status`
+}
+
+/**
+ * @summary Updates the building status of the building with provided id
+ */
+export const updateBuildingStatus = async (id: string,
+    updateBuildingStatusRequest: NonReadonly<UpdateBuildingStatusRequest>, options?: RequestInit): Promise<updateBuildingStatusResponse> => {
+
+  const res = await fetch(getUpdateBuildingStatusUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateBuildingStatusRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateBuildingStatusResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateBuildingStatusResponse
+}
+
+
+
+
+
+export const getUpdateBuildingStatusMutationOptions = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBuildingStatus>>, TError,{id: string;data: NonReadonly<UpdateBuildingStatusRequest>}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof updateBuildingStatus>>, TError,{id: string;data: NonReadonly<UpdateBuildingStatusRequest>}, TContext> => {
+
+const mutationKey = ['updateBuildingStatus'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateBuildingStatus>>, {id: string;data: NonReadonly<UpdateBuildingStatusRequest>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateBuildingStatus(id,data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateBuildingStatusMutationResult = NonNullable<Awaited<ReturnType<typeof updateBuildingStatus>>>
+    export type UpdateBuildingStatusMutationBody = NonReadonly<UpdateBuildingStatusRequest>
+    export type UpdateBuildingStatusMutationError = ErrorModel
+
+    /**
+ * @summary Updates the building status of the building with provided id
+ */
+export const useUpdateBuildingStatus = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBuildingStatus>>, TError,{id: string;data: NonReadonly<UpdateBuildingStatusRequest>}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateBuildingStatus>>,
+        TError,
+        {id: string;data: NonReadonly<UpdateBuildingStatusRequest>},
+        TContext
+      > => {
+      return useMutation(getUpdateBuildingStatusMutationOptions(options), queryClient);
     }

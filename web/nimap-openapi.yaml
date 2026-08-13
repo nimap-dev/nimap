@@ -23,6 +23,13 @@ components:
           type: string
         representativePoint:
           $ref: "#/components/schemas/Point"
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
         updatedAt:
           format: date-time
           type: string
@@ -31,6 +38,7 @@ components:
         - name
         - footprint
         - representativePoint
+        - status
         - createdAt
         - updatedAt
       type: object
@@ -51,9 +59,17 @@ components:
           type: string
         notes:
           type: string
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
       required:
         - name
         - footprint
+        - status
       type: object
     ErrorDetail:
       additionalProperties: false
@@ -201,6 +217,26 @@ components:
         - name
         - footprint
       type: object
+    UpdateBuildingStatusRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateBuildingStatusRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
+      required:
+        - status
+      type: object
     User:
       additionalProperties: false
       properties:
@@ -300,6 +336,21 @@ paths:
   /api/buildings:
     get:
       operationId: list-buildings
+      parameters:
+        - description: Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup.
+          explode: false
+          in: query
+          name: status
+          schema:
+            description: Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup.
+            items:
+              enum:
+                - planned
+                - active
+                - decommissioned
+                - archived
+              type: string
+            type: array
       responses:
         "200":
           content:
@@ -415,6 +466,37 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Updates the building with the provided id
+      tags:
+        - buildings
+  /api/buildings/{id}/status:
+    patch:
+      operationId: update-building-status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBuildingStatusRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BuildingResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Updates the building status of the building with provided id
       tags:
         - buildings
 

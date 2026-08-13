@@ -4,6 +4,7 @@
  * nimap API
  * OpenAPI spec version: dev
  */
+import type { CreateBuildingRequestStatus } from './createBuildingRequestStatus.ts';
 import type { MultiPolygon } from './multiPolygon.ts';
 
 export interface CreateBuildingRequest {
@@ -13,4 +14,5 @@ export interface CreateBuildingRequest {
   /** @minLength 1 */
   name: string;
   notes?: string;
+  status: CreateBuildingRequestStatus;
 }

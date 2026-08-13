@@ -16,12 +16,14 @@ const createBuilding = `-- name: CreateBuilding :one
 INSERT INTO building (
   name,
   footprint,
-  notes
+  notes,
+  status
 )
 VALUES (
   $1,
   ST_GeomFromGeoJSON($2::text),
-  $3
+  $3,
+  $4
 )
 RETURNING
   id,
@@ -29,6 +31,7 @@ RETURNING
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
+  status,
   created_at,
   updated_at
 `
@@ -37,6 +40,7 @@ type CreateBuildingParams struct {
 	Name      string
 	Footprint string
 	Notes     *string
+	Status    LifecycleStatus
 }
 
 type CreateBuildingRow struct {
@@ -45,12 +49,18 @@ type CreateBuildingRow struct {
 	Footprint           string
 	RepresentativePoint string
 	Notes               *string
+	Status              LifecycleStatus
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
 
 func (q *Queries) CreateBuilding(ctx context.Context, arg CreateBuildingParams) (CreateBuildingRow, error) {
-	row := q.db.QueryRow(ctx, createBuilding, arg.Name, arg.Footprint, arg.Notes)
+	row := q.db.QueryRow(ctx, createBuilding,
+		arg.Name,
+		arg.Footprint,
+		arg.Notes,
+		arg.Status,
+	)
 	var i CreateBuildingRow
 	err := row.Scan(
 		&i.ID,
@@ -58,6 +68,7 @@ func (q *Queries) CreateBuilding(ctx context.Context, arg CreateBuildingParams) 
 		&i.Footprint,
 		&i.RepresentativePoint,
 		&i.Notes,
+		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -88,6 +99,7 @@ SELECT
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
+  status,
   created_at,
   updated_at
 FROM building
@@ -101,6 +113,7 @@ type GetBuildingRow struct {
 	Footprint           string
 	RepresentativePoint string
 	Notes               *string
+	Status              LifecycleStatus
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
@@ -114,6 +127,7 @@ func (q *Queries) GetBuilding(ctx context.Context, id uuid.UUID) (GetBuildingRow
 		&i.Footprint,
 		&i.RepresentativePoint,
 		&i.Notes,
+		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -127,10 +141,12 @@ SELECT
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
+  status,
   created_at,
   updated_at
 FROM building
 WHERE deleted_at IS NULL
+  AND status::text = ANY($1::text[])
 ORDER BY created_at DESC
 `
 
@@ -140,12 +156,13 @@ type ListBuildingsRow struct {
 	Footprint           string
 	RepresentativePoint string
 	Notes               *string
+	Status              LifecycleStatus
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
 
-func (q *Queries) ListBuildings(ctx context.Context) ([]ListBuildingsRow, error) {
-	rows, err := q.db.Query(ctx, listBuildings)
+func (q *Queries) ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error) {
+	rows, err := q.db.Query(ctx, listBuildings, statuses)
 	if err != nil {
 		return nil, err
 	}
@@ -159,6 +176,7 @@ func (q *Queries) ListBuildings(ctx context.Context) ([]ListBuildingsRow, error)
 			&i.Footprint,
 			&i.RepresentativePoint,
 			&i.Notes,
+			&i.Status,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -187,6 +205,7 @@ RETURNING
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
+  status,
   created_at,
   updated_at
 `
@@ -204,6 +223,7 @@ type UpdateBuildingRow struct {
 	Footprint           string
 	RepresentativePoint string
 	Notes               *string
+	Status              LifecycleStatus
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
@@ -222,6 +242,57 @@ func (q *Queries) UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) 
 		&i.Footprint,
 		&i.RepresentativePoint,
 		&i.Notes,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateBuildingStatus = `-- name: UpdateBuildingStatus :one
+UPDATE building
+SET
+  status = $1,
+  updated_at = now()
+WHERE id = $2
+  AND deleted_at IS NULL
+RETURNING
+  id,
+  name,
+  ST_AsGeoJSON(footprint)::text AS footprint,
+  ST_AsGeoJSON(representative_point)::text AS representative_point,
+  notes,
+  status,
+  created_at,
+  updated_at
+`
+
+type UpdateBuildingStatusParams struct {
+	Status LifecycleStatus
+	ID     uuid.UUID
+}
+
+type UpdateBuildingStatusRow struct {
+	ID                  uuid.UUID
+	Name                string
+	Footprint           string
+	RepresentativePoint string
+	Notes               *string
+	Status              LifecycleStatus
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+}
+
+func (q *Queries) UpdateBuildingStatus(ctx context.Context, arg UpdateBuildingStatusParams) (UpdateBuildingStatusRow, error) {
+	row := q.db.QueryRow(ctx, updateBuildingStatus, arg.Status, arg.ID)
+	var i UpdateBuildingStatusRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Footprint,
+		&i.RepresentativePoint,
+		&i.Notes,
+		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

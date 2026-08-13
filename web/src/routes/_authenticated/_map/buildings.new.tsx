@@ -1,10 +1,22 @@
 import { getListBuildingsQueryKey, useCreateBuilding } from '#/api/buildings/buildings'
 import { CreateBuildingBody } from '#/api/endpoints/buildings/buildings.zod'
+import { CreateBuildingRequestStatus } from '#/api/model'
 import type { MultiPolygon } from '#/api/model'
 import { Button } from '#/components/ui/button'
 import { Field, FieldError, FieldGroup, FieldLabel } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '#/components/ui/select'
 import { toast } from '#/components/ui/toast'
+import {
+  lifecycleStatusLabels,
+  lifecycleStatusOptions,
+} from '#/lib/lifecycle'
 import { useWorldMap } from '#/lib/map'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
@@ -26,6 +38,7 @@ function NewBuilding() {
     defaultValues: {
       name: "",
       notes: "",
+      status: CreateBuildingRequestStatus.active as CreateBuildingRequestStatus,
       footprint: undefined as MultiPolygon | undefined,
     },
     onSubmit: async ({ value }) => {
@@ -36,6 +49,7 @@ function NewBuilding() {
           name: value.name,
           footprint: value.footprint,
           notes: value.notes.trim() || undefined,
+          status: value.status,
         },
       })
 
@@ -103,6 +117,34 @@ function NewBuilding() {
                 </Field>
               )
             }}
+          />
+
+          <form.Field
+            name="status"
+            validators={{ onChange: CreateBuildingBody.shape.status }}
+            children={(field) => (
+              <Field>
+                <FieldLabel htmlFor={field.name}>Status</FieldLabel>
+                <Select
+                  items={lifecycleStatusLabels}
+                  value={field.state.value}
+                  onValueChange={(value) =>
+                    field.handleChange(value as CreateBuildingRequestStatus)
+                  }
+                >
+                  <SelectTrigger id={field.name} className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {lifecycleStatusOptions.map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            )}
           />
 
           <form.Field
