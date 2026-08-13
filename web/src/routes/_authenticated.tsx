@@ -8,7 +8,10 @@ export const Route = createFileRoute('/_authenticated')({
 
 function RouteComponent() {
   return (
-    <SidebarProvider style={{ "--sidebar-width": "30rem", } as CSSProperties}>
+    <SidebarProvider
+      className="max-md:h-svh max-md:flex-col"
+      style={{ "--sidebar-width": "25rem", } as CSSProperties}
+    >
       <Outlet />
     </SidebarProvider >
   )

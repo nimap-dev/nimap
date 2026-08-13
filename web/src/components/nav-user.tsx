@@ -48,12 +48,12 @@ export function NavUser() {
 
   if (!user) return
   return (
-    <SidebarMenu>
+    <SidebarMenu className="w-8">
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger render={<SidebarMenuButton
             size="lg"
-            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground md:h-8 md:p-0"
+            className="size-8 p-0 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           />}>
             <Avatar className="h-8 w-8 rounded-lg">
               <AvatarFallback className="rounded-lg">{user.username.slice(0, 2).toUpperCase()}</AvatarFallback>

@@ -5,6 +5,7 @@ import Map, {
   type MapLayerMouseEvent,
 } from "react-map-gl/maplibre";
 import { BuildingsSource } from "./buildings";
+import { MapSearch } from "./map-search";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TerraDraw, TerraDrawPolygonMode } from "terra-draw";
@@ -13,7 +14,7 @@ import type { Map as MapLibreMap } from "maplibre-gl";
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 export function WorldMap() {
-  const { mapRef, registerDraw, isDrawing } = useWorldMap()
+  const { mapRef, registerDraw, setMapReady, isDrawing } = useWorldMap()
   const navigate = useNavigate()
   const drawRef = useRef<TerraDraw | null>(null)
 
@@ -68,8 +69,9 @@ export function WorldMap() {
       drawRef.current?.stop()
       drawRef.current = null
       registerDraw(null)
+      setMapReady(false)
     }
-  }, [registerDraw])
+  }, [registerDraw, setMapReady])
 
   const [hoveredBuilding, setHoveredBuilding] = useState<{
     name: string
@@ -116,6 +118,7 @@ export function WorldMap() {
   // this path needs no ref at all.
   function onMapLoad(event: { target: MapLibreMap }) {
     setupDraw(event.target)
+    setMapReady(true)
   }
 
   return (
@@ -140,6 +143,7 @@ export function WorldMap() {
       onLoad={onMapLoad}
     >
       <BuildingsSource />
+      <MapSearch />
 
       <NavigationControl position="top-right" />
       <ScaleControl position="bottom-left" />

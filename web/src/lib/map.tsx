@@ -30,6 +30,13 @@ function readFootprint(draw: TerraDraw): MultiPolygon | undefined {
   return { type: "MultiPolygon", coordinates: parts };
 }
 
+/** Corners as `[west, south, east, north]`. */
+export type Bounds = [number, number, number, number]
+
+type CameraMove =
+  | { kind: "center"; longitude: number; latitude: number; zoom: number }
+  | { kind: "bounds"; bounds: Bounds; maxZoom: number }
+
 type MapContextValue = {
   mapRef: React.RefObject<MapRef | null>
   flyTo: (
@@ -37,6 +44,13 @@ type MapContextValue = {
     latitude: number,
     zoom?: number
   ) => void
+  /** Frame an area, stopping short of `maxZoom` for the very small ones. */
+  fitBounds: (bounds: Bounds, maxZoom?: number) => void
+  /**
+   * `WorldMap` reports when the map is usable. A camera move asked for before
+   * that is held back and replayed here, so deep links land on their building.
+   */
+  setMapReady: (ready: boolean) => void
   /**
    * Handing the draw instance over is `WorldMap`'s job — it owns the map the
    * adapter binds to. Pass `null` when the map unmounts.
@@ -106,17 +120,63 @@ export function MapProvider({
     applyIntent();
   }, [applyIntent]);
 
+  const isMapReadyRef = useRef(false);
+  const pendingMoveRef = useRef<CameraMove | null>(null);
+
+  const runMove = useCallback((move: CameraMove) => {
+    const map = mapRef.current;
+
+    if (!map) return;
+
+    if (move.kind === "center") {
+      map.flyTo({
+        center: [move.longitude, move.latitude],
+        zoom: move.zoom,
+        duration: 1500,
+      });
+      return;
+    }
+
+    const [west, south, east, north] = move.bounds;
+
+    map.fitBounds([[west, south], [east, north]], {
+      maxZoom: move.maxZoom,
+      padding: 48,
+      duration: 1500,
+    });
+  }, []);
+
+  const queueMove = useCallback((move: CameraMove) => {
+    if (!isMapReadyRef.current) {
+      pendingMoveRef.current = move;
+      return;
+    }
+
+    runMove(move);
+  }, [runMove]);
+
   const flyTo = useCallback((
     longitude: number,
     latitude: number,
     zoom = 12
   ) => {
-    mapRef.current?.flyTo({
-      center: [longitude, latitude],
-      zoom,
-      duration: 1500,
-    });
-  }, []);
+    queueMove({ kind: "center", longitude, latitude, zoom });
+  }, [queueMove]);
+
+  const fitBounds = useCallback((bounds: Bounds, maxZoom = 17) => {
+    queueMove({ kind: "bounds", bounds, maxZoom });
+  }, [queueMove]);
+
+  const setMapReady = useCallback((ready: boolean) => {
+    isMapReadyRef.current = ready;
+
+    if (!ready) return;
+
+    const pending = pendingMoveRef.current;
+    pendingMoveRef.current = null;
+
+    if (pending) runMove(pending);
+  }, [runMove]);
 
   const drawPolygon = useCallback((initial?: MultiPolygon) => {
     intentRef.current = { drawing: true, initial };
@@ -136,13 +196,24 @@ export function MapProvider({
     () => ({
       mapRef,
       flyTo,
+      fitBounds,
+      setMapReady,
       registerDraw,
       drawPolygon,
       cancelDrawing,
       polygon,
       isDrawing,
     }),
-    [flyTo, registerDraw, drawPolygon, cancelDrawing, polygon, isDrawing]
+    [
+      flyTo,
+      fitBounds,
+      setMapReady,
+      registerDraw,
+      drawPolygon,
+      cancelDrawing,
+      polygon,
+      isDrawing,
+    ]
   );
 
   return (

@@ -11,7 +11,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { Skeleton } from '#/components/ui/skeleton'
 import type { ReactNode } from 'react'
 
-export const Route = createFileRoute('/_authenticated/_map/buildings/')({
+export const Route = createFileRoute('/_authenticated/_nav/buildings/')({
   component: AllBuildings
 })
 
