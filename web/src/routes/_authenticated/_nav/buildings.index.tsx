@@ -1,15 +1,27 @@
 import { useListBuildings } from '#/api/buildings/buildings'
 import type { BuildingResponse } from '#/api/model'
+import { ListBuildingsStatusItem } from '#/api/model'
 import { DataTable } from '#/components/data-table/data-table'
 import { DataTableColumnHeader } from '#/components/data-table/data-table-column-header'
 import type { DataTableFeatures } from '#/components/data-table/data-table-features'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/formate-date'
+import {
+  lifecycleStatusLabels,
+  lifecycleStatusOptions,
+} from '#/lib/lifecycle'
 import { Button } from '#/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '#/components/ui/dropdown-menu'
+import { keepPreviousData } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { Plus } from 'lucide-react'
+import { ListFilter, Plus } from 'lucide-react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Skeleton } from '#/components/ui/skeleton'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 export const Route = createFileRoute('/_authenticated/_nav/buildings/')({
   component: AllBuildings
@@ -42,6 +54,17 @@ export const columns = columnHelper.columns([
       </div>
     ),
   }),
+  columnHelper.accessor("status", {
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column}>Status</DataTableColumnHeader>
+    ),
+    meta: { width: "9rem" },
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground">
+        {lifecycleStatusLabels[getValue()]}
+      </span>
+    ),
+  }),
   columnHelper.accessor("updatedAt", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Updated</DataTableColumnHeader>
@@ -61,7 +84,14 @@ export const columns = columnHelper.columns([
 ])
 
 function AllBuildings() {
-  const { data: buildings, isPending } = useListBuildings()
+  const [statuses, setStatuses] = useState<ListBuildingsStatusItem[]>([
+    ListBuildingsStatusItem.planned,
+    ListBuildingsStatusItem.active,
+  ])
+  const { data: buildings, isPending } = useListBuildings(
+    { status: statuses },
+    { query: { placeholderData: keepPreviousData } }
+  )
   const navigate = useNavigate()
   if (isPending) return (
     <Panel title="All Buildings">
@@ -88,6 +118,7 @@ function AllBuildings() {
         data={buildings.data}
         searchColumn="name"
         searchPlaceholder="Search buildings…"
+        actions={<StatusFilter value={statuses} onChange={setStatuses} />}
         onRowClick={(building) =>
           navigate({
             to: "/buildings/$buildingId",
@@ -96,6 +127,52 @@ function AllBuildings() {
         }
       />
     </Panel>
+  )
+}
+
+function StatusFilter({
+  value,
+  onChange,
+}: {
+  value: ListBuildingsStatusItem[]
+  onChange: (statuses: ListBuildingsStatusItem[]) => void
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label="Filter by status"
+        render={<Button variant="outline" />}
+      >
+        <ListFilter />
+        Status
+        <span className="text-muted-foreground">{value.length}</span>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-auto">
+        {lifecycleStatusOptions.map(([status, label]) => {
+          const checked = value.includes(status)
+
+          return (
+            <DropdownMenuCheckboxItem
+              key={status}
+              checked={checked}
+              disabled={checked && value.length === 1}
+              onCheckedChange={(next) => {
+                const selected = new Set(value)
+                if (next) selected.add(status)
+                else selected.delete(status)
+                onChange(
+                  lifecycleStatusOptions
+                    .map(([item]) => item)
+                    .filter((item) => selected.has(item))
+                )
+              }}
+            >
+              {label}
+            </DropdownMenuCheckboxItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
