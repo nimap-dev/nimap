@@ -13,21 +13,33 @@ import (
 )
 
 const createBuilding = `-- name: CreateBuilding :one
-INSERT INTO building (
+INSERT INTO buildings (
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   footprint,
   notes,
   status
 )
 VALUES (
   $1,
-  ST_GeomFromGeoJSON($2::text),
+  $2,
   $3,
-  $4
+  $4,
+  $5,
+  ST_GeomFromGeoJSON($6::text),
+  $7,
+  $8
 )
 RETURNING
   id,
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
@@ -37,15 +49,23 @@ RETURNING
 `
 
 type CreateBuildingParams struct {
-	Name      string
-	Footprint string
-	Notes     *string
-	Status    LifecycleStatus
+	Name           string
+	AddressStreet  *string
+	AddressCity    *string
+	AddressZip     *string
+	AddressCountry *string
+	Footprint      string
+	Notes          *string
+	Status         LifecycleStatus
 }
 
 type CreateBuildingRow struct {
 	ID                  uuid.UUID
 	Name                string
+	AddressStreet       *string
+	AddressCity         *string
+	AddressZip          *string
+	AddressCountry      *string
 	Footprint           string
 	RepresentativePoint string
 	Notes               *string
@@ -57,6 +77,10 @@ type CreateBuildingRow struct {
 func (q *Queries) CreateBuilding(ctx context.Context, arg CreateBuildingParams) (CreateBuildingRow, error) {
 	row := q.db.QueryRow(ctx, createBuilding,
 		arg.Name,
+		arg.AddressStreet,
+		arg.AddressCity,
+		arg.AddressZip,
+		arg.AddressCountry,
 		arg.Footprint,
 		arg.Notes,
 		arg.Status,
@@ -65,6 +89,10 @@ func (q *Queries) CreateBuilding(ctx context.Context, arg CreateBuildingParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.AddressStreet,
+		&i.AddressCity,
+		&i.AddressZip,
+		&i.AddressCountry,
 		&i.Footprint,
 		&i.RepresentativePoint,
 		&i.Notes,
@@ -76,7 +104,7 @@ func (q *Queries) CreateBuilding(ctx context.Context, arg CreateBuildingParams) 
 }
 
 const deleteBuilding = `-- name: DeleteBuilding :execrows
-UPDATE building
+UPDATE buildings
 SET
   deleted_at = now(),
   updated_at = now()
@@ -96,13 +124,17 @@ const getBuilding = `-- name: GetBuilding :one
 SELECT
   id,
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
   status,
   created_at,
   updated_at
-FROM building
+FROM buildings
 WHERE id = $1
   AND deleted_at IS NULL
 `
@@ -110,6 +142,10 @@ WHERE id = $1
 type GetBuildingRow struct {
 	ID                  uuid.UUID
 	Name                string
+	AddressStreet       *string
+	AddressCity         *string
+	AddressZip          *string
+	AddressCountry      *string
 	Footprint           string
 	RepresentativePoint string
 	Notes               *string
@@ -124,6 +160,10 @@ func (q *Queries) GetBuilding(ctx context.Context, id uuid.UUID) (GetBuildingRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.AddressStreet,
+		&i.AddressCity,
+		&i.AddressZip,
+		&i.AddressCountry,
 		&i.Footprint,
 		&i.RepresentativePoint,
 		&i.Notes,
@@ -138,13 +178,17 @@ const listBuildings = `-- name: ListBuildings :many
 SELECT
   id,
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
   status,
   created_at,
   updated_at
-FROM building
+FROM buildings
 WHERE deleted_at IS NULL
   AND status::text = ANY($1::text[])
 ORDER BY created_at DESC
@@ -153,6 +197,10 @@ ORDER BY created_at DESC
 type ListBuildingsRow struct {
 	ID                  uuid.UUID
 	Name                string
+	AddressStreet       *string
+	AddressCity         *string
+	AddressZip          *string
+	AddressCountry      *string
 	Footprint           string
 	RepresentativePoint string
 	Notes               *string
@@ -173,6 +221,10 @@ func (q *Queries) ListBuildings(ctx context.Context, statuses []string) ([]ListB
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.AddressStreet,
+			&i.AddressCity,
+			&i.AddressZip,
+			&i.AddressCountry,
 			&i.Footprint,
 			&i.RepresentativePoint,
 			&i.Notes,
@@ -191,17 +243,25 @@ func (q *Queries) ListBuildings(ctx context.Context, statuses []string) ([]ListB
 }
 
 const updateBuilding = `-- name: UpdateBuilding :one
-UPDATE building
+UPDATE buildings
 SET
   name = $1,
-  footprint = ST_GeomFromGeoJSON($2::text),
-  notes = $3,
+  address_street = $2,
+  address_city = $3,
+  address_zip = $4,
+  address_country = $5,
+  footprint = ST_GeomFromGeoJSON($6::text),
+  notes = $7,
   updated_at = now()
-WHERE id = $4
+WHERE id = $8
   AND deleted_at IS NULL
 RETURNING
   id,
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
@@ -211,15 +271,23 @@ RETURNING
 `
 
 type UpdateBuildingParams struct {
-	Name      string
-	Footprint string
-	Notes     *string
-	ID        uuid.UUID
+	Name           string
+	AddressStreet  *string
+	AddressCity    *string
+	AddressZip     *string
+	AddressCountry *string
+	Footprint      string
+	Notes          *string
+	ID             uuid.UUID
 }
 
 type UpdateBuildingRow struct {
 	ID                  uuid.UUID
 	Name                string
+	AddressStreet       *string
+	AddressCity         *string
+	AddressZip          *string
+	AddressCountry      *string
 	Footprint           string
 	RepresentativePoint string
 	Notes               *string
@@ -231,6 +299,10 @@ type UpdateBuildingRow struct {
 func (q *Queries) UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) (UpdateBuildingRow, error) {
 	row := q.db.QueryRow(ctx, updateBuilding,
 		arg.Name,
+		arg.AddressStreet,
+		arg.AddressCity,
+		arg.AddressZip,
+		arg.AddressCountry,
 		arg.Footprint,
 		arg.Notes,
 		arg.ID,
@@ -239,6 +311,10 @@ func (q *Queries) UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.AddressStreet,
+		&i.AddressCity,
+		&i.AddressZip,
+		&i.AddressCountry,
 		&i.Footprint,
 		&i.RepresentativePoint,
 		&i.Notes,
@@ -250,7 +326,7 @@ func (q *Queries) UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) 
 }
 
 const updateBuildingStatus = `-- name: UpdateBuildingStatus :one
-UPDATE building
+UPDATE buildings
 SET
   status = $1,
   updated_at = now()
@@ -259,6 +335,10 @@ WHERE id = $2
 RETURNING
   id,
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
@@ -275,6 +355,10 @@ type UpdateBuildingStatusParams struct {
 type UpdateBuildingStatusRow struct {
 	ID                  uuid.UUID
 	Name                string
+	AddressStreet       *string
+	AddressCity         *string
+	AddressZip          *string
+	AddressCountry      *string
 	Footprint           string
 	RepresentativePoint string
 	Notes               *string
@@ -289,6 +373,10 @@ func (q *Queries) UpdateBuildingStatus(ctx context.Context, arg UpdateBuildingSt
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.AddressStreet,
+		&i.AddressCity,
+		&i.AddressZip,
+		&i.AddressCountry,
 		&i.Footprint,
 		&i.RepresentativePoint,
 		&i.Notes,

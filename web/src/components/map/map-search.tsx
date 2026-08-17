@@ -1,13 +1,22 @@
-import { useListBuildings } from "#/api/buildings/buildings"
-import { Input } from "#/components/ui/input"
-import type { Bounds } from "#/lib/map"
-import { useWorldMap } from "#/lib/map"
-import { cn } from "#/lib/utils"
-import { useQuery } from "@tanstack/react-query"
-import { useNavigate } from "@tanstack/react-router"
-import { Building2, LoaderCircle, MapPin, Search, X } from "lucide-react"
-import { useId, useMemo, useRef, useState, useEffect } from "react"
-import { Marker } from "react-map-gl/maplibre"
+import { useListBuildings } from '#/api/buildings/buildings'
+import { useListLocations } from '#/api/locations/locations'
+import { Input } from '#/components/ui/input'
+import { formatAddress } from '#/lib/address'
+import type { Bounds } from '#/lib/map'
+import { multiPolygonBounds, useWorldMap } from '#/lib/map'
+import { cn } from '#/lib/utils'
+import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
+import {
+  Building2,
+  LandPlot,
+  LoaderCircle,
+  MapPin,
+  Search,
+  X,
+} from 'lucide-react'
+import { useId, useMemo, useRef, useState, useEffect } from 'react'
+import { Marker } from 'react-map-gl/maplibre'
 
 /** Your own buildings are already in memory, so one letter is enough for them. */
 const MIN_QUERY_LENGTH = 1
@@ -18,19 +27,33 @@ const DEBOUNCE_MS = 500
 /** A house gets a bounding box a few metres across; don't fill the screen with it. */
 const MAX_RESULT_ZOOM = 17
 const MAX_BUILDING_RESULTS = 5
+const MAX_LOCATION_RESULTS = 5
 
 type BuildingResult = {
-  kind: "building"
+  kind: 'building'
   key: string
   id: string
   label: string
   detail: string | undefined
+  address: string
   longitude: number
   latitude: number
 }
 
+type LocationResult = {
+  kind: 'location'
+  key: string
+  id: string
+  label: string
+  address: string
+  /** Framing beats centring for an estate, when its boundary is known. */
+  bounds: Bounds | undefined
+  longitude: number | undefined
+  latitude: number | undefined
+}
+
 type PlaceResult = {
-  kind: "place"
+  kind: 'place'
   key: string
   label: string
   longitude: number
@@ -38,7 +61,7 @@ type PlaceResult = {
   bounds: Bounds | undefined
 }
 
-type Result = BuildingResult | PlaceResult
+type Result = LocationResult | BuildingResult | PlaceResult
 
 type NominatimPlace = {
   place_id: number
@@ -51,12 +74,12 @@ type NominatimPlace = {
 
 async function searchPlaces(
   query: string,
-  signal: AbortSignal
+  signal: AbortSignal,
 ): Promise<PlaceResult[]> {
-  const url = new URL("https://nominatim.openstreetmap.org/search")
-  url.searchParams.set("q", query)
-  url.searchParams.set("format", "jsonv2")
-  url.searchParams.set("limit", "6")
+  const url = new URL('https://nominatim.openstreetmap.org/search')
+  url.searchParams.set('q', query)
+  url.searchParams.set('format', 'jsonv2')
+  url.searchParams.set('limit', '6')
 
   const response = await fetch(url, { signal })
 
@@ -70,7 +93,7 @@ async function searchPlaces(
     const box = place.boundingbox?.map(Number)
 
     return {
-      kind: "place" as const,
+      kind: 'place' as const,
       key: `place-${place.place_id}`,
       label: place.display_name,
       longitude: Number(place.lon),
@@ -100,7 +123,7 @@ export function MapSearch() {
   const { flyTo, fitBounds, isDrawing } = useWorldMap()
   const navigate = useNavigate()
 
-  const [query, setQuery] = useState("")
+  const [query, setQuery] = useState('')
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
@@ -114,13 +137,14 @@ export function MapSearch() {
   const isPlaceSearchable = debouncedQuery.length >= MIN_PLACE_QUERY_LENGTH
 
   const { data: buildingsResponse } = useListBuildings()
+  const { data: locationsResponse } = useListLocations()
 
   const {
     data: places,
     isFetching,
     isError,
   } = useQuery({
-    queryKey: ["places", debouncedQuery],
+    queryKey: ['places', debouncedQuery],
     queryFn: ({ signal }) => searchPlaces(debouncedQuery, signal),
     enabled: isPlaceSearchable,
     staleTime: 5 * 60 * 1000,
@@ -134,24 +158,68 @@ export function MapSearch() {
     if (buildingsResponse?.status !== 200) return []
 
     return buildingsResponse.data
-      .filter((building) => building.name.toLowerCase().includes(needle))
+      .map((building) => ({
+        building,
+        address: formatAddress(building.address),
+      }))
+      .filter(
+        ({ building, address }) =>
+          building.name.toLowerCase().includes(needle) ||
+          address.toLowerCase().includes(needle),
+      )
       .slice(0, MAX_BUILDING_RESULTS)
-      .map((building) => {
+      .map(({ building, address }) => {
         const [longitude, latitude] = building.representativePoint.coordinates
 
         return {
-          kind: "building",
+          kind: 'building',
           key: `building-${building.id}`,
           id: building.id,
           label: building.name,
           detail: building.notes,
+          address,
           longitude,
           latitude,
         }
       })
   }, [buildingsResponse, trimmedQuery])
 
+  const locationResults = useMemo<LocationResult[]>(() => {
+    const needle = trimmedQuery.toLowerCase()
+
+    if (needle.length < MIN_QUERY_LENGTH) return []
+    if (locationsResponse?.status !== 200) return []
+
+    return locationsResponse.data
+      .map((location) => ({
+        location,
+        address: formatAddress(location.address),
+      }))
+      .filter(
+        ({ location, address }) =>
+          location.name.toLowerCase().includes(needle) ||
+          address.toLowerCase().includes(needle),
+      )
+      .slice(0, MAX_LOCATION_RESULTS)
+      .map(({ location, address }) => {
+        const [longitude, latitude] =
+          location.representativePoint?.coordinates ?? []
+
+        return {
+          kind: 'location' as const,
+          key: `location-${location.id}`,
+          id: location.id,
+          label: location.name,
+          address,
+          bounds: location.area && multiPolygonBounds(location.area),
+          longitude,
+          latitude,
+        }
+      })
+  }, [locationsResponse, trimmedQuery])
+
   const results: Result[] = [
+    ...locationResults,
     ...buildingResults,
     ...(isPlaceSearchable ? (places ?? []) : []),
   ]
@@ -162,7 +230,27 @@ export function MapSearch() {
   function select(result: Result) {
     setIsOpen(false)
 
-    if (result.kind === "building") {
+    if (result.kind === 'location') {
+      setSelectedPlace(null)
+
+      if (isDrawing) {
+        if (result.bounds) fitBounds(result.bounds)
+        else if (
+          result.longitude !== undefined &&
+          result.latitude !== undefined
+        )
+          flyTo(result.longitude, result.latitude, MAX_RESULT_ZOOM)
+        return
+      }
+
+      navigate({
+        to: '/locations/$locationId',
+        params: { locationId: result.id },
+      })
+      return
+    }
+
+    if (result.kind === 'building') {
       setSelectedPlace(null)
 
       if (isDrawing) {
@@ -170,7 +258,10 @@ export function MapSearch() {
         return
       }
 
-      navigate({ to: "/buildings/$buildingId", params: { buildingId: result.id } })
+      navigate({
+        to: '/buildings/$buildingId',
+        params: { buildingId: result.id },
+      })
       return
     }
 
@@ -182,29 +273,29 @@ export function MapSearch() {
   }
 
   function clear() {
-    setQuery("")
+    setQuery('')
     setSelectedPlace(null)
     setIsOpen(false)
     inputRef.current?.focus()
   }
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Escape") {
+    if (event.key === 'Escape') {
       if (isOpen) setIsOpen(false)
       else clear()
       return
     }
 
-    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       if (results.length === 0) return
       event.preventDefault()
       setIsOpen(true)
-      const next = event.key === "ArrowDown" ? active + 1 : active - 1
+      const next = event.key === 'ArrowDown' ? active + 1 : active - 1
       setActiveIndex((next + results.length) % results.length)
       return
     }
 
-    if (event.key === "Enter") {
+    if (event.key === 'Enter') {
       const result = results.at(active)
       if (!showResults || !result) return
       event.preventDefault()
@@ -221,8 +312,8 @@ export function MapSearch() {
             ref={inputRef}
             type="search"
             value={query}
-            placeholder="Search buildings and places…"
-            aria-label="Search buildings and places"
+            placeholder="Search locations, buildings and places…"
+            aria-label="Search locations, buildings and places"
             role="combobox"
             aria-expanded={showResults}
             aria-controls={listboxId}
@@ -279,21 +370,36 @@ export function MapSearch() {
                 onMouseEnter={() => setActiveIndex(index)}
                 onClick={() => select(result)}
                 className={cn(
-                  "flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm",
-                  index === active && "bg-accent text-accent-foreground"
+                  'flex cursor-pointer items-center gap-2 px-2.5 py-2 text-sm',
+                  index === active && 'bg-accent text-accent-foreground',
                 )}
                 title={result.label}
               >
-                {result.kind === "building" ? (
+                {result.kind === 'location' ? (
+                  // Teal, like the estate outlines on the map.
+                  <LandPlot className="size-4 shrink-0 text-teal-600 dark:text-teal-500" />
+                ) : result.kind === 'building' ? (
                   // Red, like the footprints on the map.
                   <Building2 className="size-4 shrink-0 text-red-600 dark:text-red-500" />
                 ) : (
                   <MapPin className="size-4 shrink-0 text-muted-foreground" />
                 )}
-                <span className="min-w-0 flex-1 truncate">{result.label}</span>
-                {result.kind === "building" && (
+                <span className="min-w-0 flex-1 truncate">
+                  {result.label}
+                  {result.kind !== 'place' && result.address && (
+                    <span className="text-muted-foreground">
+                      {' · '}
+                      {result.address}
+                    </span>
+                  )}
+                </span>
+                {result.kind !== 'place' && (
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {isDrawing ? "Show on map" : "Building"}
+                    {isDrawing
+                      ? 'Show on map'
+                      : result.kind === 'location'
+                        ? 'Location'
+                        : 'Building'}
                   </span>
                 )}
               </li>
@@ -301,12 +407,12 @@ export function MapSearch() {
             {results.length === 0 && (
               <li className="px-2.5 py-2 text-sm text-muted-foreground">
                 {isError
-                  ? "Place search is unavailable right now"
+                  ? 'Place search is unavailable right now'
                   : isFetching
-                    ? "Searching…"
+                    ? 'Searching…'
                     : isPlaceSearchable
-                      ? "Nothing found"
-                      : "No building matches — keep typing to search places"}
+                      ? 'Nothing found'
+                      : 'Nothing of yours matches — keep typing to search places'}
               </li>
             )}
           </ul>

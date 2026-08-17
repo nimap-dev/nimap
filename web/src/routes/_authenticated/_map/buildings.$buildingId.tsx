@@ -6,6 +6,8 @@ import {
   useUpdateBuildingStatus,
 } from '#/api/buildings/buildings'
 import type { BuildingResponseStatus } from '#/api/model'
+import { Panel } from '#/components/panel'
+import { Detail, DetailList } from '#/components/detail-list'
 import { Button } from '#/components/ui/button'
 import {
   Select,
@@ -16,16 +18,14 @@ import {
 } from '#/components/ui/select'
 import { Skeleton } from '#/components/ui/skeleton'
 import { toast } from '#/components/ui/toast'
+import { formatAddress } from '#/lib/address'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/formate-date'
-import {
-  lifecycleStatusLabels,
-  lifecycleStatusOptions,
-} from '#/lib/lifecycle'
+import { lifecycleStatusLabels, lifecycleStatusOptions } from '#/lib/lifecycle'
 import { useWorldMap } from '#/lib/map'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, Crosshair, Pencil, Trash2 } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { Crosshair, Pencil, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,9 +37,11 @@ import {
   AlertDialogMedia,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog'
 
-export const Route = createFileRoute('/_authenticated/_map/buildings/$buildingId',)({ component: ViewBuilding })
+export const Route = createFileRoute(
+  '/_authenticated/_map/buildings/$buildingId',
+)({ component: ViewBuilding })
 
 function ViewBuilding() {
   const { buildingId } = Route.useParams()
@@ -55,13 +57,16 @@ function ViewBuilding() {
   const [longitude, latitude] = building?.representativePoint.coordinates ?? []
 
   useEffect(() => {
-    if (longitude === undefined || latitude === undefined) return
     flyTo(longitude, latitude, 17)
   }, [longitude, latitude, flyTo])
 
   if (isPending) {
     return (
-      <Panel title={<Skeleton className="h-4 w-40" />}>
+      <Panel
+        title={<Skeleton className="h-4 w-40" />}
+        back={<Link to="/buildings" />}
+        backLabel="Back to buildings"
+      >
         <Skeleton className="h-4 w-full" />
         <div className="grid gap-2">
           <Skeleton className="h-4 w-2/3" />
@@ -74,7 +79,11 @@ function ViewBuilding() {
 
   if (!building) {
     return (
-      <Panel title="Not found">
+      <Panel
+        title="Not found"
+        back={<Link to="/buildings" />}
+        backLabel="Back to buildings"
+      >
         <p className="text-sm text-muted-foreground">
           This building doesn't exist, or you don't have access to it.
         </p>
@@ -97,17 +106,17 @@ function ViewBuilding() {
 
       if (res.status !== 200) {
         toast.add({
-          type: "error",
-          title: "Could not change the status",
-          description: res.data?.detail ?? `${name} stayed as it was`,
+          type: 'error',
+          title: 'Could not change the status',
+          description: res.data.detail ?? `${name} stayed as it was`,
         })
         return
       }
     } catch {
       toast.add({
-        type: "error",
-        title: "Could not change the status",
-        description: "The request failed, check your connection and retry",
+        type: 'error',
+        title: 'Could not change the status',
+        description: 'The request failed, check your connection and retry',
       })
       return
     }
@@ -119,7 +128,7 @@ function ViewBuilding() {
       queryKey: getListBuildingsQueryKey(),
     })
     toast.add({
-      type: "success",
+      type: 'success',
       description: `${name} is now ${lifecycleStatusLabels[status].toLowerCase()}`,
     })
   }
@@ -130,17 +139,17 @@ function ViewBuilding() {
 
       if (res.status !== 204) {
         toast.add({
-          type: "error",
-          title: "Could not delete",
-          description: res.data?.detail ?? `${name} is still there`,
+          type: 'error',
+          title: 'Could not delete',
+          description: res.data.detail ?? `${name} is still there`,
         })
         return
       }
     } catch {
       toast.add({
-        type: "error",
-        title: "Could not delete",
-        description: "The request failed, check your connection and retry",
+        type: 'error',
+        title: 'Could not delete',
+        description: 'The request failed, check your connection and retry',
       })
       return
     }
@@ -150,17 +159,19 @@ function ViewBuilding() {
     await queryClient.invalidateQueries({
       queryKey: getListBuildingsQueryKey(),
     })
-    toast.add({ type: "success", description: `${name} was deleted` })
-    navigate({ to: "/buildings", replace: true })
+    toast.add({ type: 'success', description: `${name} was deleted` })
+    navigate({ to: '/buildings', replace: true })
   }
 
   return (
     <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
       <Panel
         title={building.name}
+        back={<Link to="/buildings" />}
+        backLabel="Back to buildings"
         action={
           <>
-            {longitude !== undefined && latitude !== undefined && (
+            {
               <Button
                 variant="ghost"
                 size="icon"
@@ -168,12 +179,17 @@ function ViewBuilding() {
               >
                 <Crosshair />
               </Button>
-            )}
+            }
             <Button
               variant="ghost"
               size="icon"
               aria-label="Edit building"
-              render={<Link to="/buildings/$buildingId/edit" params={{ buildingId }} />}
+              render={
+                <Link
+                  to="/buildings/$buildingId/edit"
+                  params={{ buildingId }}
+                />
+              }
             >
               <Pencil />
             </Button>
@@ -184,50 +200,59 @@ function ViewBuilding() {
             >
               <Trash2 />
             </AlertDialogTrigger>
-          </>}
+          </>
+        }
       >
         {building.notes && (
           <p className="text-sm whitespace-pre-line text-muted-foreground">
             {building.notes}
           </p>
         )}
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <span className="shrink-0 text-muted-foreground">Status</span>
-          <Select
-            items={lifecycleStatusLabels}
-            value={building.status}
-            onValueChange={(value) =>
-              handleStatusChange(value as BuildingResponseStatus)
-            }
-            disabled={updateStatus.isPending}
-          >
-            <SelectTrigger size="sm" aria-label="Building status">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {lifecycleStatusOptions.map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <dl className="grid gap-2 text-sm">
-          {longitude !== undefined && latitude !== undefined && (
+        <DetailList>
+          <Detail label="Status" align="center">
+            <Select
+              items={lifecycleStatusLabels}
+              value={building.status}
+              onValueChange={(value) =>
+                handleStatusChange(value as BuildingResponseStatus)
+              }
+              disabled={updateStatus.isPending}
+            >
+              <SelectTrigger size="sm" aria-label="Building status">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {lifecycleStatusOptions.map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Detail>
+          {formatAddress(building.address) && (
+            <Detail label="Address">{formatAddress(building.address)}</Detail>
+          )}
+          {
             <Detail label="Position">
               {latitude.toFixed(5)}, {longitude.toFixed(5)}
             </Detail>
-          )}
-          <Detail label="Updated" title={formatAbsoluteDate(building.updatedAt)}>
+          }
+          <Detail
+            label="Updated"
+            title={formatAbsoluteDate(building.updatedAt)}
+          >
             {formatRelativeDate(building.updatedAt)}
           </Detail>
-          <Detail label="Created" title={formatAbsoluteDate(building.createdAt)}>
+          <Detail
+            label="Created"
+            title={formatAbsoluteDate(building.createdAt)}
+          >
             {formatRelativeDate(building.createdAt)}
           </Detail>
-        </dl>
+        </DetailList>
       </Panel>
-      <AlertDialogContent size='sm'>
+      <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogMedia>
             <Trash2 />
@@ -253,57 +278,10 @@ function ViewBuilding() {
             disabled={deleteBuilding.isPending}
             onClick={handleDelete}
           >
-            {deleteBuilding.isPending ? "Deleting…" : "Delete building"}
+            {deleteBuilding.isPending ? 'Deleting…' : 'Delete building'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
-    </AlertDialog >
-  )
-}
-
-function Panel({
-  title,
-  action,
-  children,
-}: {
-  title: ReactNode
-  action?: ReactNode
-  children: ReactNode
-}) {
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1 border-b p-2 h-12">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Back to buildings"
-          render={<Link to="/buildings" />}
-        >
-          <ArrowLeft />
-        </Button>
-        <h2 className="min-w-0 flex-1 truncate font-medium">{title}</h2>
-        {action}
-      </div>
-      <div className="flex flex-col gap-4 overflow-y-auto p-3">{children}</div>
-    </div>
-  )
-}
-
-function Detail({
-  label,
-  title,
-  children,
-}: {
-  label: string
-  title?: string
-  children: ReactNode
-}) {
-  return (
-    <div className="flex items-baseline justify-between gap-3">
-      <dt className="shrink-0 text-muted-foreground">{label}</dt>
-      <dd className="truncate" title={title}>
-        {children}
-      </dd>
-    </div>
+    </AlertDialog>
   )
 }

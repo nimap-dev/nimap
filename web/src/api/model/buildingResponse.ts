@@ -4,6 +4,7 @@
  * nimap API
  * OpenAPI spec version: dev
  */
+import type { Address } from './address.ts';
 import type { BuildingResponseStatus } from './buildingResponseStatus.ts';
 import type { MultiPolygon } from './multiPolygon.ts';
 import type { Point } from './point.ts';
@@ -11,6 +12,7 @@ import type { Point } from './point.ts';
 export interface BuildingResponse {
   /** A URL to the JSON Schema for this object. */
   readonly $schema?: string;
+  address?: Address;
   createdAt: string;
   footprint: MultiPolygon;
   id: string;

@@ -22,8 +22,8 @@ const config = defineConfig({
         changeOrigin: true,
         secure: false,
       },
-    }
-  }
+    },
+  },
 })
 
 export default config

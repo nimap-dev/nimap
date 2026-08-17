@@ -11,15 +11,44 @@ import (
 )
 
 type Querier interface {
+	CountLocationChildren(ctx context.Context, id uuid.UUID) (int64, error)
 	CreateBuilding(ctx context.Context, arg CreateBuildingParams) (CreateBuildingRow, error)
+	CreateLocation(ctx context.Context, arg CreateLocationParams) (CreateLocationRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeleteBuilding(ctx context.Context, id uuid.UUID) (int64, error)
+	// Refuses in one statement rather than checking first and deleting after, so
+	// a child added in between cannot slip past the guard. Zero rows affected means
+	// either "not found" or "still has children" — CountLocationChildren tells the
+	// two apart for the error message.
+	DeleteLocation(ctx context.Context, id uuid.UUID) (int64, error)
 	GetBuilding(ctx context.Context, id uuid.UUID) (GetBuildingRow, error)
+	GetLocation(ctx context.Context, id uuid.UUID) (GetLocationRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
 	GetUserByUsername(ctx context.Context, lower string) (GetUserByUsernameRow, error)
 	ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error)
+	// The tree is walked over every location that is not deleted, and the status
+	// filter is applied only to what comes out: filtering inside the recursion
+	// would drop the children of a hidden parent along with it. A location whose
+	// parent is filtered out therefore arrives with its depth intact but without a
+	// visible ancestor, which the caller should fall back to rendering flat.
+	//
+	// `path` never leaves the query. It orders the rows into tree order, and the
+	// caller indents by `depth` from there.
+	ListLocationTree(ctx context.Context, statuses []string) ([]ListLocationTreeRow, error)
+	ListLocations(ctx context.Context, statuses []string) ([]ListLocationsRow, error)
+	// Picks the location whose area a footprint overlaps the most, so a building
+	// drawn inside a campus lands in the campus rather than in whichever location
+	// happened to be found first. Out-of-service locations are never suggested, and
+	// neither are the ones nobody has drawn yet: `area IS NOT NULL` says so up
+	// front, where the partial GIST index can use it, instead of leaving it to
+	// ST_Intersects returning NULL.
+	SuggestLocationForFootprint(ctx context.Context, footprint string) (SuggestLocationForFootprintRow, error)
 	UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) (UpdateBuildingRow, error)
 	UpdateBuildingStatus(ctx context.Context, arg UpdateBuildingStatusParams) (UpdateBuildingStatusRow, error)
+	// Leaves the status alone: taking a location out of service is its own
+	// operation, the same split the buildings queries make.
+	UpdateLocation(ctx context.Context, arg UpdateLocationParams) (UpdateLocationRow, error)
+	UpdateLocationStatus(ctx context.Context, arg UpdateLocationStatusParams) (UpdateLocationStatusRow, error)
 	UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) error
 }
 

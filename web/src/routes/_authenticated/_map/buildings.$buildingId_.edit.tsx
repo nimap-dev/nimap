@@ -5,18 +5,26 @@ import {
   useUpdateBuilding,
 } from '#/api/buildings/buildings'
 import { UpdateBuildingBody } from '#/api/endpoints/buildings/buildings.zod'
-import type { BuildingResponse, MultiPolygon } from '#/api/model'
+import type { BuildingResponse } from '#/api/model'
+import { AddressFields } from '#/components/address-fields'
 import { Button } from '#/components/ui/button'
-import { Field, FieldError, FieldGroup, FieldLabel } from '#/components/ui/field'
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 import { Skeleton } from '#/components/ui/skeleton'
 import { toast } from '#/components/ui/toast'
+import { addressToRequest, addressToValue } from '#/lib/address'
 import { useWorldMap } from '#/lib/map'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, Crosshair } from 'lucide-react'
-import { useEffect, useRef, type ReactNode } from 'react'
+import { Crosshair } from 'lucide-react'
+import { useEffect, useRef } from 'react'
+import { Panel } from '#/components/panel'
 
 export const Route = createFileRoute(
   '/_authenticated/_map/buildings/$buildingId_/edit',
@@ -34,7 +42,11 @@ function EditBuilding() {
 
   if (isPending) {
     return (
-      <Panel title={<Skeleton className="h-4 w-40" />}>
+      <Panel
+        title={<Skeleton className="h-4 w-40" />}
+        back={<Link to="/buildings" />}
+        backLabel="Back to buildings"
+      >
         <Skeleton className="h-8 w-full" />
         <Skeleton className="h-8 w-full" />
         <Skeleton className="h-8 w-2/3" />
@@ -44,7 +56,11 @@ function EditBuilding() {
 
   if (!building) {
     return (
-      <Panel title="Not found">
+      <Panel
+        title="Not found"
+        back={<Link to="/buildings" />}
+        backLabel="Back to buildings"
+      >
         <p className="text-sm text-muted-foreground">
           This building doesn't exist, or you don't have access to it.
         </p>
@@ -71,16 +87,16 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
   const form = useForm({
     defaultValues: {
       name: building.name,
-      notes: building.notes ?? "",
-      footprint: building.footprint as MultiPolygon | undefined,
+      address: addressToValue(building.address),
+      notes: building.notes ?? '',
+      footprint: building.footprint,
     },
     onSubmit: async ({ value }) => {
-      if (!value.footprint) return
-
       const res = await updateBuilding.mutateAsync({
         id: building.id,
         data: {
           name: value.name,
+          address: addressToRequest(value.address),
           footprint: value.footprint,
           notes: value.notes.trim() || undefined,
         },
@@ -88,9 +104,9 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
 
       if (res.status !== 200) {
         toast.add({
-          type: "error",
-          title: "Could not save",
-          description: res.data?.detail ?? "The building was not updated",
+          type: 'error',
+          title: 'Could not save',
+          description: res.data.detail ?? 'The building was not updated',
         })
         return
       }
@@ -101,9 +117,9 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
           queryKey: getGetBuildingQueryKey(building.id),
         }),
       ])
-      toast.add({ type: "success", description: "Building updated" })
+      toast.add({ type: 'success', description: 'Building updated' })
       navigate({
-        to: "/buildings/$buildingId",
+        to: '/buildings/$buildingId',
         params: { buildingId: building.id },
         replace: true,
       })
@@ -111,7 +127,6 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
   })
 
   useEffect(() => {
-    if (longitude === undefined || latitude === undefined) return
     flyTo(longitude, latitude, BUILDING_ZOOM)
   }, [flyTo, longitude, latitude])
 
@@ -124,7 +139,8 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
   }, [drawPolygon, cancelDrawing])
 
   useEffect(() => {
-    form.setFieldValue("footprint", polygon)
+    if (!polygon) return
+    form.setFieldValue('footprint', polygon)
   }, [form, polygon])
 
   const parts = polygon?.coordinates.length ?? 0
@@ -132,18 +148,22 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
   return (
     <Panel
       title={building.name}
-      buildingId={building.id}
+      back={
+        <Link
+          to="/buildings/$buildingId"
+          params={{ buildingId: building.id }}
+        />
+      }
+      backLabel="Back to building"
       action={
-        longitude !== undefined && latitude !== undefined ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Recentre map"
-            onClick={() => flyTo(longitude, latitude, BUILDING_ZOOM)}
-          >
-            <Crosshair />
-          </Button>
-        ) : undefined
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Recentre map"
+          onClick={() => flyTo(longitude, latitude, BUILDING_ZOOM)}
+        >
+          <Crosshair />
+        </Button>
       }
     >
       <form
@@ -178,6 +198,17 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
           />
 
           <form.Field
+            name="address"
+            children={(field) => (
+              <AddressFields
+                idPrefix="edit-building-address"
+                value={field.state.value}
+                onChange={field.handleChange}
+              />
+            )}
+          />
+
+          <form.Field
             name="notes"
             children={(field) => (
               <Field>
@@ -199,7 +230,7 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
             <div className="flex items-center justify-between gap-2 rounded-lg border p-2 text-sm">
               {parts > 0 ? (
                 <span>
-                  {parts} {parts === 1 ? "part" : "parts"} — drag a point to
+                  {parts} {parts === 1 ? 'part' : 'parts'} — drag a point to
                   reshape
                 </span>
               ) : (
@@ -230,7 +261,7 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
               form="edit-building-form"
               disabled={!canSubmit || isSubmitting || !polygon}
             >
-              {isSubmitting ? "Saving…" : "Save changes"}
+              {isSubmitting ? 'Saving…' : 'Save changes'}
             </Button>
             <Button
               type="button"
@@ -248,43 +279,5 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
         )}
       />
     </Panel>
-  )
-}
-
-function Panel({
-  title,
-  action,
-  buildingId,
-  children,
-}: {
-  title: ReactNode
-  action?: ReactNode
-  buildingId?: string
-  children: ReactNode
-}) {
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex h-12 items-center gap-1 border-b p-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={buildingId ? "Back to building" : "Back to buildings"}
-          render={
-            buildingId ? (
-              <Link to="/buildings/$buildingId" params={{ buildingId }} />
-            ) : (
-              <Link to="/buildings" />
-            )
-          }
-        >
-          <ArrowLeft />
-        </Button>
-        <h2 className="min-w-0 flex-1 truncate font-medium">{title}</h2>
-        {action}
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-3">
-        {children}
-      </div>
-    </div>
   )
 }

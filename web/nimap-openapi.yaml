@@ -1,5 +1,20 @@
 components:
   schemas:
+    Address:
+      additionalProperties: false
+      properties:
+        city:
+          type: string
+        country:
+          description: ISO 3166-1 alpha-2 country code
+          pattern: ^[A-Za-z]{2}$
+          type: string
+        street:
+          type: string
+        zip:
+          description: Postal code, in whatever shape the country writes it
+          type: string
+      type: object
     BuildingResponse:
       additionalProperties: false
       properties:
@@ -10,11 +25,13 @@ components:
           format: uri
           readOnly: true
           type: string
+        address:
+          $ref: '#/components/schemas/Address'
         createdAt:
           format: date-time
           type: string
         footprint:
-          $ref: "#/components/schemas/MultiPolygon"
+          $ref: '#/components/schemas/MultiPolygon'
         id:
           type: string
         name:
@@ -22,7 +39,7 @@ components:
         notes:
           type: string
         representativePoint:
-          $ref: "#/components/schemas/Point"
+          $ref: '#/components/schemas/Point'
         status:
           enum:
             - planned
@@ -52,8 +69,10 @@ components:
           format: uri
           readOnly: true
           type: string
+        address:
+          $ref: '#/components/schemas/Address'
         footprint:
-          $ref: "#/components/schemas/MultiPolygon"
+          $ref: '#/components/schemas/MultiPolygon'
         name:
           minLength: 1
           type: string
@@ -69,6 +88,42 @@ components:
       required:
         - name
         - footprint
+        - status
+      type: object
+    CreateLocationRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/CreateLocationRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        area:
+          $ref: '#/components/schemas/MultiPolygon'
+          description: The boundary of the location; omit for one whose extent nobody has established yet
+        name:
+          minLength: 1
+          type: string
+        notes:
+          type: string
+        parentId:
+          description: The location this one sits inside; omit for a location that stands on its own
+          type: string
+        representativePoint:
+          $ref: '#/components/schemas/Point'
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
+      required:
+        - name
         - status
       type: object
     ErrorDetail:
@@ -101,7 +156,7 @@ components:
         errors:
           description: Optional list of individual error details
           items:
-            $ref: "#/components/schemas/ErrorDetail"
+            $ref: '#/components/schemas/ErrorDetail'
           type: array
         instance:
           description: A URI reference that identifies the specific occurrence of the problem.
@@ -127,6 +182,97 @@ components:
             - https://example.com/errors/example
           format: uri
           type: string
+      type: object
+    LocationResponse:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/LocationResponse.json
+          format: uri
+          readOnly: true
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        area:
+          $ref: '#/components/schemas/MultiPolygon'
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        notes:
+          type: string
+        parentId:
+          type: string
+        representativePoint:
+          $ref: '#/components/schemas/Point'
+        representativePointManual:
+          type: boolean
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - name
+        - representativePointManual
+        - status
+        - createdAt
+        - updatedAt
+      type: object
+    LocationTreeResponse:
+      additionalProperties: false
+      properties:
+        address:
+          $ref: '#/components/schemas/Address'
+        area:
+          $ref: '#/components/schemas/MultiPolygon'
+        createdAt:
+          format: date-time
+          type: string
+        depth:
+          format: int32
+          type: integer
+        id:
+          type: string
+        name:
+          type: string
+        notes:
+          type: string
+        parentId:
+          type: string
+        representativePoint:
+          $ref: '#/components/schemas/Point'
+        representativePointManual:
+          type: boolean
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - depth
+        - id
+        - name
+        - representativePointManual
+        - status
+        - createdAt
+        - updatedAt
       type: object
     LoginInputBody:
       additionalProperties: false
@@ -206,8 +352,10 @@ components:
           format: uri
           readOnly: true
           type: string
+        address:
+          $ref: '#/components/schemas/Address'
         footprint:
-          $ref: "#/components/schemas/MultiPolygon"
+          $ref: '#/components/schemas/MultiPolygon'
         name:
           minLength: 1
           type: string
@@ -224,6 +372,54 @@ components:
           description: A URL to the JSON Schema for this object.
           examples:
             - https://example.com/schemas/UpdateBuildingStatusRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
+      required:
+        - status
+      type: object
+    UpdateLocationRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateLocationRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        area:
+          $ref: '#/components/schemas/MultiPolygon'
+          description: The boundary of the location; omit for one whose extent nobody has established yet
+        name:
+          minLength: 1
+          type: string
+        notes:
+          type: string
+        parentId:
+          description: The location this one sits inside; omit to move it to the top level
+          type: string
+        representativePoint:
+          $ref: '#/components/schemas/Point'
+      required:
+        - name
+      type: object
+    UpdateLocationStatusRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateLocationStatusRequest.json
           format: uri
           readOnly: true
           type: string
@@ -281,20 +477,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginInputBody"
+              $ref: '#/components/schemas/LoginInputBody'
         required: true
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: '#/components/schemas/User'
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/ErrorModel"
+                $ref: '#/components/schemas/ErrorModel'
           description: Error
       summary: Log in with username and password
       tags:
@@ -303,13 +499,13 @@ paths:
     post:
       operationId: logout
       responses:
-        "204":
+        '204':
           description: No Content
         default:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/ErrorModel"
+                $ref: '#/components/schemas/ErrorModel'
           description: Error
       summary: Log out and end the current session
       tags:
@@ -318,17 +514,17 @@ paths:
     get:
       operationId: get-current-user
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/User"
+                $ref: '#/components/schemas/User'
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/ErrorModel"
+                $ref: '#/components/schemas/ErrorModel'
           description: Error
       summary: Return the currently authenticated user
       tags:
@@ -352,19 +548,19 @@ paths:
               type: string
             type: array
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
                 items:
-                  $ref: "#/components/schemas/BuildingResponse"
+                  $ref: '#/components/schemas/BuildingResponse'
                 type: array
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/ErrorModel"
+                $ref: '#/components/schemas/ErrorModel'
           description: Error
       summary: Returns all buildings
       tags:
@@ -375,20 +571,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateBuildingRequest"
+              $ref: '#/components/schemas/CreateBuildingRequest'
         required: true
       responses:
-        "201":
+        '201':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BuildingResponse"
+                $ref: '#/components/schemas/BuildingResponse'
           description: Created
         default:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/ErrorModel"
+                $ref: '#/components/schemas/ErrorModel'
           description: Error
       summary: Creates a building
       tags:
@@ -403,13 +599,13 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        '204':
           description: No Content
         default:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/ErrorModel"
+                $ref: '#/components/schemas/ErrorModel'
           description: Error
       summary: Soft deletes the building with the provided id
       tags:
@@ -423,17 +619,17 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BuildingResponse"
+                $ref: '#/components/schemas/BuildingResponse'
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/ErrorModel"
+                $ref: '#/components/schemas/ErrorModel'
           description: Error
       summary: Returns building with the provided id
       tags:
@@ -450,20 +646,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateBuildingRequest"
+              $ref: '#/components/schemas/UpdateBuildingRequest'
         required: true
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BuildingResponse"
+                $ref: '#/components/schemas/BuildingResponse'
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/ErrorModel"
+                $ref: '#/components/schemas/ErrorModel'
           description: Error
       summary: Updates the building with the provided id
       tags:
@@ -481,22 +677,223 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateBuildingStatusRequest"
+              $ref: '#/components/schemas/UpdateBuildingStatusRequest'
         required: true
       responses:
-        "200":
+        '200':
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BuildingResponse"
+                $ref: '#/components/schemas/BuildingResponse'
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/ErrorModel"
+                $ref: '#/components/schemas/ErrorModel'
           description: Error
       summary: Updates the building status of the building with provided id
       tags:
         - buildings
-
+  /api/locations:
+    get:
+      operationId: list-locations
+      parameters:
+        - description: Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived locations off the map and out of the default lists without hiding them from a direct lookup.
+          explode: false
+          in: query
+          name: status
+          schema:
+            description: Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived locations off the map and out of the default lists without hiding them from a direct lookup.
+            items:
+              enum:
+                - planned
+                - active
+                - decommissioned
+                - archived
+              type: string
+            type: array
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/LocationResponse'
+                type: array
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Error
+      summary: Returns all locations
+      tags:
+        - locations
+    post:
+      operationId: create-location
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLocationRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Error
+      summary: Creates a location
+      tags:
+        - locations
+  /api/locations/tree:
+    get:
+      operationId: list-location-tree
+      parameters:
+        - description: Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived locations off the map and out of the default lists without hiding them from a direct lookup.
+          explode: false
+          in: query
+          name: status
+          schema:
+            description: Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived locations off the map and out of the default lists without hiding them from a direct lookup.
+            items:
+              enum:
+                - planned
+                - active
+                - decommissioned
+                - archived
+              type: string
+            type: array
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/LocationTreeResponse'
+                type: array
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Error
+      summary: Returns all locations in tree order, with their depth
+      tags:
+        - locations
+  /api/locations/{id}:
+    delete:
+      operationId: delete-location
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Error
+      summary: Soft deletes the location with the provided id
+      tags:
+        - locations
+    get:
+      operationId: get-location
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Error
+      summary: Returns location with the provided id
+      tags:
+        - locations
+    put:
+      operationId: update-location
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocationRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Error
+      summary: Updates the location with the provided id
+      tags:
+        - locations
+  /api/locations/{id}/status:
+    patch:
+      operationId: update-location-status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocationStatusRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationResponse'
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorModel'
+          description: Error
+      summary: Updates the location status of the location with provided id
+      tags:
+        - locations

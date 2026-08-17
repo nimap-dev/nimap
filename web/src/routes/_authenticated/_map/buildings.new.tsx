@@ -1,9 +1,18 @@
-import { getListBuildingsQueryKey, useCreateBuilding } from '#/api/buildings/buildings'
+import {
+  getListBuildingsQueryKey,
+  useCreateBuilding,
+} from '#/api/buildings/buildings'
 import { CreateBuildingBody } from '#/api/endpoints/buildings/buildings.zod'
 import { CreateBuildingRequestStatus } from '#/api/model'
 import type { MultiPolygon } from '#/api/model'
+import { AddressFields } from '#/components/address-fields'
 import { Button } from '#/components/ui/button'
-import { Field, FieldError, FieldGroup, FieldLabel } from '#/components/ui/field'
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 import {
   Select,
@@ -13,16 +22,14 @@ import {
   SelectValue,
 } from '#/components/ui/select'
 import { toast } from '#/components/ui/toast'
-import {
-  lifecycleStatusLabels,
-  lifecycleStatusOptions,
-} from '#/lib/lifecycle'
+import { addressToRequest, emptyAddress } from '#/lib/address'
+import { lifecycleStatusLabels, lifecycleStatusOptions } from '#/lib/lifecycle'
 import { useWorldMap } from '#/lib/map'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft } from 'lucide-react'
-import { useEffect, type ReactNode } from 'react'
+import { useEffect } from 'react'
+import { Panel } from '#/components/panel'
 
 export const Route = createFileRoute('/_authenticated/_map/buildings/new')({
   component: NewBuilding,
@@ -36,8 +43,9 @@ function NewBuilding() {
 
   const form = useForm({
     defaultValues: {
-      name: "",
-      notes: "",
+      name: '',
+      address: emptyAddress,
+      notes: '',
       status: CreateBuildingRequestStatus.active as CreateBuildingRequestStatus,
       footprint: undefined as MultiPolygon | undefined,
     },
@@ -47,6 +55,7 @@ function NewBuilding() {
       const res = await createBuilding.mutateAsync({
         data: {
           name: value.name,
+          address: addressToRequest(value.address),
           footprint: value.footprint,
           notes: value.notes.trim() || undefined,
           status: value.status,
@@ -55,8 +64,8 @@ function NewBuilding() {
 
       if (res.status !== 201) {
         toast.add({
-          type: "error",
-          description: res.data?.detail ?? "Could not create the building",
+          type: 'error',
+          description: res.data.detail ?? 'Could not create the building',
         })
         return
       }
@@ -64,9 +73,9 @@ function NewBuilding() {
       await queryClient.invalidateQueries({
         queryKey: getListBuildingsQueryKey(),
       })
-      toast.add({ type: "success", description: "Building created" })
+      toast.add({ type: 'success', description: 'Building created' })
       navigate({
-        to: "/buildings/$buildingId",
+        to: '/buildings/$buildingId',
         params: { buildingId: res.data.id },
         replace: true,
       })
@@ -81,11 +90,15 @@ function NewBuilding() {
   }, [drawPolygon, cancelDrawing])
 
   useEffect(() => {
-    form.setFieldValue("footprint", polygon)
+    form.setFieldValue('footprint', polygon)
   }, [form, polygon])
 
   return (
-    <Panel title="New building">
+    <Panel
+      title="New building"
+      back={<Link to="/buildings" />}
+      backLabel="Back to buildings"
+    >
       <form
         id="new-building-form"
         onSubmit={(e) => {
@@ -148,6 +161,17 @@ function NewBuilding() {
           />
 
           <form.Field
+            name="address"
+            children={(field) => (
+              <AddressFields
+                idPrefix="new-building-address"
+                value={field.state.value}
+                onChange={field.handleChange}
+              />
+            )}
+          />
+
+          <form.Field
             name="notes"
             children={(field) => (
               <Field>
@@ -174,7 +198,7 @@ function NewBuilding() {
                   <div className="flex items-center justify-between gap-2 rounded-lg border p-2 text-sm">
                     {parts > 0 ? (
                       <span>
-                        {parts} {parts === 1 ? "part" : "parts"} drawn
+                        {parts} {parts === 1 ? 'part' : 'parts'} drawn
                       </span>
                     ) : (
                       <span className="text-muted-foreground">
@@ -207,7 +231,7 @@ function NewBuilding() {
               form="new-building-form"
               disabled={!canSubmit || isSubmitting || !polygon}
             >
-              {isSubmitting ? "Creating…" : "Create building"}
+              {isSubmitting ? 'Creating…' : 'Create building'}
             </Button>
             <Button
               type="button"
@@ -220,33 +244,5 @@ function NewBuilding() {
         )}
       />
     </Panel>
-  )
-}
-
-function Panel({
-  title,
-  action,
-  children,
-}: {
-  title: ReactNode
-  action?: ReactNode
-  children: ReactNode
-}) {
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-1 border-b p-2 h-12">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Back to buildings"
-          render={<Link to="/buildings" />}
-        >
-          <ArrowLeft />
-        </Button>
-        <h2 className="min-w-0 flex-1 truncate font-medium">{title}</h2>
-        {action}
-      </div>
-      <div className="flex flex-col gap-4 overflow-y-auto p-3">{children}</div>
-    </div>
   )
 }

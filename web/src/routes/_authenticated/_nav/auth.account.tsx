@@ -1,16 +1,11 @@
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '#/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { Skeleton } from '#/components/ui/skeleton'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/formate-date'
 import { useRequireAuth } from '#/lib/auth'
 import type { User } from '#/api/model'
 import { createFileRoute } from '@tanstack/react-router'
-import type { ReactNode } from 'react'
+import { Detail, DetailList } from '#/components/detail-list'
 
 export const Route = createFileRoute('/_authenticated/_nav/auth/account')({
   component: Account,
@@ -26,7 +21,11 @@ function Account() {
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-          {isLoading ? <AccountSkeleton /> : user && <AccountDetails user={user} />}
+          {isLoading ? (
+            <AccountSkeleton />
+          ) : (
+            user && <AccountDetails user={user} />
+          )}
         </div>
       </div>
     </div>
@@ -58,7 +57,7 @@ function AccountDetails({ user }: { user: User }) {
           <CardTitle>Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <dl className="text-sm">
+          <DetailList>
             <Detail label="Username">{user.username}</Detail>
             <Detail label="Email">{user.email}</Detail>
             <Detail label="Role">
@@ -67,19 +66,13 @@ function AccountDetails({ user }: { user: User }) {
             <Detail label="User ID">
               <span className="font-mono text-xs select-all">{user.id}</span>
             </Detail>
-            <Detail
-              label="Created"
-              title={formatAbsoluteDate(user.created_at)}
-            >
+            <Detail label="Created" title={formatAbsoluteDate(user.created_at)}>
               {formatRelativeDate(user.created_at)}
             </Detail>
-            <Detail
-              label="Updated"
-              title={formatAbsoluteDate(user.updated_at)}
-            >
+            <Detail label="Updated" title={formatAbsoluteDate(user.updated_at)}>
               {formatRelativeDate(user.updated_at)}
             </Detail>
-          </dl>
+          </DetailList>
         </CardContent>
       </Card>
     </>
@@ -107,24 +100,5 @@ function AccountSkeleton() {
         </CardContent>
       </Card>
     </>
-  )
-}
-
-function Detail({
-  label,
-  title,
-  children,
-}: {
-  label: string
-  title?: string
-  children: ReactNode
-}) {
-  return (
-    <div className="flex items-baseline justify-between gap-4 border-b py-2.5 last:border-0">
-      <dt className="shrink-0 text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 truncate text-right" title={title}>
-        {children}
-      </dd>
-    </div>
   )
 }

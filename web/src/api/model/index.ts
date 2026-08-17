@@ -5,14 +5,25 @@
  * OpenAPI spec version: dev
  */
 
+export * from './address.ts';
 export * from './buildingResponse.ts';
 export * from './buildingResponseStatus.ts';
 export * from './createBuildingRequest.ts';
 export * from './createBuildingRequestStatus.ts';
+export * from './createLocationRequest.ts';
+export * from './createLocationRequestStatus.ts';
 export * from './errorDetail.ts';
 export * from './errorModel.ts';
 export * from './listBuildingsParams.ts';
 export * from './listBuildingsStatusItem.ts';
+export * from './listLocationsParams.ts';
+export * from './listLocationsStatusItem.ts';
+export * from './listLocationTreeParams.ts';
+export * from './listLocationTreeStatusItem.ts';
+export * from './locationResponse.ts';
+export * from './locationResponseStatus.ts';
+export * from './locationTreeResponse.ts';
+export * from './locationTreeResponseStatus.ts';
 export * from './loginInputBody.ts';
 export * from './multiPolygon.ts';
 export * from './multiPolygonType.ts';
@@ -21,4 +32,7 @@ export * from './pointType.ts';
 export * from './updateBuildingRequest.ts';
 export * from './updateBuildingStatusRequest.ts';
 export * from './updateBuildingStatusRequestStatus.ts';
+export * from './updateLocationRequest.ts';
+export * from './updateLocationStatusRequest.ts';
+export * from './updateLocationStatusRequestStatus.ts';
 export * from './user.ts';

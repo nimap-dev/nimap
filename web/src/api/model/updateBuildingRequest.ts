@@ -4,11 +4,13 @@
  * nimap API
  * OpenAPI spec version: dev
  */
+import type { Address } from './address.ts';
 import type { MultiPolygon } from './multiPolygon.ts';
 
 export interface UpdateBuildingRequest {
   /** A URL to the JSON Schema for this object. */
   readonly $schema?: string;
+  address?: Address;
   footprint: MultiPolygon;
   /** @minLength 1 */
   name: string;

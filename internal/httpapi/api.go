@@ -20,5 +20,6 @@ func NewAPI(router chi.Router, version string, pool *pgxpool.Pool, sessions *scs
 	api.UseMiddleware(NewAuthMiddleware(api, sessions))
 	RegisterAuth(api, pool, sessions)
 	RegisterBuildings(api, pool, sessions)
+	RegisterLocations(api, pool, sessions)
 	return api
 }

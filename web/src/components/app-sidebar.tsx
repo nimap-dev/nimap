@@ -1,8 +1,7 @@
+import * as React from 'react'
+import { Building2, Command, LandPlot, Map } from 'lucide-react'
 
-import * as React from "react"
-import { Building2, Command, Map } from "lucide-react"
-
-import { NavUser } from "@/components/nav-user"
+import { NavUser } from '@/components/nav-user'
 import {
   Sidebar,
   SidebarContent,
@@ -13,20 +12,26 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { cn } from "@/lib/utils"
-import { Link } from "@tanstack/react-router"
+} from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
+import { Link } from '@tanstack/react-router'
 
 const navMain = [
   {
-    title: "Map",
-    to: "/",
+    title: 'Map',
+    to: '/',
     icon: Map,
     isActive: true,
   },
   {
-    title: "Buildings",
-    to: "/buildings",
+    title: 'Locations',
+    to: '/locations',
+    icon: LandPlot,
+    isActive: true,
+  },
+  {
+    title: 'Buildings',
+    to: '/buildings',
     icon: Building2,
     isActive: true,
   },
@@ -43,7 +48,11 @@ export function AppSidebarNav() {
       <SidebarHeader className="hidden md:flex">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="md:h-8 md:p-0" render={<Link to="/" />}>
+            <SidebarMenuButton
+              size="lg"
+              className="md:h-8 md:p-0"
+              render={<Link to="/" />}
+            >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 <Command className="size-4" />
               </div>
@@ -102,13 +111,13 @@ export function MapPanel({
         />
       )}
       <div
-        data-state={open ? "expanded" : "collapsed"}
+        data-state={open ? 'expanded' : 'collapsed'}
         inert={!open}
         className={cn(
-          "[--map-panel-width:min(20rem,85vw)] md:[--map-panel-width:var(--sidebar-width)]",
-          "fixed top-0 bottom-14 left-0 z-20 shrink-0 overflow-hidden bg-sidebar text-sidebar-foreground shadow-lg transition-[width] duration-200 ease-linear",
-          "md:static md:h-svh md:border-r md:shadow-none",
-          open ? "w-(--map-panel-width)" : "w-0"
+          '[--map-panel-width:min(20rem,85vw)] md:[--map-panel-width:var(--sidebar-width)]',
+          'fixed top-0 bottom-14 left-0 z-20 shrink-0 overflow-hidden bg-sidebar text-sidebar-foreground shadow-lg transition-[width] duration-200 ease-linear',
+          'md:static md:h-svh md:border-r md:shadow-none',
+          open ? 'w-(--map-panel-width)' : 'w-0',
         )}
       >
         <div className="flex h-full w-(--map-panel-width) flex-col">

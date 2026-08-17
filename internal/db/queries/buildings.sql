@@ -2,13 +2,17 @@
 SELECT
   id,
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
   status,
   created_at,
   updated_at
-FROM building
+FROM buildings
 WHERE id = sqlc.arg(id)
   AND deleted_at IS NULL;
 
@@ -16,26 +20,38 @@ WHERE id = sqlc.arg(id)
 SELECT
   id,
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
   status,
   created_at,
   updated_at
-FROM building
+FROM buildings
 WHERE deleted_at IS NULL
   AND status::text = ANY(sqlc.arg(statuses)::text[])
 ORDER BY created_at DESC;
 
 -- name: CreateBuilding :one
-INSERT INTO building (
+INSERT INTO buildings (
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   footprint,
   notes,
   status
 )
 VALUES (
   sqlc.arg(name),
+  sqlc.arg(address_street),
+  sqlc.arg(address_city),
+  sqlc.arg(address_zip),
+  sqlc.arg(address_country),
   ST_GeomFromGeoJSON(sqlc.arg(footprint)::text),
   sqlc.narg(notes),
   sqlc.arg(status)
@@ -43,6 +59,10 @@ VALUES (
 RETURNING
   id,
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
@@ -51,9 +71,13 @@ RETURNING
   updated_at;
 
 -- name: UpdateBuilding :one
-UPDATE building
+UPDATE buildings
 SET
   name = sqlc.arg(name),
+  address_street = sqlc.arg(address_street),
+  address_city = sqlc.arg(address_city),
+  address_zip = sqlc.arg(address_zip),
+  address_country = sqlc.arg(address_country),
   footprint = ST_GeomFromGeoJSON(sqlc.arg(footprint)::text),
   notes = sqlc.narg(notes),
   updated_at = now()
@@ -62,6 +86,10 @@ WHERE id = sqlc.arg(id)
 RETURNING
   id,
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
@@ -70,7 +98,7 @@ RETURNING
   updated_at;
 
 -- name: UpdateBuildingStatus :one
-UPDATE building
+UPDATE buildings
 SET
   status = sqlc.arg(status),
   updated_at = now()
@@ -79,6 +107,10 @@ WHERE id = sqlc.arg(id)
 RETURNING
   id,
   name,
+  address_street,
+  address_city,
+  address_zip,
+  address_country,
   ST_AsGeoJSON(footprint)::text AS footprint,
   ST_AsGeoJSON(representative_point)::text AS representative_point,
   notes,
@@ -87,7 +119,7 @@ RETURNING
   updated_at;
 
 -- name: DeleteBuilding :execrows
-UPDATE building
+UPDATE buildings
 SET
   deleted_at = now(),
   updated_at = now()

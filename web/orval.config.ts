@@ -1,4 +1,4 @@
-import { defineConfig } from 'orval';
+import { defineConfig } from 'orval'
 
 export default defineConfig({
   nimap: {
@@ -23,5 +23,4 @@ export default defineConfig({
       fileExtension: '.zod.ts',
     },
   },
-});
-
+})

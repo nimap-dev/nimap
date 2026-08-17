@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useEffect } from 'react'
+import type { ReactNode } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useGetCurrentUser } from '#/api/auth/auth'
 import type { User } from '#/api/model'

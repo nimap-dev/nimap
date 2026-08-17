@@ -14,6 +14,7 @@ export const ListBuildingsQueryParams = zod.object({
   "status": zod.array(zod.enum(['planned', 'active', 'decommissioned', 'archived'])).optional().describe('Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup.')
 })
 
+export const listBuildingsResponseAddressCountryRegExp = new RegExp('^[A-Za-z]{2}$');
 export const listBuildingsResponseRepresentativePointCoordinatesMin = 2;
 export const listBuildingsResponseRepresentativePointCoordinatesMax = 3;
 
@@ -21,6 +22,12 @@ export const listBuildingsResponseRepresentativePointCoordinatesMax = 3;
 
 export const ListBuildingsResponseItem = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "address": zod.object({
+  "city": zod.string().optional(),
+  "country": zod.string().regex(listBuildingsResponseAddressCountryRegExp).optional().describe('ISO 3166-1 alpha-2 country code'),
+  "street": zod.string().optional(),
+  "zip": zod.string().optional().describe('Postal code, in whatever shape the country writes it')
+}).optional(),
   "createdAt": zod.iso.datetime({"offset":true}),
   "footprint": zod.object({
   "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),
@@ -41,10 +48,17 @@ export const ListBuildingsResponse = zod.array(ListBuildingsResponseItem)
 /**
  * @summary Creates a building
  */
+export const createBuildingBodyAddressCountryRegExp = new RegExp('^[A-Za-z]{2}$');
 
 
 
 export const CreateBuildingBody = zod.object({
+  "address": zod.object({
+  "city": zod.string().optional(),
+  "country": zod.string().regex(createBuildingBodyAddressCountryRegExp).optional().describe('ISO 3166-1 alpha-2 country code'),
+  "street": zod.string().optional(),
+  "zip": zod.string().optional().describe('Postal code, in whatever shape the country writes it')
+}).optional(),
   "footprint": zod.object({
   "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),
   "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
@@ -54,6 +68,7 @@ export const CreateBuildingBody = zod.object({
   "status": zod.enum(['planned', 'active', 'decommissioned', 'archived'])
 })
 
+export const createBuildingResponseAddressCountryRegExp = new RegExp('^[A-Za-z]{2}$');
 export const createBuildingResponseRepresentativePointCoordinatesMin = 2;
 export const createBuildingResponseRepresentativePointCoordinatesMax = 3;
 
@@ -61,6 +76,12 @@ export const createBuildingResponseRepresentativePointCoordinatesMax = 3;
 
 export const CreateBuildingResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "address": zod.object({
+  "city": zod.string().optional(),
+  "country": zod.string().regex(createBuildingResponseAddressCountryRegExp).optional().describe('ISO 3166-1 alpha-2 country code'),
+  "street": zod.string().optional(),
+  "zip": zod.string().optional().describe('Postal code, in whatever shape the country writes it')
+}).optional(),
   "createdAt": zod.iso.datetime({"offset":true}),
   "footprint": zod.object({
   "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),
@@ -93,6 +114,7 @@ export const GetBuildingParams = zod.object({
   "id": zod.string()
 })
 
+export const getBuildingResponseAddressCountryRegExp = new RegExp('^[A-Za-z]{2}$');
 export const getBuildingResponseRepresentativePointCoordinatesMin = 2;
 export const getBuildingResponseRepresentativePointCoordinatesMax = 3;
 
@@ -100,6 +122,12 @@ export const getBuildingResponseRepresentativePointCoordinatesMax = 3;
 
 export const GetBuildingResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "address": zod.object({
+  "city": zod.string().optional(),
+  "country": zod.string().regex(getBuildingResponseAddressCountryRegExp).optional().describe('ISO 3166-1 alpha-2 country code'),
+  "street": zod.string().optional(),
+  "zip": zod.string().optional().describe('Postal code, in whatever shape the country writes it')
+}).optional(),
   "createdAt": zod.iso.datetime({"offset":true}),
   "footprint": zod.object({
   "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),
@@ -123,10 +151,17 @@ export const UpdateBuildingParams = zod.object({
   "id": zod.string()
 })
 
+export const updateBuildingBodyAddressCountryRegExp = new RegExp('^[A-Za-z]{2}$');
 
 
 
 export const UpdateBuildingBody = zod.object({
+  "address": zod.object({
+  "city": zod.string().optional(),
+  "country": zod.string().regex(updateBuildingBodyAddressCountryRegExp).optional().describe('ISO 3166-1 alpha-2 country code'),
+  "street": zod.string().optional(),
+  "zip": zod.string().optional().describe('Postal code, in whatever shape the country writes it')
+}).optional(),
   "footprint": zod.object({
   "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),
   "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
@@ -135,6 +170,7 @@ export const UpdateBuildingBody = zod.object({
   "notes": zod.string().optional()
 })
 
+export const updateBuildingResponseAddressCountryRegExp = new RegExp('^[A-Za-z]{2}$');
 export const updateBuildingResponseRepresentativePointCoordinatesMin = 2;
 export const updateBuildingResponseRepresentativePointCoordinatesMax = 3;
 
@@ -142,6 +178,12 @@ export const updateBuildingResponseRepresentativePointCoordinatesMax = 3;
 
 export const UpdateBuildingResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "address": zod.object({
+  "city": zod.string().optional(),
+  "country": zod.string().regex(updateBuildingResponseAddressCountryRegExp).optional().describe('ISO 3166-1 alpha-2 country code'),
+  "street": zod.string().optional(),
+  "zip": zod.string().optional().describe('Postal code, in whatever shape the country writes it')
+}).optional(),
   "createdAt": zod.iso.datetime({"offset":true}),
   "footprint": zod.object({
   "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),
@@ -169,6 +211,7 @@ export const UpdateBuildingStatusBody = zod.object({
   "status": zod.enum(['planned', 'active', 'decommissioned', 'archived'])
 })
 
+export const updateBuildingStatusResponseAddressCountryRegExp = new RegExp('^[A-Za-z]{2}$');
 export const updateBuildingStatusResponseRepresentativePointCoordinatesMin = 2;
 export const updateBuildingStatusResponseRepresentativePointCoordinatesMax = 3;
 
@@ -176,6 +219,12 @@ export const updateBuildingStatusResponseRepresentativePointCoordinatesMax = 3;
 
 export const UpdateBuildingStatusResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "address": zod.object({
+  "city": zod.string().optional(),
+  "country": zod.string().regex(updateBuildingStatusResponseAddressCountryRegExp).optional().describe('ISO 3166-1 alpha-2 country code'),
+  "street": zod.string().optional(),
+  "zip": zod.string().optional().describe('Postal code, in whatever shape the country writes it')
+}).optional(),
   "createdAt": zod.iso.datetime({"offset":true}),
   "footprint": zod.object({
   "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),

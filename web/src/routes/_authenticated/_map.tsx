@@ -1,19 +1,12 @@
 import { AppSidebarNav, MapPanel } from '#/components/app-sidebar'
 import { WorldMap } from '#/components/map/world-map'
 import { Button } from '#/components/ui/button'
-import {
-  SidebarInset,
-} from '#/components/ui/sidebar'
+import { SidebarInset } from '#/components/ui/sidebar'
 import { cn } from '#/lib/utils'
 import { MapProvider } from '#/lib/map'
-import {
-  createFileRoute,
-  Outlet,
-  useMatchRoute,
-} from '@tanstack/react-router'
+import { createFileRoute, Outlet, useMatchRoute } from '@tanstack/react-router'
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { useEffect, useState } from 'react'
-
 
 export const Route = createFileRoute('/_authenticated/_map')({
   component: RouteComponent,
@@ -44,11 +37,11 @@ function RouteComponent() {
           <Button
             variant="outline"
             size="icon"
-            aria-label={panelOpen ? "Collapse panel" : "Expand panel"}
+            aria-label={panelOpen ? 'Collapse panel' : 'Expand panel'}
             onClick={() => setPanelOpen((open) => !open)}
             className={cn(
-              "absolute top-2 left-2 z-30 bg-background shadow-sm",
-              panelOpen && "max-md:hidden"
+              'absolute top-2 left-2 z-30 bg-background shadow-sm',
+              panelOpen && 'max-md:hidden',
             )}
           >
             {panelOpen ? <PanelLeftClose /> : <PanelLeftOpen />}

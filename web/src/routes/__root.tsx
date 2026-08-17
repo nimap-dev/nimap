@@ -6,7 +6,6 @@ import { AuthProvider } from '#/lib/auth'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { TooltipProvider } from '#/components/ui/tooltip'
 
-
 export const Route = createRootRoute({
   component: RootComponent,
 })
@@ -23,6 +22,5 @@ function RootComponent() {
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
-
   )
 }

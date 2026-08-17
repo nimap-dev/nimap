@@ -19,6 +19,7 @@ import (
 
 type CreateBuildingRequest struct {
 	Name      string          `json:"name" minLength:"1"`
+	Address   *Address        `json:"address,omitempty"`
 	Footprint MultiPolygon    `json:"footprint"`
 	Notes     *string         `json:"notes,omitempty"`
 	Status    LifecycleStatus `json:"status"`
@@ -30,6 +31,7 @@ type CreateBuildingInput struct {
 
 type UpdateBuildingRequest struct {
 	Name      string       `json:"name" minLength:"1"`
+	Address   *Address     `json:"address,omitempty"`
 	Footprint MultiPolygon `json:"footprint"`
 	Notes     *string      `json:"notes,omitempty"`
 }
@@ -63,6 +65,7 @@ type DeleteBuildingInput struct {
 type BuildingResponse struct {
 	ID                  uuid.UUID       `json:"id"`
 	Name                string          `json:"name"`
+	Address             *Address        `json:"address,omitempty"`
 	Footprint           MultiPolygon    `json:"footprint"`
 	RepresentativePoint Point           `json:"representativePoint"`
 	Notes               *string         `json:"notes,omitempty"`
@@ -119,6 +122,12 @@ func RegisterBuildings(
 		body, err := buildingResponse(
 			building.ID,
 			building.Name,
+			Address{
+				Street:  building.AddressStreet,
+				City:    building.AddressCity,
+				Zip:     building.AddressZip,
+				Country: building.AddressCountry,
+			},
 			building.Footprint,
 			building.RepresentativePoint,
 			building.Notes,
@@ -164,6 +173,12 @@ func RegisterBuildings(
 			body, err := buildingResponse(
 				building.ID,
 				building.Name,
+				Address{
+					Street:  building.AddressStreet,
+					City:    building.AddressCity,
+					Zip:     building.AddressZip,
+					Country: building.AddressCountry,
+				},
 				building.Footprint,
 				building.RepresentativePoint,
 				building.Notes,
@@ -204,22 +219,24 @@ func RegisterBuildings(
 			)
 		}
 
+		address := in.Body.Address.Normalized()
+
 		building, err := q.CreateBuilding(
 			ctx,
 			gen.CreateBuildingParams{
-				Name:      in.Body.Name,
-				Footprint: string(footprint),
-				Notes:     in.Body.Notes,
-				Status:    gen.LifecycleStatus(in.Body.Status),
+				Name:           in.Body.Name,
+				AddressStreet:  address.Street,
+				AddressCity:    address.City,
+				AddressZip:     address.Zip,
+				AddressCountry: address.Country,
+				Footprint:      string(footprint),
+				Notes:          in.Body.Notes,
+				Status:         gen.LifecycleStatus(in.Body.Status),
 			},
 		)
 		if err != nil {
-			var pgErr *pgconn.PgError
-			// check constraint violation, invalid multipolygon
-			if errors.As(err, &pgErr) && pgErr.Code == "23514" {
-				return nil, huma.Error422UnprocessableEntity(
-					"footprint is not a valid multipolygon",
-				)
+			if invalid := buildingCheckError(err); invalid != nil {
+				return nil, invalid
 			}
 
 			return nil, huma.Error500InternalServerError(
@@ -230,6 +247,12 @@ func RegisterBuildings(
 		body, err := buildingResponse(
 			building.ID,
 			building.Name,
+			Address{
+				Street:  building.AddressStreet,
+				City:    building.AddressCity,
+				Zip:     building.AddressZip,
+				Country: building.AddressCountry,
+			},
 			building.Footprint,
 			building.RepresentativePoint,
 			building.Notes,
@@ -264,13 +287,19 @@ func RegisterBuildings(
 			)
 		}
 
+		address := in.Body.Address.Normalized()
+
 		building, err := q.UpdateBuilding(
 			ctx,
 			gen.UpdateBuildingParams{
-				ID:        in.ID,
-				Name:      in.Body.Name,
-				Footprint: string(footprint),
-				Notes:     in.Body.Notes,
+				ID:             in.ID,
+				Name:           in.Body.Name,
+				AddressStreet:  address.Street,
+				AddressCity:    address.City,
+				AddressZip:     address.Zip,
+				AddressCountry: address.Country,
+				Footprint:      string(footprint),
+				Notes:          in.Body.Notes,
 			},
 		)
 		if err != nil {
@@ -278,12 +307,8 @@ func RegisterBuildings(
 				return nil, huma.Error404NotFound("building not found")
 			}
 
-			var pgErr *pgconn.PgError
-			// check constraint violation, invalid multipolygon
-			if errors.As(err, &pgErr) && pgErr.Code == "23514" {
-				return nil, huma.Error422UnprocessableEntity(
-					"footprint is not a valid multipolygon",
-				)
+			if invalid := buildingCheckError(err); invalid != nil {
+				return nil, invalid
 			}
 
 			return nil, huma.Error500InternalServerError(
@@ -294,6 +319,12 @@ func RegisterBuildings(
 		body, err := buildingResponse(
 			building.ID,
 			building.Name,
+			Address{
+				Street:  building.AddressStreet,
+				City:    building.AddressCity,
+				Zip:     building.AddressZip,
+				Country: building.AddressCountry,
+			},
 			building.Footprint,
 			building.RepresentativePoint,
 			building.Notes,
@@ -341,6 +372,12 @@ func RegisterBuildings(
 		body, err := buildingResponse(
 			building.ID,
 			building.Name,
+			Address{
+				Street:  building.AddressStreet,
+				City:    building.AddressCity,
+				Zip:     building.AddressZip,
+				Country: building.AddressCountry,
+			},
 			building.Footprint,
 			building.RepresentativePoint,
 			building.Notes,
@@ -384,9 +421,33 @@ func RegisterBuildings(
 	})
 }
 
+// buildingCheckError turns a violated CHECK constraint on `buildings` into a
+// readable 422, and returns nil for anything else. They all report SQLSTATE
+// 23514, so the constraint name is the only thing that tells them apart,
+// reporting every one of them as a bad footprint would be a lie as soon as the
+// address is what the caller got wrong.
+func buildingCheckError(err error) error {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) || pgErr.Code != "23514" {
+		return nil
+	}
+
+	switch pgErr.ConstraintName {
+	case "building_country_code":
+		return huma.Error422UnprocessableEntity(
+			"address country must be a two-letter ISO 3166-1 code",
+		)
+	default:
+		return huma.Error422UnprocessableEntity(
+			"footprint is not a valid multipolygon",
+		)
+	}
+}
+
 func buildingResponse(
 	id uuid.UUID,
 	name string,
+	address Address,
 	footprint string,
 	representativePoint string,
 	notes *string,
@@ -407,6 +468,7 @@ func buildingResponse(
 	return BuildingResponse{
 		ID:                  id,
 		Name:                name,
+		Address:             address.orNil(),
 		Footprint:           fp,
 		RepresentativePoint: rp,
 		Notes:               notes,

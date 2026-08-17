@@ -1,4 +1,11 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '#/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '#/components/ui/card'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
@@ -8,9 +15,13 @@ import { toast } from '#/components/ui/toast'
 import { getGetCurrentUserQueryKey, useLogin } from '#/api/auth/auth'
 import { useAuth } from '#/lib/auth'
 import { Button } from '#/components/ui/button'
-import { Field, FieldError, FieldGroup, FieldLabel } from '#/components/ui/field'
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
-
 
 export const Route = createFileRoute('/auth/login')({ component: Login })
 
@@ -23,14 +34,14 @@ function Login() {
   // If the user is already logged in, don't show the login form.
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      navigate({ to: "/", replace: true })
+      navigate({ to: '/', replace: true })
     }
   }, [isLoading, isAuthenticated, navigate])
 
   const form = useForm({
     defaultValues: {
-      username: "",
-      password: ""
+      username: '',
+      password: '',
     },
     validators: {
       onSubmit: LoginBody,
@@ -41,12 +52,12 @@ function Login() {
         await queryClient.invalidateQueries({
           queryKey: getGetCurrentUserQueryKey(),
         })
-        toast.add({ type: "success", description: "Logged in successfully" })
-        navigate({ to: "/auth/account", replace: true })
+        toast.add({ type: 'success', description: 'Logged in successfully' })
+        navigate({ to: '/auth/account', replace: true })
       } else {
         toast.add({
-          type: "error",
-          description: res.data?.detail ?? "Invalid username or password",
+          type: 'error',
+          description: res.data.detail ?? 'Invalid username or password',
         })
       }
     },

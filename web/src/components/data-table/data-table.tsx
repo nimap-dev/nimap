@@ -1,9 +1,15 @@
-"use client"
+'use client'
 
-import { useTable, type ColumnDef, type RowData, type SortingState, type ColumnFiltersState } from "@tanstack/react-table"
+import { useTable } from '@tanstack/react-table'
+import type {
+  ColumnDef,
+  RowData,
+  SortingState,
+  ColumnFiltersState,
+} from '@tanstack/react-table'
 
-import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
+import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -11,10 +17,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from '@/components/ui/table'
 
-import { features, type DataTableFeatures } from "./data-table-features"
-import { useState } from "react"
+import { features } from './data-table-features'
+import type { DataTableFeatures } from './data-table-features'
+import { useState } from 'react'
 
 interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<DataTableFeatures, TData>[]
@@ -38,14 +45,12 @@ export function DataTable<TData extends RowData>({
   data,
   onRowClick,
   searchColumn,
-  searchPlaceholder = "Search…",
+  searchPlaceholder = 'Search…',
   actions,
   clssName,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  )
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const table = useTable({
     features,
     data,
@@ -61,13 +66,13 @@ export function DataTable<TData extends RowData>({
   const search = searchColumn ? table.getColumn(searchColumn) : undefined
 
   return (
-    <div className={cn("flex flex-col gap-4", clssName)}>
+    <div className={cn('flex flex-col gap-4', clssName)}>
       {(search || actions) && (
         <div className="flex items-center gap-2">
           {search && (
             <Input
               type="search"
-              value={(search.getFilterValue() as string) ?? ""}
+              value={(search.getFilterValue() as string) || ''}
               onChange={(event) => search.setFilterValue(event.target.value)}
               placeholder={searchPlaceholder}
               aria-label={searchPlaceholder}
@@ -89,10 +94,10 @@ export function DataTable<TData extends RowData>({
                       className={header.column.columnDef.meta?.className}
                       style={{ width: header.column.columnDef.meta?.width }}
                       aria-sort={
-                        header.column.getIsSorted() === "asc"
-                          ? "ascending"
-                          : header.column.getIsSorted() === "desc"
-                            ? "descending"
+                        header.column.getIsSorted() === 'asc'
+                          ? 'ascending'
+                          : header.column.getIsSorted() === 'desc'
+                            ? 'descending'
                             : undefined
                       }
                     >
@@ -106,19 +111,19 @@ export function DataTable<TData extends RowData>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className={cn(onRowClick && "cursor-pointer")}
+                  data-state={row.getIsSelected() && 'selected'}
+                  className={cn(onRowClick && 'cursor-pointer')}
                   onClick={
                     onRowClick &&
                     ((event) => {
                       // Links and buttons inside the row handle their own clicks.
                       if (
                         (event.target as HTMLElement).closest(
-                          "a, button, input, select, [role='button']"
+                          "a, button, input, select, [role='button']",
                         )
                       ) {
                         return
@@ -139,7 +144,10 @@ export function DataTable<TData extends RowData>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   No results.
                 </TableCell>
               </TableRow>

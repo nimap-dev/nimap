@@ -88,4 +88,25 @@ type Building struct {
 	UpdatedAt           time.Time
 	DeletedAt           *time.Time
 	Status              LifecycleStatus
+	AddressStreet       *string
+	AddressCity         *string
+	AddressZip          *string
+	AddressCountry      *string
+}
+
+type Location struct {
+	ID                  uuid.UUID
+	ParentID            *uuid.UUID
+	Name                string
+	AddressStreet       *string
+	AddressCity         *string
+	AddressZip          *string
+	AddressCountry      *string
+	Area                interface{}
+	RepresentativePoint interface{}
+	Status              LifecycleStatus
+	Notes               *string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
+	DeletedAt           *time.Time
 }
