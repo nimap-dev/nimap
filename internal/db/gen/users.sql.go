@@ -115,6 +115,20 @@ func (q *Queries) GetUserByUsername(ctx context.Context, lower string) (GetUserB
 	return i, err
 }
 
+const getUserRoleID = `-- name: GetUserRoleID :one
+SELECT role_id
+FROM auth.users
+WHERE id = $1
+  AND deleted_at IS NULL
+`
+
+func (q *Queries) GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error) {
+	row := q.db.QueryRow(ctx, getUserRoleID, id)
+	var role_id int16
+	err := row.Scan(&role_id)
+	return role_id, err
+}
+
 const updateUserPasswordHash = `-- name: UpdateUserPasswordHash :exec
 UPDATE auth.users
 SET password_hash = $2,

@@ -33,7 +33,7 @@ import {
 import { Skeleton } from '#/components/ui/skeleton'
 import { toast } from '#/components/ui/toast'
 import { formatAddress } from '#/lib/address'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/formate-date'
+import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
 import { lifecycleStatusLabels, lifecycleStatusOptions } from '#/lib/lifecycle'
 import type { LifecycleStatus } from '#/lib/lifecycle'
 import { multiPolygonBounds, useWorldMap } from '#/lib/map'

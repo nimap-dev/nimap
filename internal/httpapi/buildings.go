@@ -7,13 +7,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/alexedwards/scs/v2"
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/nimap-dev/nimap/internal/auth"
 	"github.com/nimap-dev/nimap/internal/db/gen"
 )
 
@@ -90,20 +89,14 @@ type UpdateBuildingOutput struct {
 	Body BuildingResponse
 }
 
-func RegisterBuildings(
-	api huma.API,
-	pool *pgxpool.Pool,
-	sm *scs.SessionManager,
-) {
-	q := gen.New(pool)
-
+func RegisterBuildings(api huma.API, q *gen.Queries) {
 	huma.Register(api, huma.Operation{
 		OperationID: "get-building",
 		Method:      http.MethodGet,
 		Path:        "/api/buildings/{id}",
 		Summary:     "Returns building with the provided id",
 		Tags:        []string{"buildings"},
-		Metadata:    map[string]any{requireAuthMetaKey: true},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.ReadRecords},
 	}, func(
 		ctx context.Context,
 		in *GetBuildingInput,
@@ -150,7 +143,7 @@ func RegisterBuildings(
 		Path:        "/api/buildings",
 		Summary:     "Returns all buildings",
 		Tags:        []string{"buildings"},
-		Metadata:    map[string]any{requireAuthMetaKey: true},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.ReadRecords},
 	}, func(
 		ctx context.Context,
 		in *ListBuildingsInput,
@@ -207,7 +200,7 @@ func RegisterBuildings(
 		Summary:       "Creates a building",
 		Tags:          []string{"buildings"},
 		DefaultStatus: http.StatusCreated,
-		Metadata:      map[string]any{requireAuthMetaKey: true},
+		Metadata:      map[string]any{requirePermissionMetaKey: auth.WriteRecords},
 	}, func(
 		ctx context.Context,
 		in *CreateBuildingInput,
@@ -275,7 +268,7 @@ func RegisterBuildings(
 		Path:        "/api/buildings/{id}",
 		Summary:     "Updates the building with the provided id",
 		Tags:        []string{"buildings"},
-		Metadata:    map[string]any{requireAuthMetaKey: true},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.WriteRecords},
 	}, func(
 		ctx context.Context,
 		in *UpdateBuildingInput,
@@ -347,7 +340,7 @@ func RegisterBuildings(
 		Path:        "/api/buildings/{id}/status",
 		Summary:     "Updates the building status of the building with provided id",
 		Tags:        []string{"buildings"},
-		Metadata:    map[string]any{requireAuthMetaKey: true},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.WriteRecords},
 	}, func(
 		ctx context.Context,
 		in *UpdateBuildingStatusInput,
@@ -401,7 +394,7 @@ func RegisterBuildings(
 		Summary:       "Soft deletes the building with the provided id",
 		Tags:          []string{"buildings"},
 		DefaultStatus: http.StatusNoContent,
-		Metadata:      map[string]any{requireAuthMetaKey: true},
+		Metadata:      map[string]any{requirePermissionMetaKey: auth.WriteRecords},
 	}, func(
 		ctx context.Context,
 		in *DeleteBuildingInput,

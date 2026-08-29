@@ -10,7 +10,6 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/nimap-dev/nimap/internal/auth"
 	"github.com/nimap-dev/nimap/internal/db/gen"
@@ -43,9 +42,7 @@ type UserOutput struct {
 }
 
 // RegisterAuth mounts the authentication operations on the huma API.
-func RegisterAuth(api huma.API, pool *pgxpool.Pool, sm *scs.SessionManager) {
-	q := gen.New(pool)
-
+func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 	huma.Register(api, huma.Operation{
 		OperationID: "login",
 		Method:      http.MethodPost,

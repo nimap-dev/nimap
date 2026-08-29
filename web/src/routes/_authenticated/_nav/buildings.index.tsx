@@ -4,7 +4,7 @@ import { DataTable } from '#/components/data-table/data-table'
 import { DataTableColumnHeader } from '#/components/data-table/data-table-column-header'
 import type { DataTableFeatures } from '#/components/data-table/data-table-features'
 import { formatAddress } from '#/lib/address'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/formate-date'
+import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
 import {
   lifecycleStatusLabels,
   DEFAULT_LIFECYCLE_STATUSES,

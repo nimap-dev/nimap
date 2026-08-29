@@ -19,7 +19,7 @@ import {
 import { Skeleton } from '#/components/ui/skeleton'
 import { toast } from '#/components/ui/toast'
 import { formatAddress } from '#/lib/address'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/formate-date'
+import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
 import { lifecycleStatusLabels, lifecycleStatusOptions } from '#/lib/lifecycle'
 import { useWorldMap } from '#/lib/map'
 import { useQueryClient } from '@tanstack/react-query'

@@ -22,3 +22,9 @@ UPDATE auth.users
 SET password_hash = $2,
     updated_at = now()
 WHERE id = $1;
+
+-- name: GetUserRoleID :one
+SELECT role_id
+FROM auth.users
+WHERE id = $1
+  AND deleted_at IS NULL;

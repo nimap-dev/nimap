@@ -24,10 +24,6 @@ func main() {
 	cli := humacli.New(func(hooks humacli.Hooks, cfg *config.Config) {
 		slog.SetDefault(logging.New(cfg.LogLevel, cfg.LogFormat))
 
-		if err := cfg.Validate(); err != nil {
-			fatal("invalid configuration", err)
-		}
-
 		var (
 			pool *pgxpool.Pool
 			srv  *http.Server

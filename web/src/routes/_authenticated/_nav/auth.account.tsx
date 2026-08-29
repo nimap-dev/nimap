@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { Skeleton } from '#/components/ui/skeleton'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/formate-date'
+import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
 import { useRequireAuth } from '#/lib/auth'
 import type { User } from '#/api/model'
 import { createFileRoute } from '@tanstack/react-router'

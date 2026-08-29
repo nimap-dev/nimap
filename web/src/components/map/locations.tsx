@@ -43,7 +43,7 @@ export function LocationsSource() {
   const selectedId = viewed ? viewed.locationId : undefined
 
   // The one being edited is the exception to "draw them all": Terra Draw
-  // already renders is as ediable shape
+  // already renders it as ediable shape
   const hiddenId = edited ? edited.locationId : undefined
 
   const { data } = useListLocations(undefined, {

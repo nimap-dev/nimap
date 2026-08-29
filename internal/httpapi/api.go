@@ -6,6 +6,8 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/nimap-dev/nimap/internal/db/gen"
 )
 
 // NewAPI creates the huma API on router and registers every operation.
@@ -16,10 +18,12 @@ import (
 func NewAPI(router chi.Router, version string, pool *pgxpool.Pool, sessions *scs.SessionManager) huma.API {
 	huma.DefaultArrayNullable = false
 
+	q := gen.New(pool)
+
 	api := humachi.New(router, huma.DefaultConfig("nimap API", version))
-	api.UseMiddleware(NewAuthMiddleware(api, sessions))
-	RegisterAuth(api, pool, sessions)
-	RegisterBuildings(api, pool, sessions)
-	RegisterLocations(api, pool, sessions)
+	api.UseMiddleware(NewAuthMiddleware(api, sessions, q))
+	RegisterAuth(api, q, sessions)
+	RegisterBuildings(api, q)
+	RegisterLocations(api, q)
 	return api
 }

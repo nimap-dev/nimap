@@ -25,6 +25,7 @@ type Querier interface {
 	GetLocation(ctx context.Context, id uuid.UUID) (GetLocationRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
 	GetUserByUsername(ctx context.Context, lower string) (GetUserByUsernameRow, error)
+	GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error)
 	ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error)
 	// The tree is walked over every location that is not deleted, and the status
 	// filter is applied only to what comes out: filtering inside the recursion

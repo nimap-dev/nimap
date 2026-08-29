@@ -5,7 +5,7 @@ import type { DataTableFeatures } from '#/components/data-table/data-table-featu
 import { Button } from '#/components/ui/button'
 import { Skeleton } from '#/components/ui/skeleton'
 import { formatAddress } from '#/lib/address'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/formate-date'
+import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
 import {
   lifecycleStatusLabels,
   DEFAULT_LIFECYCLE_STATUSES,

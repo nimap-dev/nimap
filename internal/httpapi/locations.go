@@ -8,13 +8,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/alexedwards/scs/v2"
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/nimap-dev/nimap/internal/auth"
 	"github.com/nimap-dev/nimap/internal/db/gen"
 )
 
@@ -114,20 +113,14 @@ type UpdateLocationOutput struct {
 	Body LocationResponse
 }
 
-func RegisterLocations(
-	api huma.API,
-	pool *pgxpool.Pool,
-	sm *scs.SessionManager,
-) {
-	q := gen.New(pool)
-
+func RegisterLocations(api huma.API, q *gen.Queries) {
 	huma.Register(api, huma.Operation{
 		OperationID: "get-location",
 		Method:      http.MethodGet,
 		Path:        "/api/locations/{id}",
 		Summary:     "Returns location with the provided id",
 		Tags:        []string{"locations"},
-		Metadata:    map[string]any{requireAuthMetaKey: true},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.ReadRecords},
 	}, func(
 		ctx context.Context,
 		in *GetLocationInput,
@@ -176,7 +169,7 @@ func RegisterLocations(
 		Path:        "/api/locations",
 		Summary:     "Returns all locations",
 		Tags:        []string{"locations"},
-		Metadata:    map[string]any{requireAuthMetaKey: true},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.ReadRecords},
 	}, func(
 		ctx context.Context,
 		in *ListLocationsInput,
@@ -234,7 +227,7 @@ func RegisterLocations(
 		Path:        "/api/locations/tree",
 		Summary:     "Returns all locations in tree order, with their depth",
 		Tags:        []string{"locations"},
-		Metadata:    map[string]any{requireAuthMetaKey: true},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.ReadRecords},
 	}, func(
 		ctx context.Context,
 		in *ListLocationsInput,
@@ -297,7 +290,7 @@ func RegisterLocations(
 		Summary:       "Creates a location",
 		Tags:          []string{"locations"},
 		DefaultStatus: http.StatusCreated,
-		Metadata:      map[string]any{requireAuthMetaKey: true},
+		Metadata:      map[string]any{requirePermissionMetaKey: auth.WriteRecords},
 	}, func(
 		ctx context.Context,
 		in *CreateLocationInput,
@@ -376,7 +369,7 @@ func RegisterLocations(
 		Path:        "/api/locations/{id}",
 		Summary:     "Updates the location with the provided id",
 		Tags:        []string{"locations"},
-		Metadata:    map[string]any{requireAuthMetaKey: true},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.WriteRecords},
 	}, func(
 		ctx context.Context,
 		in *UpdateLocationInput,
@@ -459,7 +452,7 @@ func RegisterLocations(
 		Path:        "/api/locations/{id}/status",
 		Summary:     "Updates the location status of the location with provided id",
 		Tags:        []string{"locations"},
-		Metadata:    map[string]any{requireAuthMetaKey: true},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.WriteRecords},
 	}, func(
 		ctx context.Context,
 		in *UpdateLocationStatusInput,
@@ -515,7 +508,7 @@ func RegisterLocations(
 		Summary:       "Soft deletes the location with the provided id",
 		Tags:          []string{"locations"},
 		DefaultStatus: http.StatusNoContent,
-		Metadata:      map[string]any{requireAuthMetaKey: true},
+		Metadata:      map[string]any{requirePermissionMetaKey: auth.WriteRecords},
 	}, func(
 		ctx context.Context,
 		in *DeleteLocationInput,
