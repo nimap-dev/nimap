@@ -7,19 +7,12 @@ import {
 } from '#/api/locations/locations'
 import { UpdateLocationBody } from '#/api/endpoints/locations/locations.zod'
 import type { LocationResponse } from '#/api/model'
-import { AddressFields } from '#/components/address-fields'
-import { AreaField } from '#/components/area-field'
-import { LocationParentSelect } from '#/components/location-parent-select'
-import { RepresentativePointField } from '#/components/representative-point-field'
-import { Button } from '#/components/ui/button'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '#/components/ui/field'
-import { Input } from '#/components/ui/input'
-import { Skeleton } from '#/components/ui/skeleton'
+import { AddressFields } from '#/components/form/address-fields'
+import { AreaField } from '#/components/form/area-field'
+import { LocationParentSelect } from '#/components/form/location-parent-select'
+import { RepresentativePointField } from '#/components/form/representative-point-field'
+import { FormActions } from '#/components/form/form-actions'
+import { TextField } from '#/components/form/text-field'
 import { toast } from '#/components/ui/toast'
 import { addressToRequest, addressToValue } from '#/lib/address'
 import { multiPolygonBounds, useWorldMap } from '#/lib/map'
@@ -32,8 +25,9 @@ import {
   useNavigate,
 } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
-import { Panel } from '#/components/panel'
+import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import { can } from '#/lib/auth'
+import { FieldGroup } from '#/components/ui/field'
 
 export const Route = createFileRoute(
   '/_authenticated/_map/locations/$locationId_/edit',
@@ -54,32 +48,20 @@ function EditLocation() {
 
   if (isPending) {
     return (
-      <Panel
-        title={<Skeleton className="h-4 w-40" />}
+      <PanelPending
         back={<Link to="/locations" />}
         backLabel="Back to locations"
-      >
-        <Skeleton className="h-8 w-full" />
-        <Skeleton className="h-8 w-full" />
-        <Skeleton className="h-8 w-2/3" />
-      </Panel>
+      />
     )
   }
 
   if (!location) {
     return (
-      <Panel
-        title="Not found"
+      <PanelNotFound
+        noun="location"
         back={<Link to="/locations" />}
         backLabel="Back to locations"
-      >
-        <p className="text-sm text-muted-foreground">
-          This location doesn't exist, or you don't have access to it.
-        </p>
-        <Button variant="outline" size="sm" render={<Link to="/locations" />}>
-          Back to locations
-        </Button>
-      </Panel>
+      />
     )
   }
 
@@ -212,24 +194,7 @@ function EditLocationForm({ location }: { location: LocationResponse }) {
           <form.Field
             name="name"
             validators={{ onChange: UpdateLocationBody.shape.name }}
-            children={(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Name</FieldLabel>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    aria-invalid={isInvalid}
-                  />
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              )
-            }}
+            children={(field) => <TextField field={field} label="Name" />}
           />
 
           <form.Field
@@ -258,17 +223,7 @@ function EditLocationForm({ location }: { location: LocationResponse }) {
           <form.Field
             name="notes"
             children={(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>Notes</FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Optional"
-                />
-              </Field>
+              <TextField field={field} label="Notes" placeholder="Optional" />
             )}
           />
 
@@ -293,27 +248,19 @@ function EditLocationForm({ location }: { location: LocationResponse }) {
       <form.Subscribe
         selector={(state) => [state.canSubmit, state.isSubmitting] as const}
         children={([canSubmit, isSubmitting]) => (
-          <div className="flex items-center gap-2">
-            <Button
-              type="submit"
-              form="edit-location-form"
-              disabled={!canSubmit || isSubmitting}
-            >
-              {isSubmitting ? 'Saving…' : 'Save changes'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              render={
-                <Link
-                  to="/locations/$locationId"
-                  params={{ locationId: location.id }}
-                />
-              }
-            >
-              Cancel
-            </Button>
-          </div>
+          <FormActions
+            formId="edit-location-form"
+            submit="Save changes"
+            submitting="Saving…"
+            isSubmitting={isSubmitting}
+            disabled={!canSubmit}
+            cancel={
+              <Link
+                to="/locations/$locationId"
+                params={{ locationId: location.id }}
+              />
+            }
+          />
         )}
       />
     </Panel>

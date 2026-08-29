@@ -4,8 +4,7 @@ import { Field, FieldLabel } from '#/components/ui/field'
 
 /**
  * The boundary is optional, so this reads as an invitation rather than as an
- * unfilled requirement: a location with no area is a complete record, not a
- * half-finished one.
+ * unfilled requirement.
  */
 export function AreaField({
   polygon,

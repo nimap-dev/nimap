@@ -13,14 +13,9 @@ import { LoginBody } from '#/api/endpoints/auth/auth.zod'
 import { toast } from '#/components/ui/toast'
 import { useLogin } from '#/api/auth/auth'
 import { currentUserQueryOptions } from '#/lib/auth'
+import { TextField } from '#/components/form/text-field'
 import { Button } from '#/components/ui/button'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '#/components/ui/field'
-import { Input } from '#/components/ui/input'
+import { Field, FieldGroup } from '#/components/ui/field'
 
 export const Route = createFileRoute('/auth/login')({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
@@ -97,54 +92,26 @@ function Login() {
             <FieldGroup>
               <form.Field
                 name="username"
-                children={(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={field.name}>Username</FieldLabel>
-                      <Input
-                        id={field.name}
-                        name={field.name}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        aria-invalid={isInvalid}
-                        placeholder="admin"
-                        autoComplete="username"
-                      />
-                      {isInvalid && (
-                        <FieldError errors={field.state.meta.errors} />
-                      )}
-                    </Field>
-                  )
-                }}
+                children={(field) => (
+                  <TextField
+                    field={field}
+                    label="Username"
+                    placeholder="admin"
+                    autoComplete="username"
+                  />
+                )}
               />
               <form.Field
                 name="password"
-                children={(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid
-                  return (
-                    <Field data-invalid={isInvalid}>
-                      <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                      <Input
-                        id={field.name}
-                        name={field.name}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        aria-invalid={isInvalid}
-                        type="password"
-                        placeholder="my-secure-password"
-                        autoComplete="current-password"
-                      />
-                      {isInvalid && (
-                        <FieldError errors={field.state.meta.errors} />
-                      )}
-                    </Field>
-                  )
-                }}
+                children={(field) => (
+                  <TextField
+                    field={field}
+                    label="Password"
+                    type="password"
+                    placeholder="my-secure-password"
+                    autoComplete="current-password"
+                  />
+                )}
               />
             </FieldGroup>
           </form>

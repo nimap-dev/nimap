@@ -5,25 +5,14 @@ import {
 import { CreateBuildingBody } from '#/api/endpoints/buildings/buildings.zod'
 import { CreateBuildingRequestStatus } from '#/api/model'
 import type { MultiPolygon } from '#/api/model'
-import { AddressFields } from '#/components/address-fields'
-import { Button } from '#/components/ui/button'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '#/components/ui/field'
-import { Input } from '#/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '#/components/ui/select'
+import { AddressFields } from '#/components/form/address-fields'
+import { FootprintField } from '#/components/form/footprint-field'
+import { FormActions } from '#/components/form/form-actions'
+import { StatusField } from '#/components/form/status-field'
+import { TextField } from '#/components/form/text-field'
+import { FieldGroup } from '#/components/ui/field'
 import { toast } from '#/components/ui/toast'
 import { addressToRequest, emptyAddress } from '#/lib/address'
-import { lifecycleStatusLabels, lifecycleStatusOptions } from '#/lib/lifecycle'
 import { useWorldMap } from '#/lib/map'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
@@ -121,54 +110,20 @@ function NewBuilding() {
           <form.Field
             name="name"
             validators={{ onChange: CreateBuildingBody.shape.name }}
-            children={(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Name</FieldLabel>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    aria-invalid={isInvalid}
-                    placeholder="Prague 1"
-                    autoFocus
-                  />
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              )
-            }}
+            children={(field) => (
+              <TextField
+                field={field}
+                label="Name"
+                placeholder="Prague 1"
+                autoFocus
+              />
+            )}
           />
 
           <form.Field
             name="status"
             validators={{ onChange: CreateBuildingBody.shape.status }}
-            children={(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>Status</FieldLabel>
-                <Select
-                  items={lifecycleStatusLabels}
-                  value={field.state.value}
-                  onValueChange={(value) =>
-                    field.handleChange(value as CreateBuildingRequestStatus)
-                  }
-                >
-                  <SelectTrigger id={field.name} className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {lifecycleStatusOptions.map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            )}
+            children={(field) => <StatusField field={field} />}
           />
 
           <form.Field
@@ -185,50 +140,14 @@ function NewBuilding() {
           <form.Field
             name="notes"
             children={(field) => (
-              <Field>
-                <FieldLabel htmlFor={field.name}>Notes</FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Optional"
-                />
-              </Field>
+              <TextField field={field} label="Notes" placeholder="Optional" />
             )}
           />
 
-          <form.Field
-            name="footprint"
-            children={() => {
-              const parts = polygon?.coordinates.length ?? 0
-              return (
-                <Field>
-                  <FieldLabel>Footprint</FieldLabel>
-                  <div className="flex items-center justify-between gap-2 rounded-lg border p-2 text-sm">
-                    {parts > 0 ? (
-                      <span>
-                        {parts} {parts === 1 ? 'part' : 'parts'} drawn
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">
-                        Click on the map to draw
-                      </span>
-                    )}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      disabled={parts === 0}
-                      onClick={() => drawPolygon()}
-                    >
-                      Clear
-                    </Button>
-                  </div>
-                </Field>
-              )
-            }}
+          <FootprintField
+            polygon={polygon}
+            mode="draw"
+            onClear={() => drawPolygon()}
           />
         </FieldGroup>
       </form>
@@ -236,22 +155,14 @@ function NewBuilding() {
       <form.Subscribe
         selector={(state) => [state.canSubmit, state.isSubmitting] as const}
         children={([canSubmit, isSubmitting]) => (
-          <div className="flex items-center gap-2">
-            <Button
-              type="submit"
-              form="new-building-form"
-              disabled={!canSubmit || isSubmitting || !polygon}
-            >
-              {isSubmitting ? 'Creating…' : 'Create building'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              render={<Link to="/buildings" />}
-            >
-              Cancel
-            </Button>
-          </div>
+          <FormActions
+            formId="new-building-form"
+            submit="Create building"
+            submitting="Creating…"
+            isSubmitting={isSubmitting}
+            disabled={!canSubmit || !polygon}
+            cancel={<Link to="/buildings" />}
+          />
         )}
       />
     </Panel>

@@ -4,8 +4,8 @@ import type { AddressValue } from '#/lib/address'
 
 /**
  * The four address inputs, driven as one value. Forms hold the address in a
- * single field rather than four, which keeps this reusable between buildings
- * and locations without threading a form instance through it.
+ * single field rather than four, which keeps this easily reusable between
+ * buildings and locations.
  */
 export function AddressFields({
   idPrefix,

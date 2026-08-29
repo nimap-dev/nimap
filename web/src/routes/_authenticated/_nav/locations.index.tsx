@@ -3,7 +3,6 @@ import type { LocationTreeResponse } from '#/api/model'
 import { DataTable } from '#/components/data-table/data-table'
 import type { DataTableFeatures } from '#/components/data-table/data-table-features'
 import { Button } from '#/components/ui/button'
-import { Skeleton } from '#/components/ui/skeleton'
 import { formatAddress } from '#/lib/address'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
 import {
@@ -17,6 +16,7 @@ import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { StatusFilter } from '#/components/status-filter'
 import { Panel } from '#/components/panel'
+import { TableSkeleton } from '#/components/data-table/table-skeleton'
 import { useCan } from '#/lib/auth'
 
 export const Route = createFileRoute('/_authenticated/_nav/locations/')({
@@ -144,18 +144,5 @@ function AllLocations() {
         }
       />
     </Panel>
-  )
-}
-
-function TableSkeleton() {
-  return (
-    <div className="flex w-full max-w-sm flex-col gap-2">
-      {Array.from({ length: 5 }).map((_, index) => (
-        <div className="flex gap-4" key={index}>
-          <Skeleton className="h-4 flex-1" />
-          <Skeleton className="h-4 w-24" />
-        </div>
-      ))}
-    </div>
   )
 }

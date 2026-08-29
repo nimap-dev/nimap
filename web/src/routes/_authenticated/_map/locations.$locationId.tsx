@@ -8,9 +8,9 @@ import {
   useUpdateLocationStatus,
 } from '#/api/locations/locations'
 import { Detail, DetailEmpty, DetailList } from '#/components/detail-list'
-import { Panel } from '#/components/panel'
+import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import { useCan } from '#/lib/auth'
-import { formatCoordinates } from '#/components/representative-point-field'
+import { formatCoordinates } from '#/components/form/representative-point-field'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '#/components/ui/select'
-import { Skeleton } from '#/components/ui/skeleton'
 import { toast } from '#/components/ui/toast'
 import { formatAddress } from '#/lib/address'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
@@ -163,34 +162,20 @@ function ViewLocation() {
 
   if (isPending) {
     return (
-      <Panel
-        title={<Skeleton className="h-4 w-40" />}
+      <PanelPending
         back={<Link to="/locations" />}
         backLabel="Back to locations"
-      >
-        <Skeleton className="h-4 w-full" />
-        <div className="grid gap-2">
-          <Skeleton className="h-4 w-2/3" />
-          <Skeleton className="h-4 w-1/2" />
-        </div>
-      </Panel>
+      />
     )
   }
 
   if (!location) {
     return (
-      <Panel
-        title="Not found"
+      <PanelNotFound
+        noun="location"
         back={<Link to="/locations" />}
         backLabel="Back to locations"
-      >
-        <p className="text-sm text-muted-foreground">
-          This location doesn't exist, or you don't have access to it.
-        </p>
-        <Button variant="outline" size="sm" render={<Link to="/locations" />}>
-          Back to locations
-        </Button>
-      </Panel>
+      />
     )
   }
 

@@ -6,6 +6,7 @@ import { useAuth } from '#/lib/auth'
 import type { User } from '#/api/model'
 import { createFileRoute } from '@tanstack/react-router'
 import { Detail, DetailList } from '#/components/detail-list'
+import { Panel } from '#/components/panel'
 
 export const Route = createFileRoute('/_authenticated/_nav/auth/account')({
   component: Account,
@@ -15,20 +16,15 @@ function Account() {
   const { user, isLoading } = useAuth()
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex h-12 shrink-0 items-center gap-1 border-b p-2">
-        <h2 className="min-w-0 flex-1 truncate font-medium">Account</h2>
+    <Panel title="Account">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+        {isLoading ? (
+          <AccountSkeleton />
+        ) : (
+          user && <AccountDetails user={user} />
+        )}
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-          {isLoading ? (
-            <AccountSkeleton />
-          ) : (
-            user && <AccountDetails user={user} />
-          )}
-        </div>
-      </div>
-    </div>
+    </Panel>
   )
 }
 

@@ -14,10 +14,10 @@ import { keepPreviousData } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Plus } from 'lucide-react'
 import { createColumnHelper } from '@tanstack/react-table'
-import { Skeleton } from '#/components/ui/skeleton'
 import { useState } from 'react'
 import { StatusFilter } from '#/components/status-filter'
 import { Panel } from '#/components/panel'
+import { TableSkeleton } from '#/components/data-table/table-skeleton'
 import { useCan } from '#/lib/auth'
 
 export const Route = createFileRoute('/_authenticated/_nav/buildings/')({
@@ -150,18 +150,5 @@ function AllBuildings() {
         }
       />
     </Panel>
-  )
-}
-
-function TableSkeleton() {
-  return (
-    <div className="flex w-full max-w-sm flex-col gap-2">
-      {Array.from({ length: 5 }).map((_, index) => (
-        <div className="flex gap-4" key={index}>
-          <Skeleton className="h-4 flex-1" />
-          <Skeleton className="h-4 w-24" />
-        </div>
-      ))}
-    </div>
   )
 }

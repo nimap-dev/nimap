@@ -1,6 +1,7 @@
 import { Button } from '#/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
+import { Skeleton } from '#/components/ui/skeleton'
 
 /**
  * The frame every page in the side panel and the nav pane shares: a fixed
@@ -44,5 +45,51 @@ export function Panel({
         {children}
       </div>
     </div>
+  )
+}
+
+// What a record page shows while it is loading.
+export function PanelPending({
+  back,
+  backLabel,
+}: {
+  back: ReactElement
+  backLabel: string
+}) {
+  return (
+    <Panel
+      title={<Skeleton className="h-4 w-40" />}
+      back={back}
+      backLabel={backLabel}
+    >
+      <Skeleton className="h-4 w-full" />
+      <div className="grid gap-2">
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-4 w-1/2" />
+      </div>
+    </Panel>
+  )
+}
+
+// What it shows when the record is not there. 
+export function PanelNotFound({
+  noun,
+  back,
+  backLabel,
+}: {
+  noun: string
+  back: ReactElement
+  backLabel: string
+}) {
+  return (
+    <Panel title="Not found" back={back} backLabel={backLabel}>
+      <p className="text-sm text-muted-foreground">
+        This {noun} doesn't exist, or you don't have access to it.
+      </p>
+      <Button variant="outline" size="sm" render={back}>
+        {backLabel}
+      </Button>
+    </Panel>
   )
 }
