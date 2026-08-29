@@ -1,8 +1,21 @@
 import { SidebarProvider } from '#/components/ui/sidebar'
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import type { CSSProperties } from 'react'
+import { currentUserQueryOptions } from '#/lib/auth'
 
 export const Route = createFileRoute('/_authenticated')({
+  beforeLoad: async ({ context, location }) => {
+    const response = await context.queryClient.ensureQueryData(
+      currentUserQueryOptions,
+    )
+
+    if (response.status !== 200) {
+      throw redirect({
+        to: '/auth/login',
+        search: { redirect: location.href },
+      })
+    }
+  },
   component: RouteComponent,
 })
 

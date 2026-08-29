@@ -18,6 +18,7 @@ import { Skeleton } from '#/components/ui/skeleton'
 import { useState } from 'react'
 import { StatusFilter } from '#/components/status-filter'
 import { Panel } from '#/components/panel'
+import { useCan } from '#/lib/auth'
 
 export const Route = createFileRoute('/_authenticated/_nav/buildings/')({
   component: AllBuildings,
@@ -104,6 +105,7 @@ export const columns = columnHelper.columns([
 ])
 
 function AllBuildings() {
+  const canWrite = useCan('records:write')
   const [statuses, setStatuses] = useState(DEFAULT_LIFECYCLE_STATUSES)
   const { data: buildings, isPending } = useListBuildings(
     { status: statuses },
@@ -123,13 +125,15 @@ function AllBuildings() {
     <Panel
       title="All Buildings"
       action={
-        <Button
-          size="icon"
-          aria-label="New building"
-          render={<Link to="/buildings/new" />}
-        >
-          <Plus />
-        </Button>
+        canWrite && (
+          <Button
+            size="icon"
+            aria-label="New building"
+            render={<Link to="/buildings/new" />}
+          >
+            <Plus />
+          </Button>
+        )
       }
     >
       <DataTable

@@ -1,12 +1,12 @@
 -- name: GetUserByUsername :one
-SELECT u.id, u.username, u.email, u.password_hash, u.created_at, u.updated_at, r.name AS role
+SELECT u.id, u.username, u.email, u.password_hash, u.role_id, u.created_at, u.updated_at, r.name AS role
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
 WHERE lower(u.username) = lower($1)
   AND u.deleted_at IS NULL;
 
 -- name: GetUserByID :one
-SELECT u.id, u.username, u.email, u.created_at, u.updated_at, r.name AS role
+SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
 WHERE u.id = $1

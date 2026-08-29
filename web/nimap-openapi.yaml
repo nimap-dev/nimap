@@ -450,6 +450,10 @@ components:
           type: string
         id:
           type: string
+        permissions:
+          items:
+            type: string
+          type: array
         role:
           type: string
         updated_at:
@@ -462,6 +466,7 @@ components:
         - username
         - email
         - role
+        - permissions
         - created_at
         - updated_at
       type: object

@@ -1,58 +1,44 @@
-import { createContext, useContext, useEffect } from 'react'
-import type { ReactNode } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { useGetCurrentUser } from '#/api/auth/auth'
+import { useQuery } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
+import { getGetCurrentUserQueryOptions } from '#/api/auth/auth'
+import type { getCurrentUserResponse } from '#/api/auth/auth'
 import type { User } from '#/api/model'
 
-type AuthContextValue = {
-  user: User | null
-  isLoading: boolean
-  isAuthenticated: boolean
-}
+/**
+ * What an account may do. The names mirror `internal/auth/roles.go`; only the
+ * names live here. Which roles hold them is the server's business and arrives
+ * on the user as `permissions`, so there is no second copy of the policy on
+ * this side to drift out of step with the one being enforced.
+ */
+export type Permission = 'records:read' | 'records:write' | 'users:manage'
 
-const AuthContext = createContext<AuthContextValue | null>(null)
+export const currentUserQueryOptions = getGetCurrentUserQueryOptions({
+  query: { retry: false, staleTime: 5 * 60 * 1000 },
+})
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const { data, isLoading } = useGetCurrentUser({
-    query: { retry: false, staleTime: 5 * 60 * 1000 },
-  })
-
-  const user = data?.status === 200 ? data.data : null
-
-  return (
-    <AuthContext.Provider
-      value={{ user, isLoading, isAuthenticated: user !== null }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
+function userFrom(response: getCurrentUserResponse | undefined): User | null {
+  return response?.status === 200 ? response.data : null
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return ctx
+  const { data, isLoading } = useQuery(currentUserQueryOptions)
+  const user = userFrom(data)
+
+  return { user, isLoading, isAuthenticated: user !== null }
 }
 
-/**
- * Auth state for protected pages. Redirects to `/auth/login` once the user is
- * confirmed to be logged out, preserving the current location so the user can
- * be sent back after logging in.
- */
-export function useRequireAuth() {
-  const auth = useAuth()
-  const navigate = useNavigate()
+// Whether the signed-in user may do something.
+export function useCan(permission: Permission) {
+  const { user } = useAuth()
 
-  useEffect(() => {
-    if (!auth.isLoading && !auth.isAuthenticated) {
-      navigate({
-        to: '/auth/login',
-        replace: true,
-      })
-    }
-  }, [auth.isLoading, auth.isAuthenticated, navigate, location.href])
+  return user?.permissions.includes(permission) ?? false
+}
 
-  return auth
+// The same question from a route guard, where there are no hooks.
+export function can(queryClient: QueryClient, permission: Permission) {
+  const user = userFrom(
+    queryClient.getQueryData(currentUserQueryOptions.queryKey),
+  )
+
+  return user?.permissions.includes(permission) ?? false
 }

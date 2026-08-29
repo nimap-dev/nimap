@@ -31,11 +31,22 @@ import { lifecycleStatusLabels, lifecycleStatusOptions } from '#/lib/lifecycle'
 import { useWorldMap } from '#/lib/map'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useNavigate,
+} from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { Panel } from '#/components/panel'
+import { can } from '#/lib/auth'
 
 export const Route = createFileRoute('/_authenticated/_map/locations/new')({
+  beforeLoad: ({ context }) => {
+    if (!can(context.queryClient, 'records:write')) {
+      throw redirect({ to: '/locations' })
+    }
+  },
   component: NewLocation,
 })
 

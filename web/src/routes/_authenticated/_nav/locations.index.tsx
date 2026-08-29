@@ -17,6 +17,7 @@ import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { StatusFilter } from '#/components/status-filter'
 import { Panel } from '#/components/panel'
+import { useCan } from '#/lib/auth'
 
 export const Route = createFileRoute('/_authenticated/_nav/locations/')({
   component: AllLocations,
@@ -96,6 +97,7 @@ export const columns = columnHelper.columns([
 ])
 
 function AllLocations() {
+  const canWrite = useCan('records:write')
   const [statuses, setStatuses] = useState(DEFAULT_LIFECYCLE_STATUSES)
   const { data: locations, isPending } = useListLocationTree(
     { status: statuses },
@@ -117,13 +119,15 @@ function AllLocations() {
     <Panel
       title="All Locations"
       action={
-        <Button
-          size="icon"
-          aria-label="New location"
-          render={<Link to="/locations/new" />}
-        >
-          <Plus />
-        </Button>
+        canWrite && (
+          <Button
+            size="icon"
+            aria-label="New location"
+            render={<Link to="/locations/new" />}
+          >
+            <Plus />
+          </Button>
+        )
       }
     >
       <DataTable

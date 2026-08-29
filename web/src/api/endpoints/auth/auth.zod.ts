@@ -25,6 +25,7 @@ export const LoginResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "id": zod.string(),
+  "permissions": zod.array(zod.string()),
   "role": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "username": zod.string()
@@ -43,6 +44,7 @@ export const GetCurrentUserResponse = zod.object({
   "created_at": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "id": zod.string(),
+  "permissions": zod.array(zod.string()),
   "role": zod.string(),
   "updated_at": zod.iso.datetime({"offset":true}),
   "username": zod.string()

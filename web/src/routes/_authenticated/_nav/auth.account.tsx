@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback } from '#/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { Skeleton } from '#/components/ui/skeleton'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
-import { useRequireAuth } from '#/lib/auth'
+import { useAuth } from '#/lib/auth'
 import type { User } from '#/api/model'
 import { createFileRoute } from '@tanstack/react-router'
 import { Detail, DetailList } from '#/components/detail-list'
@@ -12,7 +12,7 @@ export const Route = createFileRoute('/_authenticated/_nav/auth/account')({
 })
 
 function Account() {
-  const { user, isLoading } = useRequireAuth()
+  const { user, isLoading } = useAuth()
 
   return (
     <div className="flex h-full min-h-0 flex-col">

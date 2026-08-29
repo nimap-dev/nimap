@@ -20,12 +20,25 @@ const sessionUserIDKey = "user_id"
 
 // User is the API representation of an account.
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	Username  string    `json:"username"`
-	Email     string    `json:"email"`
-	Role      string    `json:"role"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID          uuid.UUID `json:"id"`
+	Username    string    `json:"username"`
+	Email       string    `json:"email"`
+	Role        string    `json:"role"`
+	Permissions []string  `json:"permissions"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+// permissionStrings renders a role's grants for the wire.
+func permissionStrings(roleID int16) []string {
+	permissions := auth.PermissionsFor(roleID)
+
+	out := make([]string, len(permissions))
+	for i, permission := range permissions {
+		out[i] = string(permission)
+	}
+
+	return out
 }
 
 // LoginInput is the request body for POST /api/auth/login.
@@ -79,12 +92,13 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 		sm.Put(ctx, sessionUserIDKey, user.ID.String())
 
 		return &UserOutput{Body: User{
-			ID:        user.ID,
-			Username:  user.Username,
-			Email:     user.Email,
-			Role:      user.Role,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
+			ID:          user.ID,
+			Username:    user.Username,
+			Email:       user.Email,
+			Role:        user.Role,
+			Permissions: permissionStrings(user.RoleID),
+			CreatedAt:   user.CreatedAt,
+			UpdatedAt:   user.UpdatedAt,
 		}}, nil
 	})
 
@@ -109,12 +123,13 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 		}
 
 		return &UserOutput{Body: User{
-			ID:        user.ID,
-			Username:  user.Username,
-			Email:     user.Email,
-			Role:      user.Role,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
+			ID:          user.ID,
+			Username:    user.Username,
+			Email:       user.Email,
+			Role:        user.Role,
+			Permissions: permissionStrings(user.RoleID),
+			CreatedAt:   user.CreatedAt,
+			UpdatedAt:   user.UpdatedAt,
 		}}, nil
 	})
 

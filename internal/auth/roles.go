@@ -54,3 +54,19 @@ var rolesWithPermission = map[Permission][]int16{
 func Allows(roleID int16, permission Permission) bool {
 	return slices.Contains(rolesWithPermission[permission], roleID)
 }
+
+// PermissionsFor lists everything a role may do. It exists so a client can be
+// told what to offer without shipping its own copy of the policy.
+func PermissionsFor(roleID int16) []Permission {
+	granted := make([]Permission, 0, len(rolesWithPermission))
+
+	for permission := range rolesWithPermission {
+		if Allows(roleID, permission) {
+			granted = append(granted, permission)
+		}
+	}
+
+	slices.Sort(granted)
+
+	return granted
+}

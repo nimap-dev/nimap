@@ -21,14 +21,25 @@ import { addressToRequest, addressToValue } from '#/lib/address'
 import { useWorldMap } from '#/lib/map'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  redirect,
+  useNavigate,
+} from '@tanstack/react-router'
 import { Crosshair } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { Panel } from '#/components/panel'
+import { can } from '#/lib/auth'
 
 export const Route = createFileRoute(
   '/_authenticated/_map/buildings/$buildingId_/edit',
 )({
+  beforeLoad: ({ context }) => {
+    if (!can(context.queryClient, 'records:write')) {
+      throw redirect({ to: '/buildings' })
+    }
+  },
   component: EditBuilding,
 })
 

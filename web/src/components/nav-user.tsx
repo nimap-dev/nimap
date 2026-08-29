@@ -16,14 +16,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useRequireAuth } from '#/lib/auth'
+import { useAuth } from '#/lib/auth'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { getGetCurrentUserQueryKey, useLogout } from '#/api/auth/auth'
 
 export function NavUser() {
   const { isMobile } = useSidebar()
-  const { user } = useRequireAuth()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const logoutMutation = useLogout({

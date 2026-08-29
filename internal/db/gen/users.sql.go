@@ -52,7 +52,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT u.id, u.username, u.email, u.created_at, u.updated_at, r.name AS role
+SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
 WHERE u.id = $1
@@ -63,6 +63,7 @@ type GetUserByIDRow struct {
 	ID        uuid.UUID
 	Username  string
 	Email     string
+	RoleID    int16
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Role      string
@@ -75,6 +76,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow
 		&i.ID,
 		&i.Username,
 		&i.Email,
+		&i.RoleID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Role,
@@ -83,7 +85,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT u.id, u.username, u.email, u.password_hash, u.created_at, u.updated_at, r.name AS role
+SELECT u.id, u.username, u.email, u.password_hash, u.role_id, u.created_at, u.updated_at, r.name AS role
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
 WHERE lower(u.username) = lower($1)
@@ -95,6 +97,7 @@ type GetUserByUsernameRow struct {
 	Username     string
 	Email        string
 	PasswordHash string
+	RoleID       int16
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	Role         string
@@ -108,6 +111,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, lower string) (GetUserB
 		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
+		&i.RoleID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Role,

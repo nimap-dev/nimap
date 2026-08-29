@@ -7,6 +7,7 @@ import {
 } from '#/api/buildings/buildings'
 import type { BuildingResponseStatus } from '#/api/model'
 import { Panel } from '#/components/panel'
+import { useCan } from '#/lib/auth'
 import { Detail, DetailList } from '#/components/detail-list'
 import { Button } from '#/components/ui/button'
 import {
@@ -45,6 +46,7 @@ export const Route = createFileRoute(
 
 function ViewBuilding() {
   const { buildingId } = Route.useParams()
+  const canWrite = useCan('records:write')
   const { data, isPending } = useGetBuilding(buildingId)
   const deleteBuilding = useDeleteBuilding()
   const updateStatus = useUpdateBuildingStatus()
@@ -180,26 +182,30 @@ function ViewBuilding() {
                 <Crosshair />
               </Button>
             }
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Edit building"
-              render={
-                <Link
-                  to="/buildings/$buildingId/edit"
-                  params={{ buildingId }}
-                />
-              }
-            >
-              <Pencil />
-            </Button>
-            <AlertDialogTrigger
-              aria-label="Delete building"
-              render={<Button variant="ghost" size="icon" />}
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              <Trash2 />
-            </AlertDialogTrigger>
+            {canWrite && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Edit building"
+                  render={
+                    <Link
+                      to="/buildings/$buildingId/edit"
+                      params={{ buildingId }}
+                    />
+                  }
+                >
+                  <Pencil />
+                </Button>
+                <AlertDialogTrigger
+                  aria-label="Delete building"
+                  render={<Button variant="ghost" size="icon" />}
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 />
+                </AlertDialogTrigger>
+              </>
+            )}
           </>
         }
       >
@@ -216,7 +222,7 @@ function ViewBuilding() {
               onValueChange={(value) =>
                 handleStatusChange(value as BuildingResponseStatus)
               }
-              disabled={updateStatus.isPending}
+              disabled={!canWrite || updateStatus.isPending}
             >
               <SelectTrigger size="sm" aria-label="Building status">
                 <SelectValue />

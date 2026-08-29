@@ -9,6 +9,7 @@ import {
 } from '#/api/locations/locations'
 import { Detail, DetailEmpty, DetailList } from '#/components/detail-list'
 import { Panel } from '#/components/panel'
+import { useCan } from '#/lib/auth'
 import { formatCoordinates } from '#/components/representative-point-field'
 import {
   AlertDialog,
@@ -50,6 +51,7 @@ export const Route = createFileRoute(
 
 function ViewLocation() {
   const { locationId } = Route.useParams()
+  const canWrite = useCan('records:write')
   const { data, isPending } = useGetLocation(locationId)
   const { flyTo, fitBounds } = useWorldMap()
   const updateStatus = useUpdateLocationStatus()
@@ -212,26 +214,30 @@ function ViewLocation() {
                 <Crosshair />
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Edit location"
-              render={
-                <Link
-                  to="/locations/$locationId/edit"
-                  params={{ locationId }}
-                />
-              }
-            >
-              <Pencil />
-            </Button>
-            <AlertDialogTrigger
-              aria-label="Delete location"
-              render={<Button variant="ghost" size="icon" />}
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              <Trash2 />
-            </AlertDialogTrigger>
+            {canWrite && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Edit location"
+                  render={
+                    <Link
+                      to="/locations/$locationId/edit"
+                      params={{ locationId }}
+                    />
+                  }
+                >
+                  <Pencil />
+                </Button>
+                <AlertDialogTrigger
+                  aria-label="Delete location"
+                  render={<Button variant="ghost" size="icon" />}
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 />
+                </AlertDialogTrigger>
+              </>
+            )}
           </>
         }
       >
@@ -249,7 +255,7 @@ function ViewLocation() {
               onValueChange={(value) =>
                 handleStatusChange(value as LifecycleStatus)
               }
-              disabled={updateStatus.isPending}
+              disabled={!canWrite || updateStatus.isPending}
             >
               <SelectTrigger size="sm" aria-label="Location status">
                 <SelectValue />

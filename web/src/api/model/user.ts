@@ -11,6 +11,7 @@ export interface User {
   created_at: string;
   email: string;
   id: string;
+  permissions: string[];
   role: string;
   updated_at: string;
   username: string;

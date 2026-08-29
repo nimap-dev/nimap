@@ -6,14 +6,13 @@ import {
   CardHeader,
   CardTitle,
 } from '#/components/ui/card'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
 import { LoginBody } from '#/api/endpoints/auth/auth.zod'
 import { toast } from '#/components/ui/toast'
-import { getGetCurrentUserQueryKey, useLogin } from '#/api/auth/auth'
-import { useAuth } from '#/lib/auth'
+import { useLogin } from '#/api/auth/auth'
+import { currentUserQueryOptions } from '#/lib/auth'
 import { Button } from '#/components/ui/button'
 import {
   Field,
@@ -23,20 +22,35 @@ import {
 } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 
-export const Route = createFileRoute('/auth/login')({ component: Login })
+export const Route = createFileRoute('/auth/login')({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
+    const raw = search.redirect
+
+    const path =
+      typeof raw === 'string' && raw.startsWith('/') && !raw.startsWith('//')
+        ? raw
+        : undefined
+
+    return path ? { redirect: path } : {}
+  },
+  // Already logged in: there is nothing to show here.
+  beforeLoad: async ({ context }) => {
+    const response = await context.queryClient.ensureQueryData(
+      currentUserQueryOptions,
+    )
+
+    if (response.status === 200) {
+      throw redirect({ to: '/' })
+    }
+  },
+  component: Login,
+})
 
 function Login() {
   const loginMutation = useLogin()
-  const navigate = useNavigate()
+  const router = useRouter()
   const queryClient = useQueryClient()
-  const { isAuthenticated, isLoading } = useAuth()
-
-  // If the user is already logged in, don't show the login form.
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      navigate({ to: '/', replace: true })
-    }
-  }, [isLoading, isAuthenticated, navigate])
+  const search = Route.useSearch()
 
   const form = useForm({
     defaultValues: {
@@ -48,18 +62,19 @@ function Login() {
     },
     onSubmit: async ({ value }) => {
       const res = await loginMutation.mutateAsync({ data: value })
-      if (res.status === 200) {
-        await queryClient.invalidateQueries({
-          queryKey: getGetCurrentUserQueryKey(),
-        })
-        toast.add({ type: 'success', description: 'Logged in successfully' })
-        navigate({ to: '/auth/account', replace: true })
-      } else {
+
+      if (res.status !== 200) {
         toast.add({
           type: 'error',
           description: res.data.detail ?? 'Invalid username or password',
         })
+        return
       }
+
+      queryClient.setQueryData(currentUserQueryOptions.queryKey, res)
+      toast.add({ type: 'success', description: 'Logged in successfully' })
+
+      router.history.replace(search.redirect ?? '/')
     },
   })
   return (
