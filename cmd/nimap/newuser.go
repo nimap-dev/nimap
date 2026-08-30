@@ -17,7 +17,7 @@ import (
 	"github.com/nimap-dev/nimap/internal/db/gen"
 )
 
-// registerNewUserCommand adds `nimap new_user` for creating an account from the
+// registerNewUserCommand adds `nimap new-user` for creating an account from the
 // command line.
 func registerNewUserCommand(cli humacli.CLI) {
 	var (
@@ -28,13 +28,17 @@ func registerNewUserCommand(cli humacli.CLI) {
 	)
 
 	cmd := &cobra.Command{
-		Use:   "new_user",
+		Use:   "new-user",
 		Short: "Create a user account with a role",
 		Long: "Create a user account. The password may be passed with --password;\n" +
 			"if omitted it is read interactively without echo.",
 		Run: humacli.WithOptions(func(cmd *cobra.Command, _ []string, cfg *config.Config) {
+			if err := cfg.Validate(); err != nil {
+				fmt.Fprintf(os.Stderr, "configuration: %v\n", err)
+				os.Exit(1)
+			}
 			if err := runNewUser(cmd.Context(), cfg, username, email, password, role); err != nil {
-				fatal("new_user failed", err)
+				fatal("new-user failed", err)
 			}
 		}),
 	}

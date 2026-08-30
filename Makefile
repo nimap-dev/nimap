@@ -1,18 +1,44 @@
-MIGRATIONS_DIR := internal/db/migrations
-LOAD_ENV := set -a && . ./.env && set +a
-
-.PHONY: check-env
-check-env:
-	@test -f .env || { echo "missing .env — copy .env.example first"; exit 1; }
-
 .PHONY: run
-run: check-env
-	$(LOAD_ENV) && go run ./cmd/nimap 
+run:
+	go run ./cmd/nimap
 
+# up, down and status go through the binary
 .PHONY: migrate-up
-migrate-up: check-env
-	$(LOAD_ENV) && goose -dir $(MIGRATIONS_DIR) postgres "$$SERVICE_DATABASE_URL" up
+migrate-up:
+	go run ./cmd/nimap migrate up
 
 .PHONY: migrate-down
-migrate-down: check-env
-	$(LOAD_ENV) && goose -dir $(MIGRATIONS_DIR) postgres "$$SERVICE_DATABASE_URL" down
+migrate-down:
+	go run ./cmd/nimap migrate down
+
+.PHONY: migrate-status
+migrate-status:
+	go run ./cmd/nimap migrate status
+
+# Regenerates everything the `generated` CI job checks for staleness.
+.PHONY: generate
+generate:
+	sqlc generate
+	pnpm --dir web api-generate
+	pnpm --dir web generate-routes
+
+.PHONY: fmt
+fmt:
+	gofmt -w .
+	pnpm --dir web format
+
+# Mirrors the `go` CI job.
+.PHONY: check
+check:
+	@test -z "$$(gofmt -l .)" || { gofmt -l .; echo "run: make fmt"; exit 1; }
+	go vet ./...
+	go build ./...
+	go test -race ./...
+
+# Mirrors the `web` CI job.
+.PHONY: web-check
+web-check:
+	pnpm --dir web lint
+	pnpm --dir web check
+	pnpm --dir web typecheck
+	pnpm --dir web build

@@ -26,16 +26,16 @@ binary as embedded assets, so the deployment is a single container.
 
 ## Layout
 
-| Path               | Contains                                           |
-| ------------------ | -------------------------------------------------- |
-| `cmd/nimap`        | binary: server, `new_user` and `openapi` commands  |
-| `internal/httpapi` | HTTP handlers, one file per resource               |
-| `internal/db`      | migrations, sqlc queries and generated code        |
-| `internal/auth`    | sessions, password hashing, roles and permissions  |
-| `internal/config`  | configuration struct                               |
-| `internal/logging` | logger setup                                       |
-| `static`           | embedded frontend build                            |
-| `web/src`          | frontend: routes, components, generated API client |
+| Path               | Contains                                            |
+| ------------------ | --------------------------------------------------- |
+| `cmd/nimap`        | binary: server, `new-user`, `migrate` and `openapi` |
+| `internal/httpapi` | HTTP handlers, one file per resource                |
+| `internal/db`      | migrations, sqlc queries and generated code         |
+| `internal/auth`    | sessions, password hashing, roles and permissions   |
+| `internal/config`  | configuration struct                                |
+| `internal/logging` | logger setup                                        |
+| `static`           | embedded frontend build                             |
+| `web/src`          | frontend: routes, components, generated API client  |
 
 ## Running
 
@@ -49,7 +49,7 @@ run on startup.
 Create the first account:
 
 ```bash
-docker compose exec nimap /nimap new_user --username admin --email admin@example.com --role admin
+docker compose exec nimap /nimap new-user --username admin --email admin@example.com --role admin
 ```
 
 ## Development
@@ -105,10 +105,18 @@ pnpm --dir web generate-routes    # web/src/routeTree.gen.ts
 
 ## Migrations
 
+Migrations are embedded in the binary and run on startup unless
+`SERVICE_AUTO_MIGRATE=false`. To drive them by hand, in a container as well as
+locally:
+
 ```bash
-make migrate-up
-make migrate-down
+nimap migrate up
+nimap migrate status
+nimap migrate down      # rolls back one migration
 ```
+
+`migrate down` asks for confirmation when `SERVICE_ENV=production`; `--yes`
+skips the prompt for non-interactive use.
 
 ## License
 

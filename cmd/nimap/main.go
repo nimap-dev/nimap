@@ -37,11 +37,16 @@ func main() {
 		)
 
 		hooks.OnStart(func() {
+			if err := cfg.Validate(); err != nil {
+				fmt.Fprintf(os.Stderr, "configuration: %v\n", err)
+				os.Exit(1)
+			}
+
 			ctx := context.Background()
 
 			if cfg.AutoMigrate {
 				slog.Info("running migrations")
-				if err := db.Migrate(ctx, cfg.DatabaseURL); err != nil {
+				if err := db.MigrateUp(ctx, cfg.DatabaseURL); err != nil {
 					fatal("migrations failed", err)
 				}
 			}
@@ -103,6 +108,7 @@ func main() {
 	})
 
 	registerNewUserCommand(cli)
+	registerMigrateCommand(cli)
 	registerOpenAPICommand(cli)
 
 	cli.Run()
