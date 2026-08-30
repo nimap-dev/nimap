@@ -12,7 +12,7 @@ COPY web/ .
 RUN CI=true pnpm build
 
 FROM golang:1.27.0-alpine3.24 AS build
-ARG VERSION=dev 
+ARG VERSION=dev
 
 WORKDIR /src
 
@@ -31,7 +31,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 FROM alpine:3.24 AS runner
 
 RUN addgroup --system --gid 1001 gorun
-RUN adduser --system --uid 1001 gorun 
+RUN adduser --system --uid 1001 gorun
 
 COPY --from=build --chown=gorun:gorun /src/nimap /nimap
 
