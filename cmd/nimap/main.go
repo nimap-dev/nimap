@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 
 	"github.com/nimap-dev/nimap/internal/auth"
 	"github.com/nimap-dev/nimap/internal/config"
@@ -21,6 +23,11 @@ import (
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
+		fmt.Fprintf(os.Stderr, "reading .env: %v\n", err)
+		os.Exit(1)
+	}
+
 	cli := humacli.New(func(hooks humacli.Hooks, cfg *config.Config) {
 		slog.SetDefault(logging.New(cfg.LogLevel, cfg.LogFormat))
 

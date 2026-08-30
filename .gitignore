@@ -32,4 +32,4 @@ go.work.sum
 # .vscode/
 
 /static/dist/*
-!/static/dist/.gitkeep
+!/static/dist/index.html

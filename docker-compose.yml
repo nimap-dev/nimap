@@ -16,6 +16,7 @@ services:
       retries: 10
 
   nimap:
+    image: ghcr.io/nimap-dev/nimap:main
     build:
       context: .
       dockerfile: Dockerfile
