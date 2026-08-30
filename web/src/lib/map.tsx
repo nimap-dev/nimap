@@ -62,9 +62,17 @@ type CameraMove =
 
 type MapContextValue = {
   mapRef: React.RefObject<MapRef | null>
-  flyTo: (longitude: number, latitude: number, zoom?: number) => void
+  /**
+   * Coordinates are optional because detail panels ask for the move while
+   * their record is still loading; a move without them is dropped.
+   */
+  flyTo: (
+    longitude: number | undefined,
+    latitude: number | undefined,
+    zoom?: number,
+  ) => void
   /** Frame an area, stopping short of `maxZoom` for the very small ones. */
-  fitBounds: (bounds: Bounds, maxZoom?: number) => void
+  fitBounds: (bounds: Bounds | undefined, maxZoom?: number) => void
   /**
    * `WorldMap` reports when the map is usable. A camera move asked for before
    * that is held back and replayed here, so deep links land on their building.
@@ -206,14 +214,22 @@ export function MapProvider({ children }: { children: ReactNode }) {
   )
 
   const flyTo = useCallback(
-    (longitude: number, latitude: number, zoom = 12) => {
+    (
+      longitude: number | undefined,
+      latitude: number | undefined,
+      zoom = 12,
+    ) => {
+      if (longitude === undefined || latitude === undefined) return
+      if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return
       queueMove({ kind: 'center', longitude, latitude, zoom })
     },
     [queueMove],
   )
 
   const fitBounds = useCallback(
-    (bounds: Bounds, maxZoom = 17) => {
+    (bounds: Bounds | undefined, maxZoom = 17) => {
+      if (!bounds || !bounds.every((value) => Number.isFinite(value))) return
+
       queueMove({ kind: 'bounds', bounds, maxZoom })
     },
     [queueMove],

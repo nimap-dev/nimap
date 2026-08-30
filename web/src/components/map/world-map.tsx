@@ -14,7 +14,16 @@ import { MapPin } from 'lucide-react'
 import { TerraDraw, TerraDrawPolygonMode } from 'terra-draw'
 import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter'
 import type { Map as MapLibreMap } from 'maplibre-gl'
+import { setWorkerUrl } from 'maplibre-gl'
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
+
+// MapLibre resolves its own worker as `new URL(`./${name}`, import.meta.url)`.
+// The interpolated name is invisible to Rollup, so a production build never
+// emits the worker and every vector tile silently fails to parse. Vite builds
+// it here instead, `?worker&url` also pulls in maplibre-gl-shared.mjs, which
+// the worker imports.
+setWorkerUrl(maplibreWorkerUrl)
 
 export function WorldMap() {
   const {

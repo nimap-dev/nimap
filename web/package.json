@@ -2,6 +2,10 @@
   "name": "web",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "26.8.1"
+  },
+  "packageManager": "pnpm@11.24.0",
   "imports": {
     "#/*": "./src/*"
   },
@@ -13,6 +17,7 @@
     "lint": "eslint",
     "format": "prettier --write . && eslint --fix",
     "check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
     "api-generate": "go run ../cmd/nimap openapi > nimap-openapi.yaml && orval"
   },
   "dependencies": {
@@ -54,11 +59,5 @@
     "prettier": "^3.9.6",
     "typescript": "^6.0.3",
     "vite": "^8.2.0"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "lightningcss"
-    ]
   }
 }

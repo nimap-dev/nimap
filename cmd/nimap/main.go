@@ -48,11 +48,21 @@ func main() {
 			sessions := auth.NewSessionManager(pool, cfg.Env == "production")
 
 			router := chi.NewMux()
-			router.Use(middleware.RequestID, middleware.Recoverer)
-			router.Use(sessions.LoadAndSave)
+			router.Use(middleware.RequestID, middleware.Recoverer, middleware.Compress(5))
 
+			// Health stays outside the session group on purpose: it keeps
+			// /healthz off the session store, so a database hiccup cannot take
+			// the container healthcheck down with it.
 			httpapi.RegisterHealth(router, pool, config.Version)
-			httpapi.NewAPI(router, config.Version, pool, sessions)
+
+			router.Group(func(r chi.Router) {
+				r.Use(sessions.LoadAndSave)
+				httpapi.NewAPI(r, config.Version, pool, sessions)
+			})
+
+			// Must stay last: RegisterFrontend claims "/*" and answers anything
+			// unmatched with the SPA shell.
+			httpapi.RegisterFrontend(router)
 
 			srv = &http.Server{
 				Addr:              fmt.Sprintf(":%d", cfg.Port),

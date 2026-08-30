@@ -1,0 +1,11 @@
+.git
+.github
+.env
+.env.*
+sqlc.yaml
+*.md
+.vscode
+**/node_modules
+**/dist
+web/.tanstack
+web/.vscode

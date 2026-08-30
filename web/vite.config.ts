@@ -15,6 +15,9 @@ const config = defineConfig({
   optimizeDeps: {
     exclude: ['maplibre-gl'],
   },
+  worker: {
+    format: 'es',
+  },
   server: {
     proxy: {
       '/api': {

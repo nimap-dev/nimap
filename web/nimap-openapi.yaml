@@ -26,12 +26,12 @@ components:
           readOnly: true
           type: string
         address:
-          $ref: '#/components/schemas/Address'
+          $ref: "#/components/schemas/Address"
         createdAt:
           format: date-time
           type: string
         footprint:
-          $ref: '#/components/schemas/MultiPolygon'
+          $ref: "#/components/schemas/MultiPolygon"
         id:
           type: string
         name:
@@ -39,7 +39,7 @@ components:
         notes:
           type: string
         representativePoint:
-          $ref: '#/components/schemas/Point'
+          $ref: "#/components/schemas/Point"
         status:
           enum:
             - planned
@@ -70,9 +70,9 @@ components:
           readOnly: true
           type: string
         address:
-          $ref: '#/components/schemas/Address'
+          $ref: "#/components/schemas/Address"
         footprint:
-          $ref: '#/components/schemas/MultiPolygon'
+          $ref: "#/components/schemas/MultiPolygon"
         name:
           minLength: 1
           type: string
@@ -101,9 +101,9 @@ components:
           readOnly: true
           type: string
         address:
-          $ref: '#/components/schemas/Address'
+          $ref: "#/components/schemas/Address"
         area:
-          $ref: '#/components/schemas/MultiPolygon'
+          $ref: "#/components/schemas/MultiPolygon"
           description: The boundary of the location; omit for one whose extent nobody has established yet
         name:
           minLength: 1
@@ -114,7 +114,7 @@ components:
           description: The location this one sits inside; omit for a location that stands on its own
           type: string
         representativePoint:
-          $ref: '#/components/schemas/Point'
+          $ref: "#/components/schemas/Point"
         status:
           enum:
             - planned
@@ -156,7 +156,7 @@ components:
         errors:
           description: Optional list of individual error details
           items:
-            $ref: '#/components/schemas/ErrorDetail'
+            $ref: "#/components/schemas/ErrorDetail"
           type: array
         instance:
           description: A URI reference that identifies the specific occurrence of the problem.
@@ -194,9 +194,9 @@ components:
           readOnly: true
           type: string
         address:
-          $ref: '#/components/schemas/Address'
+          $ref: "#/components/schemas/Address"
         area:
-          $ref: '#/components/schemas/MultiPolygon'
+          $ref: "#/components/schemas/MultiPolygon"
         createdAt:
           format: date-time
           type: string
@@ -209,7 +209,7 @@ components:
         parentId:
           type: string
         representativePoint:
-          $ref: '#/components/schemas/Point'
+          $ref: "#/components/schemas/Point"
         representativePointManual:
           type: boolean
         status:
@@ -234,9 +234,9 @@ components:
       additionalProperties: false
       properties:
         address:
-          $ref: '#/components/schemas/Address'
+          $ref: "#/components/schemas/Address"
         area:
-          $ref: '#/components/schemas/MultiPolygon'
+          $ref: "#/components/schemas/MultiPolygon"
         createdAt:
           format: date-time
           type: string
@@ -252,7 +252,7 @@ components:
         parentId:
           type: string
         representativePoint:
-          $ref: '#/components/schemas/Point'
+          $ref: "#/components/schemas/Point"
         representativePointManual:
           type: boolean
         status:
@@ -353,9 +353,9 @@ components:
           readOnly: true
           type: string
         address:
-          $ref: '#/components/schemas/Address'
+          $ref: "#/components/schemas/Address"
         footprint:
-          $ref: '#/components/schemas/MultiPolygon'
+          $ref: "#/components/schemas/MultiPolygon"
         name:
           minLength: 1
           type: string
@@ -396,9 +396,9 @@ components:
           readOnly: true
           type: string
         address:
-          $ref: '#/components/schemas/Address'
+          $ref: "#/components/schemas/Address"
         area:
-          $ref: '#/components/schemas/MultiPolygon'
+          $ref: "#/components/schemas/MultiPolygon"
           description: The boundary of the location; omit for one whose extent nobody has established yet
         name:
           minLength: 1
@@ -409,7 +409,7 @@ components:
           description: The location this one sits inside; omit to move it to the top level
           type: string
         representativePoint:
-          $ref: '#/components/schemas/Point'
+          $ref: "#/components/schemas/Point"
       required:
         - name
       type: object
@@ -482,20 +482,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginInputBody'
+              $ref: "#/components/schemas/LoginInputBody"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Log in with username and password
       tags:
@@ -504,13 +504,13 @@ paths:
     post:
       operationId: logout
       responses:
-        '204':
+        "204":
           description: No Content
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Log out and end the current session
       tags:
@@ -519,17 +519,17 @@ paths:
     get:
       operationId: get-current-user
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Return the currently authenticated user
       tags:
@@ -553,19 +553,19 @@ paths:
               type: string
             type: array
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/BuildingResponse'
+                  $ref: "#/components/schemas/BuildingResponse"
                 type: array
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Returns all buildings
       tags:
@@ -576,20 +576,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateBuildingRequest'
+              $ref: "#/components/schemas/CreateBuildingRequest"
         required: true
       responses:
-        '201':
+        "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BuildingResponse'
+                $ref: "#/components/schemas/BuildingResponse"
           description: Created
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Creates a building
       tags:
@@ -604,13 +604,13 @@ paths:
           schema:
             type: string
       responses:
-        '204':
+        "204":
           description: No Content
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Soft deletes the building with the provided id
       tags:
@@ -624,17 +624,17 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BuildingResponse'
+                $ref: "#/components/schemas/BuildingResponse"
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Returns building with the provided id
       tags:
@@ -651,20 +651,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateBuildingRequest'
+              $ref: "#/components/schemas/UpdateBuildingRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BuildingResponse'
+                $ref: "#/components/schemas/BuildingResponse"
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Updates the building with the provided id
       tags:
@@ -682,20 +682,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateBuildingStatusRequest'
+              $ref: "#/components/schemas/UpdateBuildingStatusRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BuildingResponse'
+                $ref: "#/components/schemas/BuildingResponse"
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Updates the building status of the building with provided id
       tags:
@@ -719,19 +719,19 @@ paths:
               type: string
             type: array
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/LocationResponse'
+                  $ref: "#/components/schemas/LocationResponse"
                 type: array
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Returns all locations
       tags:
@@ -742,20 +742,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateLocationRequest'
+              $ref: "#/components/schemas/CreateLocationRequest"
         required: true
       responses:
-        '201':
+        "201":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LocationResponse'
+                $ref: "#/components/schemas/LocationResponse"
           description: Created
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Creates a location
       tags:
@@ -779,19 +779,19 @@ paths:
               type: string
             type: array
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/LocationTreeResponse'
+                  $ref: "#/components/schemas/LocationTreeResponse"
                 type: array
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Returns all locations in tree order, with their depth
       tags:
@@ -806,13 +806,13 @@ paths:
           schema:
             type: string
       responses:
-        '204':
+        "204":
           description: No Content
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Soft deletes the location with the provided id
       tags:
@@ -826,17 +826,17 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LocationResponse'
+                $ref: "#/components/schemas/LocationResponse"
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Returns location with the provided id
       tags:
@@ -853,20 +853,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateLocationRequest'
+              $ref: "#/components/schemas/UpdateLocationRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LocationResponse'
+                $ref: "#/components/schemas/LocationResponse"
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Updates the location with the provided id
       tags:
@@ -884,21 +884,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateLocationStatusRequest'
+              $ref: "#/components/schemas/UpdateLocationStatusRequest"
         required: true
       responses:
-        '200':
+        "200":
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LocationResponse'
+                $ref: "#/components/schemas/LocationResponse"
           description: OK
         default:
           content:
             application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorModel'
+                $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Updates the location status of the location with provided id
       tags:
         - locations
+

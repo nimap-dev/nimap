@@ -4,7 +4,7 @@ import { Input } from '#/components/ui/input'
 
 /**
  * The part of a TanStack form field this needs, declared structurally rather
- * than imported: the field type is parameterised by the shape of the whole 
+ * than imported: the field type is parameterised by the shape of the whole
  * form, which a component shared between five different forms cannot name.
  */
 type StringField = {

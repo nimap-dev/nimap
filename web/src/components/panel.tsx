@@ -72,7 +72,7 @@ export function PanelPending({
   )
 }
 
-// What it shows when the record is not there. 
+// What it shows when the record is not there.
 export function PanelNotFound({
   noun,
   back,
