@@ -1,5 +1,4 @@
 import {
-  getListLocationTreeQueryKey,
   getListLocationsQueryKey,
   useCreateLocation,
 } from '#/api/locations/locations'
@@ -84,12 +83,9 @@ function NewLocation() {
         return
       }
 
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: getListLocationsQueryKey() }),
-        queryClient.invalidateQueries({
-          queryKey: getListLocationTreeQueryKey(),
-        }),
-      ])
+      await queryClient.invalidateQueries({
+        queryKey: getListLocationsQueryKey(),
+      })
       toast.add({ type: 'success', description: 'Location created' })
       navigate({
         to: '/locations/$locationId',

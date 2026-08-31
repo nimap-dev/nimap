@@ -16,11 +16,6 @@ type Querier interface {
 	CreateLocation(ctx context.Context, arg CreateLocationParams) (CreateLocationRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeleteBuilding(ctx context.Context, id uuid.UUID) (int64, error)
-	// A location that still holds children is refused by the parent_id foreign key
-	// rather than by a guard here, so a child added in between cannot slip past:
-	// the delete raises SQLSTATE 23503, which the handler turns into a 409 and asks
-	// CountLocationChildren how many are in the way. Zero rows affected therefore
-	// means "not found" and nothing else.
 	DeleteLocation(ctx context.Context, id uuid.UUID) (int64, error)
 	GetBuilding(ctx context.Context, id uuid.UUID) (GetBuildingRow, error)
 	GetLocation(ctx context.Context, id uuid.UUID) (GetLocationRow, error)
@@ -28,15 +23,6 @@ type Querier interface {
 	GetUserByUsername(ctx context.Context, lower string) (GetUserByUsernameRow, error)
 	GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error)
 	ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error)
-	// The tree is walked over every location, and the status filter is applied only
-	// to what comes out: filtering inside the recursion would drop the children of a
-	// hidden parent along with it. A location whose parent is filtered out therefore
-	// arrives with its depth intact but without a visible ancestor, which the caller
-	// should fall back to rendering flat.
-	//
-	// `path` never leaves the query. It orders the rows into tree order, and the
-	// caller indents by `depth` from there.
-	ListLocationTree(ctx context.Context, statuses []string) ([]ListLocationTreeRow, error)
 	ListLocations(ctx context.Context, statuses []string) ([]ListLocationsRow, error)
 	// Picks the location whose area a footprint overlaps the most, so a building
 	// drawn inside a campus lands in the campus rather than in whichever location

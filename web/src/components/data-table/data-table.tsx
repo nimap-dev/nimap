@@ -35,9 +35,13 @@ interface DataTableProps<TData extends RowData> {
   /** Column id the search field filters on. Omit to hide the search field. */
   searchColumn?: string
   searchPlaceholder?: string
+  search?: {
+    value: string
+    onChange: (value: string) => void
+  }
   /** Rendered at the end of the toolbar row, e.g. a "new item" button. */
   actions?: React.ReactNode
-  clssName?: string
+  className?: string
 }
 
 export function DataTable<TData extends RowData>({
@@ -46,8 +50,9 @@ export function DataTable<TData extends RowData>({
   onRowClick,
   searchColumn,
   searchPlaceholder = 'Search…',
+  search: controlledSearch,
   actions,
-  clssName,
+  className,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -63,17 +68,23 @@ export function DataTable<TData extends RowData>({
     },
   })
 
-  const search = searchColumn ? table.getColumn(searchColumn) : undefined
+  const column = searchColumn ? table.getColumn(searchColumn) : undefined
+  const search =
+    controlledSearch ??
+    (column && {
+      value: (column.getFilterValue() as string) || '',
+      onChange: (value: string) => column.setFilterValue(value),
+    })
 
   return (
-    <div className={cn('flex flex-col gap-4', clssName)}>
+    <div className={cn('flex flex-col gap-4', className)}>
       {(search || actions) && (
         <div className="flex items-center gap-2">
           {search && (
             <Input
               type="search"
-              value={(search.getFilterValue() as string) || ''}
-              onChange={(event) => search.setFilterValue(event.target.value)}
+              value={search.value}
+              onChange={(event) => search.onChange(event.target.value)}
               placeholder={searchPlaceholder}
               aria-label={searchPlaceholder}
               className="flex-1"

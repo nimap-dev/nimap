@@ -14,6 +14,18 @@ export const DEFAULT_LIFECYCLE_STATUSES: LifecycleStatus[] = [
   BuildingResponseStatus.active,
 ]
 
+/**
+ * Everything, for the screens that filter on the client: they need the rows
+ * they are not showing too, because a decommissioned location still has to
+ * hold the place of the live ones nested inside it.
+ */
+export const ALL_LIFECYCLE_STATUSES: LifecycleStatus[] = [
+  BuildingResponseStatus.planned,
+  BuildingResponseStatus.active,
+  BuildingResponseStatus.decommissioned,
+  BuildingResponseStatus.archived,
+]
+
 // Orval mints a separate enum per schema, but every one of them carries the
 // same lifecycle values, so a single table of labels covers all of them.
 export const lifecycleStatusLabels: Record<BuildingResponseStatus, string> = {

@@ -230,50 +230,6 @@ components:
         - createdAt
         - updatedAt
       type: object
-    LocationTreeResponse:
-      additionalProperties: false
-      properties:
-        address:
-          $ref: "#/components/schemas/Address"
-        area:
-          $ref: "#/components/schemas/MultiPolygon"
-        createdAt:
-          format: date-time
-          type: string
-        depth:
-          format: int32
-          type: integer
-        id:
-          type: string
-        name:
-          type: string
-        notes:
-          type: string
-        parentId:
-          type: string
-        representativePoint:
-          $ref: "#/components/schemas/Point"
-        representativePointManual:
-          type: boolean
-        status:
-          enum:
-            - planned
-            - active
-            - decommissioned
-            - archived
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-        - depth
-        - id
-        - name
-        - representativePointManual
-        - status
-        - createdAt
-        - updatedAt
-      type: object
     LoginInputBody:
       additionalProperties: false
       properties:
@@ -758,42 +714,6 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Creates a location
-      tags:
-        - locations
-  /api/locations/tree:
-    get:
-      operationId: list-location-tree
-      parameters:
-        - description: Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived locations off the map and out of the default lists without hiding them from a direct lookup.
-          explode: false
-          in: query
-          name: status
-          schema:
-            description: Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived locations off the map and out of the default lists without hiding them from a direct lookup.
-            items:
-              enum:
-                - planned
-                - active
-                - decommissioned
-                - archived
-              type: string
-            type: array
-      responses:
-        "200":
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: "#/components/schemas/LocationTreeResponse"
-                type: array
-          description: OK
-        default:
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ErrorModel"
-          description: Error
-      summary: Returns all locations in tree order, with their depth
       tags:
         - locations
   /api/locations/{id}:

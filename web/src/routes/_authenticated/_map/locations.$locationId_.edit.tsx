@@ -1,6 +1,5 @@
 import {
   getGetLocationQueryKey,
-  getListLocationTreeQueryKey,
   getListLocationsQueryKey,
   useGetLocation,
   useUpdateLocation,
@@ -123,9 +122,6 @@ function EditLocationForm({ location }: { location: LocationResponse }) {
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: getListLocationsQueryKey() }),
-        queryClient.invalidateQueries({
-          queryKey: getListLocationTreeQueryKey(),
-        }),
         queryClient.invalidateQueries({
           queryKey: getGetLocationQueryKey(location.id),
         }),

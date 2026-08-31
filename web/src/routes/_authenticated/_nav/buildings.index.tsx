@@ -3,12 +3,10 @@ import type { BuildingResponse } from '#/api/model'
 import { DataTable } from '#/components/data-table/data-table'
 import { DataTableColumnHeader } from '#/components/data-table/data-table-column-header'
 import type { DataTableFeatures } from '#/components/data-table/data-table-features'
+import { LifecycleBadge } from '#/components/lifecycle-badge'
 import { formatAddress } from '#/lib/address'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
-import {
-  lifecycleStatusLabels,
-  DEFAULT_LIFECYCLE_STATUSES,
-} from '#/lib/lifecycle'
+import { DEFAULT_LIFECYCLE_STATUSES } from '#/lib/lifecycle'
 import { Button } from '#/components/ui/button'
 import { keepPreviousData } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
@@ -80,11 +78,7 @@ export const columns = columnHelper.columns([
       <DataTableColumnHeader column={column}>Status</DataTableColumnHeader>
     ),
     meta: { width: '9rem' },
-    cell: ({ getValue }) => (
-      <span className="text-muted-foreground">
-        {lifecycleStatusLabels[getValue()]}
-      </span>
-    ),
+    cell: ({ getValue }) => <LifecycleBadge status={getValue()} />,
   }),
   columnHelper.accessor('updatedAt', {
     header: ({ column }) => (

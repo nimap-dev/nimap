@@ -84,25 +84,12 @@ type LocationResponse struct {
 	UpdatedAt                 time.Time       `json:"updatedAt"`
 }
 
-// LocationTreeResponse is a location placed in the hierarchy. Rows arrive in
-// tree order and `depth` says how far to indent; a location whose parent is
-// filtered out by status keeps its depth but has no visible ancestor, so a
-// caller that cannot place a node should fall back to rendering it flat.
-type LocationTreeResponse struct {
-	LocationResponse
-	Depth int32 `json:"depth"`
-}
-
 type GetLocationOutput struct {
 	Body LocationResponse
 }
 
 type ListLocationsOutput struct {
 	Body []LocationResponse
-}
-
-type ListLocationTreeOutput struct {
-	Body []LocationTreeResponse
 }
 
 type CreateLocationOutput struct {
@@ -219,68 +206,6 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 		return &ListLocationsOutput{
 			Body: result,
 		}, nil
-	})
-
-	huma.Register(api, huma.Operation{
-		OperationID: "list-location-tree",
-		Method:      http.MethodGet,
-		Path:        "/api/locations/tree",
-		Summary:     "Returns all locations in tree order, with their depth",
-		Tags:        []string{"locations"},
-		Metadata:    map[string]any{requirePermissionMetaKey: auth.ReadRecords},
-	}, func(
-		ctx context.Context,
-		in *ListLocationsInput,
-	) (*ListLocationTreeOutput, error) {
-		statuses := in.Status
-		if len(statuses) == 0 {
-			statuses = ActiveLifecycleStatuses
-		}
-
-		locations, err := q.ListLocationTree(
-			ctx,
-			lifecycleStatusStrings(statuses),
-		)
-		if err != nil {
-			return nil, huma.Error500InternalServerError(
-				"location tree failed",
-			)
-		}
-
-		result := make([]LocationTreeResponse, 0, len(locations))
-
-		for _, location := range locations {
-			body, err := locationResponse(
-				location.ID,
-				location.ParentID,
-				location.Name,
-				Address{
-					Street:  location.AddressStreet,
-					City:    location.AddressCity,
-					Zip:     location.AddressZip,
-					Country: location.AddressCountry,
-				},
-				location.Area,
-				location.RepresentativePoint,
-				location.RepresentativePointManual,
-				location.Notes,
-				LifecycleStatus(location.Status),
-				location.CreatedAt,
-				location.UpdatedAt,
-			)
-			if err != nil {
-				return nil, huma.Error500InternalServerError(
-					"location tree failed",
-				)
-			}
-
-			result = append(result, LocationTreeResponse{
-				LocationResponse: body,
-				Depth:            location.Depth,
-			})
-		}
-
-		return &ListLocationTreeOutput{Body: result}, nil
 	})
 
 	huma.Register(api, huma.Operation{

@@ -1,10 +1,8 @@
 import {
   getGetLocationQueryKey,
-  getListLocationTreeQueryKey,
   getListLocationsQueryKey,
   useDeleteLocation,
   useGetLocation,
-  useListLocations,
   useUpdateLocationStatus,
 } from '#/api/locations/locations'
 import { Detail, DetailEmpty, DetailList } from '#/components/detail-list'
@@ -34,13 +32,22 @@ import {
 import { toast } from '#/components/ui/toast'
 import { formatAddress } from '#/lib/address'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
-import { lifecycleStatusLabels, lifecycleStatusOptions } from '#/lib/lifecycle'
+import {
+  ALL_LIFECYCLE_STATUSES,
+  lifecycleStatusLabels,
+  lifecycleStatusOptions,
+} from '#/lib/lifecycle'
+import {
+  buildLocationTree,
+  descendantsOf,
+  useAllLocations,
+} from '#/lib/location-tree'
 import type { LifecycleStatus } from '#/lib/lifecycle'
 import { multiPolygonBounds, useWorldMap } from '#/lib/map'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { ChevronRight, Crosshair, Pencil, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 export const Route = createFileRoute(
   '/_authenticated/_map/locations/$locationId',
@@ -61,10 +68,17 @@ function ViewLocation() {
 
   const location = data?.status === 200 ? data.data : undefined
 
-  const { data: siblings } = useListLocations()
+  const { data: siblings } = useAllLocations()
   const all = siblings?.status === 200 ? siblings.data : []
-  const children = all.filter((item) => item.parentId === locationId)
   const parent = all.find((item) => item.id === location?.parentId)
+
+  const inside = useMemo(
+    () =>
+      descendantsOf(buildLocationTree(all), locationId, {
+        statuses: ALL_LIFECYCLE_STATUSES,
+      }),
+    [all, locationId],
+  )
 
   const area = location?.area
   const point = location?.representativePoint
@@ -85,12 +99,9 @@ function ViewLocation() {
   useEffect(frame, [area, point, fitBounds, flyTo])
 
   async function refreshLists() {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: getListLocationsQueryKey() }),
-      queryClient.invalidateQueries({
-        queryKey: getListLocationTreeQueryKey(),
-      }),
-    ])
+    await queryClient.invalidateQueries({
+      queryKey: getListLocationsQueryKey(),
+    })
   }
 
   // Reversible, so it applies straight away rather than behind a confirmation.
@@ -302,32 +313,35 @@ function ViewLocation() {
           </Detail>
         </DetailList>
 
-        {children.length > 0 && (
+        {inside.length > 0 && (
           <section className="grid gap-2">
             <h3 className="text-sm font-medium">
               Inside this location
               <span className="ml-1.5 text-muted-foreground">
-                {children.length}
+                {inside.length}
               </span>
             </h3>
             <ul className="grid gap-px overflow-hidden rounded-lg border">
-              {children.map((child) => (
-                <li key={child.id}>
+              {inside.map((row) => (
+                <li key={row.location.id}>
                   <Link
                     to="/locations/$locationId"
-                    params={{ locationId: child.id }}
+                    params={{ locationId: row.location.id }}
                     className="flex items-center gap-2 bg-background px-2.5 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                    style={{
+                      paddingInlineStart: `${0.625 + row.depth * 0.75}rem`,
+                    }}
                   >
                     <span className="min-w-0 flex-1 truncate">
-                      {child.name}
-                      {!child.area && (
+                      {row.location.name}
+                      {!row.location.area && (
                         <span className="text-muted-foreground">
                           {' · no boundary'}
                         </span>
                       )}
                     </span>
                     <span className="shrink-0 text-xs text-muted-foreground">
-                      {lifecycleStatusLabels[child.status]}
+                      {lifecycleStatusLabels[row.location.status]}
                     </span>
                     <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
                   </Link>

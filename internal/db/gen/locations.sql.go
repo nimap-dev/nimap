@@ -137,11 +137,6 @@ DELETE FROM locations
 WHERE id = $1
 `
 
-// A location that still holds children is refused by the parent_id foreign key
-// rather than by a guard here, so a child added in between cannot slip past:
-// the delete raises SQLSTATE 23503, which the handler turns into a 409 and asks
-// CountLocationChildren how many are in the way. Zero rows affected therefore
-// means "not found" and nothing else.
 func (q *Queries) DeleteLocation(ctx context.Context, id uuid.UUID) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteLocation, id)
 	if err != nil {
@@ -209,112 +204,6 @@ func (q *Queries) GetLocation(ctx context.Context, id uuid.UUID) (GetLocationRow
 		&i.UpdatedAt,
 	)
 	return i, err
-}
-
-const listLocationTree = `-- name: ListLocationTree :many
-WITH RECURSIVE tree AS (
-  SELECT
-    location.id,
-    location.parent_id,
-    0 AS depth,
-    ARRAY[location.name] AS path
-  FROM locations AS location
-  WHERE location.parent_id IS NULL
-
-  UNION ALL
-
-  SELECT
-    child.id,
-    child.parent_id,
-    parent.depth + 1,
-    parent.path || child.name
-  FROM locations AS child
-  JOIN tree AS parent ON child.parent_id = parent.id
-)
-SELECT
-  location.id,
-  location.parent_id,
-  location.name,
-  location.address_street,
-  location.address_city,
-  location.address_zip,
-  location.address_country,
-  COALESCE(ST_AsGeoJSON(location.area)::text, '')::text AS area,
-  COALESCE(ST_AsGeoJSON(
-    COALESCE(location.representative_point, ST_PointOnSurface(location.area))
-  )::text, '')::text AS representative_point,
-  (location.representative_point IS NOT NULL)::bool AS representative_point_manual,
-  location.status,
-  location.notes,
-  location.created_at,
-  location.updated_at,
-  tree.depth
-FROM tree
-JOIN locations AS location ON location.id = tree.id
-WHERE location.status::text = ANY($1::text[])
-ORDER BY tree.path
-`
-
-type ListLocationTreeRow struct {
-	ID                        uuid.UUID
-	ParentID                  *uuid.UUID
-	Name                      string
-	AddressStreet             *string
-	AddressCity               *string
-	AddressZip                *string
-	AddressCountry            *string
-	Area                      string
-	RepresentativePoint       string
-	RepresentativePointManual bool
-	Status                    LifecycleStatus
-	Notes                     *string
-	CreatedAt                 time.Time
-	UpdatedAt                 time.Time
-	Depth                     int32
-}
-
-// The tree is walked over every location, and the status filter is applied only
-// to what comes out: filtering inside the recursion would drop the children of a
-// hidden parent along with it. A location whose parent is filtered out therefore
-// arrives with its depth intact but without a visible ancestor, which the caller
-// should fall back to rendering flat.
-//
-// `path` never leaves the query. It orders the rows into tree order, and the
-// caller indents by `depth` from there.
-func (q *Queries) ListLocationTree(ctx context.Context, statuses []string) ([]ListLocationTreeRow, error) {
-	rows, err := q.db.Query(ctx, listLocationTree, statuses)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ListLocationTreeRow
-	for rows.Next() {
-		var i ListLocationTreeRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.ParentID,
-			&i.Name,
-			&i.AddressStreet,
-			&i.AddressCity,
-			&i.AddressZip,
-			&i.AddressCountry,
-			&i.Area,
-			&i.RepresentativePoint,
-			&i.RepresentativePointManual,
-			&i.Status,
-			&i.Notes,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.Depth,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const listLocations = `-- name: ListLocations :many

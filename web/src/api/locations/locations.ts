@@ -26,10 +26,8 @@ import type {
 import type {
   CreateLocationRequest,
   ErrorModel,
-  ListLocationTreeParams,
   ListLocationsParams,
   LocationResponse,
-  LocationTreeResponse,
   UpdateLocationRequest,
   UpdateLocationStatusRequest
 } from '../model';
@@ -316,140 +314,7 @@ export const useCreateLocation = <TError = ErrorModel,
       > => {
       return useMutation(getCreateLocationMutationOptions(options), queryClient);
     }
-    export type listLocationTreeResponse200 = {
-  data: LocationTreeResponse[]
-  status: 200
-}
-
-export type listLocationTreeResponseDefault = {
-  data: ErrorModel
-  status: Exclude<HTTPStatusCodes, 200>
-}
-
-export type listLocationTreeResponseSuccess = (listLocationTreeResponse200) & {
-  headers: Headers;
-};
-export type listLocationTreeResponseError = (listLocationTreeResponseDefault) & {
-  headers: Headers;
-};
-
-export type listLocationTreeResponse = (listLocationTreeResponseSuccess | listLocationTreeResponseError)
-
-export const getListLocationTreeUrl = (params?: ListLocationTreeParams,) => {
-  const normalizedParams = new URLSearchParams();
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  });
-
-  const stringifiedParams = normalizedParams.toString();
-
-  return stringifiedParams.length > 0 ? `/api/locations/tree?${stringifiedParams}` : `/api/locations/tree`
-}
-
-/**
- * @summary Returns all locations in tree order, with their depth
- */
-export const listLocationTree = async (params?: ListLocationTreeParams, options?: RequestInit): Promise<listLocationTreeResponse> => {
-
-  const res = await fetch(getListLocationTreeUrl(params),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: listLocationTreeResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as listLocationTreeResponse
-}
-
-
-
-
-
-export const getListLocationTreeQueryKey = (params?: ListLocationTreeParams,) => {
-    return [
-    `/api/locations/tree`, ...(params ? [params] : [])
-    ] as const;
-    }
-
-
-export const getListLocationTreeQueryOptions = <TData = Awaited<ReturnType<typeof listLocationTree>>, TError = ErrorModel>(params?: ListLocationTreeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLocationTree>>, TError, TData>>, fetch?: RequestInit}
-) => {
-
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListLocationTreeQueryKey(params);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLocationTree>>> = ({ signal }) => listLocationTree(params, { signal, ...fetchOptions });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLocationTree>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListLocationTreeQueryResult = NonNullable<Awaited<ReturnType<typeof listLocationTree>>>
-export type ListLocationTreeQueryError = ErrorModel
-
-
-export function useListLocationTree<TData = Awaited<ReturnType<typeof listLocationTree>>, TError = ErrorModel>(
- params: undefined |  ListLocationTreeParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLocationTree>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listLocationTree>>,
-          TError,
-          Awaited<ReturnType<typeof listLocationTree>>
-        > , 'initialData'
-      >, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListLocationTree<TData = Awaited<ReturnType<typeof listLocationTree>>, TError = ErrorModel>(
- params?: ListLocationTreeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLocationTree>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listLocationTree>>,
-          TError,
-          Awaited<ReturnType<typeof listLocationTree>>
-        > , 'initialData'
-      >, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListLocationTree<TData = Awaited<ReturnType<typeof listLocationTree>>, TError = ErrorModel>(
- params?: ListLocationTreeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLocationTree>>, TError, TData>>, fetch?: RequestInit}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Returns all locations in tree order, with their depth
- */
-
-export function useListLocationTree<TData = Awaited<ReturnType<typeof listLocationTree>>, TError = ErrorModel>(
- params?: ListLocationTreeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLocationTree>>, TError, TData>>, fetch?: RequestInit}
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListLocationTreeQueryOptions(params,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-export type deleteLocationResponse204 = {
+    export type deleteLocationResponse204 = {
   data: void
   status: 204
 }

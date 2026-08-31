@@ -41,57 +41,6 @@ FROM locations
 WHERE status::text = ANY(sqlc.arg(statuses)::text[])
 ORDER BY name;
 
--- The tree is walked over every location, and the status filter is applied only
--- to what comes out: filtering inside the recursion would drop the children of a
--- hidden parent along with it. A location whose parent is filtered out therefore
--- arrives with its depth intact but without a visible ancestor, which the caller
--- should fall back to rendering flat.
---
--- `path` never leaves the query. It orders the rows into tree order, and the
--- caller indents by `depth` from there.
--- name: ListLocationTree :many
-WITH RECURSIVE tree AS (
-  SELECT
-    location.id,
-    location.parent_id,
-    0 AS depth,
-    ARRAY[location.name] AS path
-  FROM locations AS location
-  WHERE location.parent_id IS NULL
-
-  UNION ALL
-
-  SELECT
-    child.id,
-    child.parent_id,
-    parent.depth + 1,
-    parent.path || child.name
-  FROM locations AS child
-  JOIN tree AS parent ON child.parent_id = parent.id
-)
-SELECT
-  location.id,
-  location.parent_id,
-  location.name,
-  location.address_street,
-  location.address_city,
-  location.address_zip,
-  location.address_country,
-  COALESCE(ST_AsGeoJSON(location.area)::text, '')::text AS area,
-  COALESCE(ST_AsGeoJSON(
-    COALESCE(location.representative_point, ST_PointOnSurface(location.area))
-  )::text, '')::text AS representative_point,
-  (location.representative_point IS NOT NULL)::bool AS representative_point_manual,
-  location.status,
-  location.notes,
-  location.created_at,
-  location.updated_at,
-  tree.depth
-FROM tree
-JOIN locations AS location ON location.id = tree.id
-WHERE location.status::text = ANY(sqlc.arg(statuses)::text[])
-ORDER BY tree.path;
-
 -- name: CreateLocation :one
 INSERT INTO locations (
   parent_id,

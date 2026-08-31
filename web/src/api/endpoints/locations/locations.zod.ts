@@ -111,46 +111,6 @@ export const CreateLocationResponse = zod.object({
 })
 
 /**
- * @summary Returns all locations in tree order, with their depth
- */
-export const ListLocationTreeQueryParams = zod.object({
-  "status": zod.array(zod.enum(['planned', 'active', 'decommissioned', 'archived'])).optional().describe('Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived locations off the map and out of the default lists without hiding them from a direct lookup.')
-})
-
-export const listLocationTreeResponseAddressCountryRegExp = new RegExp('^[A-Za-z]{2}$');
-export const listLocationTreeResponseRepresentativePointCoordinatesMin = 2;
-export const listLocationTreeResponseRepresentativePointCoordinatesMax = 3;
-
-
-
-export const ListLocationTreeResponseItem = zod.object({
-  "address": zod.object({
-  "city": zod.string().optional(),
-  "country": zod.string().regex(listLocationTreeResponseAddressCountryRegExp).optional().describe('ISO 3166-1 alpha-2 country code'),
-  "street": zod.string().optional(),
-  "zip": zod.string().optional().describe('Postal code, in whatever shape the country writes it')
-}).optional(),
-  "area": zod.object({
-  "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),
-  "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
-}).optional(),
-  "createdAt": zod.iso.datetime({"offset":true}),
-  "depth": zod.int(),
-  "id": zod.string(),
-  "name": zod.string(),
-  "notes": zod.string().optional(),
-  "parentId": zod.string().optional(),
-  "representativePoint": zod.object({
-  "coordinates": zod.array(zod.number()).min(listLocationTreeResponseRepresentativePointCoordinatesMin).max(listLocationTreeResponseRepresentativePointCoordinatesMax).describe('A [longitude, latitude] position, optionally with elevation'),
-  "type": zod.enum(['Point']).describe('GeoJSON geometry type')
-}).optional(),
-  "representativePointManual": zod.boolean(),
-  "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
-  "updatedAt": zod.iso.datetime({"offset":true})
-})
-export const ListLocationTreeResponse = zod.array(ListLocationTreeResponseItem)
-
-/**
  * @summary Deletes the location with the provided id
  */
 export const DeleteLocationParams = zod.object({
