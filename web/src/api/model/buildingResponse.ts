@@ -16,6 +16,7 @@ export interface BuildingResponse {
   createdAt: string;
   footprint: MultiPolygon;
   id: string;
+  locationId?: string;
   name: string;
   notes?: string;
   representativePoint: Point;

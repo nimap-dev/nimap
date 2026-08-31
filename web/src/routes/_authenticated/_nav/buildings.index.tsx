@@ -124,6 +124,7 @@ function AllBuildings() {
             size="icon"
             aria-label="New building"
             render={<Link to="/buildings/new" />}
+            nativeButton={false}
           >
             <Plus />
           </Button>

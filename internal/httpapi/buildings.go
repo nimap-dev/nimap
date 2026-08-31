@@ -17,11 +17,12 @@ import (
 )
 
 type CreateBuildingRequest struct {
-	Name      string          `json:"name" minLength:"1"`
-	Address   *Address        `json:"address,omitempty"`
-	Footprint MultiPolygon    `json:"footprint"`
-	Notes     *string         `json:"notes,omitempty"`
-	Status    LifecycleStatus `json:"status"`
+	Name       string          `json:"name" minLength:"1"`
+	LocationID *uuid.UUID      `json:"locationId,omitempty" doc:"The location this building stands in; omit for one that has not been placed yet"`
+	Address    *Address        `json:"address,omitempty"`
+	Footprint  MultiPolygon    `json:"footprint"`
+	Notes      *string         `json:"notes,omitempty"`
+	Status     LifecycleStatus `json:"status"`
 }
 
 type CreateBuildingInput struct {
@@ -29,10 +30,11 @@ type CreateBuildingInput struct {
 }
 
 type UpdateBuildingRequest struct {
-	Name      string       `json:"name" minLength:"1"`
-	Address   *Address     `json:"address,omitempty"`
-	Footprint MultiPolygon `json:"footprint"`
-	Notes     *string      `json:"notes,omitempty"`
+	Name       string       `json:"name" minLength:"1"`
+	LocationID *uuid.UUID   `json:"locationId,omitempty" doc:"The location this building stands in; omit to detach it from the one it sits in now"`
+	Address    *Address     `json:"address,omitempty"`
+	Footprint  MultiPolygon `json:"footprint"`
+	Notes      *string      `json:"notes,omitempty"`
 }
 
 type UpdateBuildingStatusRequest struct {
@@ -64,6 +66,7 @@ type DeleteBuildingInput struct {
 type BuildingResponse struct {
 	ID                  uuid.UUID       `json:"id"`
 	Name                string          `json:"name"`
+	LocationID          *uuid.UUID      `json:"locationId,omitempty"`
 	Address             *Address        `json:"address,omitempty"`
 	Footprint           MultiPolygon    `json:"footprint"`
 	RepresentativePoint Point           `json:"representativePoint"`
@@ -115,6 +118,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 		body, err := buildingResponse(
 			building.ID,
 			building.Name,
+			building.LocationID,
 			Address{
 				Street:  building.AddressStreet,
 				City:    building.AddressCity,
@@ -166,6 +170,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			body, err := buildingResponse(
 				building.ID,
 				building.Name,
+				building.LocationID,
 				Address{
 					Street:  building.AddressStreet,
 					City:    building.AddressCity,
@@ -218,6 +223,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			ctx,
 			gen.CreateBuildingParams{
 				Name:           in.Body.Name,
+				LocationID:     in.Body.LocationID,
 				AddressStreet:  address.Street,
 				AddressCity:    address.City,
 				AddressZip:     address.Zip,
@@ -240,6 +246,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 		body, err := buildingResponse(
 			building.ID,
 			building.Name,
+			building.LocationID,
 			Address{
 				Street:  building.AddressStreet,
 				City:    building.AddressCity,
@@ -287,6 +294,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			gen.UpdateBuildingParams{
 				ID:             in.ID,
 				Name:           in.Body.Name,
+				LocationID:     in.Body.LocationID,
 				AddressStreet:  address.Street,
 				AddressCity:    address.City,
 				AddressZip:     address.Zip,
@@ -312,6 +320,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 		body, err := buildingResponse(
 			building.ID,
 			building.Name,
+			building.LocationID,
 			Address{
 				Street:  building.AddressStreet,
 				City:    building.AddressCity,
@@ -365,6 +374,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 		body, err := buildingResponse(
 			building.ID,
 			building.Name,
+			building.LocationID,
 			Address{
 				Street:  building.AddressStreet,
 				City:    building.AddressCity,
@@ -414,32 +424,39 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 	})
 }
 
-// buildingCheckError turns a violated CHECK constraint on `buildings` into a
-// readable 422, and returns nil for anything else. They all report SQLSTATE
-// 23514, so the constraint name is the only thing that tells them apart,
-// reporting every one of them as a bad footprint would be a lie as soon as the
-// address is what the caller got wrong.
+// buildingCheckError turns a constraint on `buildings` that the caller violated
+// into a readable 422, and returns nil for anything else. The CHECK constraints
+// all report 23514, so the constraint name is the only thing that tells them
+// apart. The 23503 is the foreign key, which only ever fires on `location_id`.
 func buildingCheckError(err error) error {
 	var pgErr *pgconn.PgError
-	if !errors.As(err, &pgErr) || pgErr.Code != "23514" {
+	if !errors.As(err, &pgErr) {
 		return nil
 	}
 
-	switch pgErr.ConstraintName {
-	case "building_country_code":
-		return huma.Error422UnprocessableEntity(
-			"address country must be a two-letter ISO 3166-1 code",
-		)
+	switch pgErr.Code {
+	case "23503":
+		return huma.Error422UnprocessableEntity("location not found")
+	case "23514":
+		switch pgErr.ConstraintName {
+		case "building_country_code":
+			return huma.Error422UnprocessableEntity(
+				"address country must be a two-letter ISO 3166-1 code",
+			)
+		default:
+			return huma.Error422UnprocessableEntity(
+				"footprint is not a valid multipolygon",
+			)
+		}
 	default:
-		return huma.Error422UnprocessableEntity(
-			"footprint is not a valid multipolygon",
-		)
+		return nil
 	}
 }
 
 func buildingResponse(
 	id uuid.UUID,
 	name string,
+	locationID *uuid.UUID,
 	address Address,
 	footprint string,
 	representativePoint string,
@@ -461,6 +478,7 @@ func buildingResponse(
 	return BuildingResponse{
 		ID:                  id,
 		Name:                name,
+		LocationID:          locationID,
 		Address:             address.orNil(),
 		Footprint:           fp,
 		RepresentativePoint: rp,

@@ -44,6 +44,10 @@ type UpdateLocationStatusRequest struct {
 	Status LifecycleStatus `json:"status"`
 }
 
+type SuggestLocationRequest struct {
+	Area MultiPolygon `json:"area" doc:"The boundary of the place you want to find the best location for"`
+}
+
 type UpdateLocationInput struct {
 	ID   uuid.UUID `path:"id"`
 	Body UpdateLocationRequest
@@ -66,6 +70,10 @@ type DeleteLocationInput struct {
 	ID uuid.UUID `path:"id"`
 }
 
+type SuggestLocationInput struct {
+	Body SuggestLocationRequest
+}
+
 type LocationResponse struct {
 	ID                  uuid.UUID     `json:"id"`
 	ParentID            *uuid.UUID    `json:"parentId,omitempty"`
@@ -84,6 +92,11 @@ type LocationResponse struct {
 	UpdatedAt                 time.Time       `json:"updatedAt"`
 }
 
+type SuggestLocationResponse struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
 type GetLocationOutput struct {
 	Body LocationResponse
 }
@@ -98,6 +111,10 @@ type CreateLocationOutput struct {
 
 type UpdateLocationOutput struct {
 	Body LocationResponse
+}
+
+type SuggestLocationOutput struct {
+	Body SuggestLocationResponse
 }
 
 func RegisterLocations(api huma.API, q *gen.Queries) {
@@ -455,10 +472,31 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 				)
 			}
 
+			buildings, err := q.CountBuildingsInLocation(ctx, in.ID)
+			if err != nil {
+				return nil, huma.Error500InternalServerError(
+					"location deletion failed",
+				)
+			}
+
+			held := fmt.Sprintf(
+				"%d %s", children, plural(children, "location", "locations"),
+			)
+			switch {
+			case children > 0 && buildings > 0:
+				held += fmt.Sprintf(
+					" and %d %s",
+					buildings, plural(buildings, "building", "buildings"),
+				)
+			case buildings > 0:
+				held = fmt.Sprintf(
+					"%d %s", buildings, plural(buildings, "building", "buildings"),
+				)
+			}
+
 			return nil, huma.Error409Conflict(fmt.Sprintf(
-				"location still holds %d %s; decommission it instead of deleting it",
-				children,
-				plural(children, "location", "locations"),
+				"location still holds %s; decommission it instead of deleting it",
+				held,
 			))
 		}
 
@@ -467,6 +505,51 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 		}
 
 		return nil, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "suggest-location",
+		Method:      http.MethodPost,
+		Path:        "/api/locations/suggest",
+		Summary:     "Suggests a location fitting provided area the best.",
+		Tags:        []string{"locations"},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.ReadRecords},
+	}, func(
+		ctx context.Context,
+		in *SuggestLocationInput,
+	) (*SuggestLocationOutput, error) {
+		area, err := multiPolygonGeoJSON(&in.Body.Area)
+		if err != nil {
+			return nil, huma.Error500InternalServerError(
+				"location suggestion failed",
+			)
+		}
+
+		location, err := q.SuggestLocationForFootprint(ctx, *area)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, huma.Error404NotFound(
+					"no location covers the provided area",
+				)
+			}
+
+			if invalid := geometryError(err); invalid != nil {
+				return nil, invalid
+			}
+
+			return nil, huma.Error500InternalServerError(
+				"location suggestion failed",
+			)
+		}
+
+		resp := SuggestLocationOutput{
+			Body: SuggestLocationResponse{
+				ID:   location.ID,
+				Name: location.Name,
+			},
+		}
+
+		return &resp, nil
 	})
 }
 

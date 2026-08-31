@@ -7,8 +7,9 @@ import {
 } from '#/api/buildings/buildings'
 import type { BuildingResponseStatus } from '#/api/model'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
+import { Skeleton } from '#/components/ui/skeleton'
 import { useCan } from '#/lib/auth'
-import { Detail, DetailList } from '#/components/detail-list'
+import { Detail, DetailEmpty, DetailList } from '#/components/detail-list'
 import { Button } from '#/components/ui/button'
 import {
   Select,
@@ -38,6 +39,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { useGetLocation } from '#/api/locations/locations'
 
 export const Route = createFileRoute(
   '/_authenticated/_map/buildings/$buildingId',
@@ -178,6 +180,7 @@ function ViewBuilding() {
                       params={{ buildingId }}
                     />
                   }
+                  nativeButton={false}
                 >
                   <Pencil />
                 </Button>
@@ -198,6 +201,7 @@ function ViewBuilding() {
             {building.notes}
           </p>
         )}
+
         <DetailList>
           <Detail label="Status" align="center">
             <Select
@@ -220,14 +224,23 @@ function ViewBuilding() {
               </SelectContent>
             </Select>
           </Detail>
+
+          <Detail label="Location">
+            {building.locationId ? (
+              <BuildingLocation locationId={building.locationId} />
+            ) : (
+              <DetailEmpty>No location</DetailEmpty>
+            )}
+          </Detail>
+
           {formatAddress(building.address) && (
             <Detail label="Address">{formatAddress(building.address)}</Detail>
           )}
-          {
-            <Detail label="Position">
-              {latitude.toFixed(5)}, {longitude.toFixed(5)}
-            </Detail>
-          }
+
+          <Detail label="Position">
+            {latitude.toFixed(5)}, {longitude.toFixed(5)}
+          </Detail>
+
           <Detail
             label="Updated"
             title={formatAbsoluteDate(building.updatedAt)}
@@ -273,5 +286,30 @@ function ViewBuilding() {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  )
+}
+
+/**
+ * The location a building stands in. Only the id comes back on the building, so
+ * the name is fetched here rather than at the top of the page: the request is
+ * the one the location page itself makes, and it is skipped entirely for a
+ * building that has not been placed.
+ */
+function BuildingLocation({ locationId }: { locationId: string }) {
+  const { data, isPending } = useGetLocation(locationId)
+  const location = data?.status === 200 ? data.data : undefined
+
+  if (isPending) return <Skeleton className="h-4 w-24" />
+
+  // A location the building points at but nobody can read is still worth
+  // linking: the link says where to look, the id says which one.
+  return (
+    <Link
+      to="/locations/$locationId"
+      params={{ locationId }}
+      className="truncate hover:underline"
+    >
+      {location?.name ?? 'View location'}
+    </Link>
   )
 }

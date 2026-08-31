@@ -164,6 +164,7 @@ function AllLocations() {
             size="icon"
             aria-label="New location"
             render={<Link to="/locations/new" />}
+            nativeButton={false}
           >
             <Plus />
           </Button>

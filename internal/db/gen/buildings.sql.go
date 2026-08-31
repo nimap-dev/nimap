@@ -12,9 +12,23 @@ import (
 	"github.com/google/uuid"
 )
 
+const countBuildingsInLocation = `-- name: CountBuildingsInLocation :one
+SELECT count(*)
+FROM buildings
+WHERE location_id = $1::uuid
+`
+
+func (q *Queries) CountBuildingsInLocation(ctx context.Context, locationID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countBuildingsInLocation, locationID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createBuilding = `-- name: CreateBuilding :one
 INSERT INTO buildings (
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -29,13 +43,15 @@ VALUES (
   $3,
   $4,
   $5,
-  ST_GeomFromGeoJSON($6::text),
-  $7,
-  $8
+  $6,
+  ST_GeomFromGeoJSON($7::text),
+  $8,
+  $9
 )
 RETURNING
   id,
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -50,6 +66,7 @@ RETURNING
 
 type CreateBuildingParams struct {
 	Name           string
+	LocationID     *uuid.UUID
 	AddressStreet  *string
 	AddressCity    *string
 	AddressZip     *string
@@ -62,6 +79,7 @@ type CreateBuildingParams struct {
 type CreateBuildingRow struct {
 	ID                  uuid.UUID
 	Name                string
+	LocationID          *uuid.UUID
 	AddressStreet       *string
 	AddressCity         *string
 	AddressZip          *string
@@ -77,6 +95,7 @@ type CreateBuildingRow struct {
 func (q *Queries) CreateBuilding(ctx context.Context, arg CreateBuildingParams) (CreateBuildingRow, error) {
 	row := q.db.QueryRow(ctx, createBuilding,
 		arg.Name,
+		arg.LocationID,
 		arg.AddressStreet,
 		arg.AddressCity,
 		arg.AddressZip,
@@ -89,6 +108,7 @@ func (q *Queries) CreateBuilding(ctx context.Context, arg CreateBuildingParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.LocationID,
 		&i.AddressStreet,
 		&i.AddressCity,
 		&i.AddressZip,
@@ -120,6 +140,7 @@ const getBuilding = `-- name: GetBuilding :one
 SELECT
   id,
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -137,6 +158,7 @@ WHERE id = $1
 type GetBuildingRow struct {
 	ID                  uuid.UUID
 	Name                string
+	LocationID          *uuid.UUID
 	AddressStreet       *string
 	AddressCity         *string
 	AddressZip          *string
@@ -155,6 +177,7 @@ func (q *Queries) GetBuilding(ctx context.Context, id uuid.UUID) (GetBuildingRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.LocationID,
 		&i.AddressStreet,
 		&i.AddressCity,
 		&i.AddressZip,
@@ -173,6 +196,7 @@ const listBuildings = `-- name: ListBuildings :many
 SELECT
   id,
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -191,6 +215,7 @@ ORDER BY created_at DESC
 type ListBuildingsRow struct {
 	ID                  uuid.UUID
 	Name                string
+	LocationID          *uuid.UUID
 	AddressStreet       *string
 	AddressCity         *string
 	AddressZip          *string
@@ -215,6 +240,7 @@ func (q *Queries) ListBuildings(ctx context.Context, statuses []string) ([]ListB
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.LocationID,
 			&i.AddressStreet,
 			&i.AddressCity,
 			&i.AddressZip,
@@ -240,17 +266,19 @@ const updateBuilding = `-- name: UpdateBuilding :one
 UPDATE buildings
 SET
   name = $1,
-  address_street = $2,
-  address_city = $3,
-  address_zip = $4,
-  address_country = $5,
-  footprint = ST_GeomFromGeoJSON($6::text),
-  notes = $7,
+  location_id = $2,
+  address_street = $3,
+  address_city = $4,
+  address_zip = $5,
+  address_country = $6,
+  footprint = ST_GeomFromGeoJSON($7::text),
+  notes = $8,
   updated_at = now()
-WHERE id = $8
+WHERE id = $9
 RETURNING
   id,
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -265,6 +293,7 @@ RETURNING
 
 type UpdateBuildingParams struct {
 	Name           string
+	LocationID     *uuid.UUID
 	AddressStreet  *string
 	AddressCity    *string
 	AddressZip     *string
@@ -277,6 +306,7 @@ type UpdateBuildingParams struct {
 type UpdateBuildingRow struct {
 	ID                  uuid.UUID
 	Name                string
+	LocationID          *uuid.UUID
 	AddressStreet       *string
 	AddressCity         *string
 	AddressZip          *string
@@ -292,6 +322,7 @@ type UpdateBuildingRow struct {
 func (q *Queries) UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) (UpdateBuildingRow, error) {
 	row := q.db.QueryRow(ctx, updateBuilding,
 		arg.Name,
+		arg.LocationID,
 		arg.AddressStreet,
 		arg.AddressCity,
 		arg.AddressZip,
@@ -304,6 +335,7 @@ func (q *Queries) UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.LocationID,
 		&i.AddressStreet,
 		&i.AddressCity,
 		&i.AddressZip,
@@ -327,6 +359,7 @@ WHERE id = $2
 RETURNING
   id,
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -347,6 +380,7 @@ type UpdateBuildingStatusParams struct {
 type UpdateBuildingStatusRow struct {
 	ID                  uuid.UUID
 	Name                string
+	LocationID          *uuid.UUID
 	AddressStreet       *string
 	AddressCity         *string
 	AddressZip          *string
@@ -365,6 +399,7 @@ func (q *Queries) UpdateBuildingStatus(ctx context.Context, arg UpdateBuildingSt
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.LocationID,
 		&i.AddressStreet,
 		&i.AddressCity,
 		&i.AddressZip,

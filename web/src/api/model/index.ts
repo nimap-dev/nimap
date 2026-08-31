@@ -25,6 +25,8 @@ export * from './multiPolygon.ts';
 export * from './multiPolygonType.ts';
 export * from './point.ts';
 export * from './pointType.ts';
+export * from './suggestLocationRequest.ts';
+export * from './suggestLocationResponse.ts';
 export * from './updateBuildingRequest.ts';
 export * from './updateBuildingStatusRequest.ts';
 export * from './updateBuildingStatusRequestStatus.ts';

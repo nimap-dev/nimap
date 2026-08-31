@@ -34,6 +34,7 @@ export function Panel({
             size="icon"
             aria-label={backLabel ?? 'Back'}
             render={back}
+            nativeButton={false}
           >
             <ArrowLeft />
           </Button>
@@ -87,7 +88,7 @@ export function PanelNotFound({
       <p className="text-sm text-muted-foreground">
         This {noun} doesn't exist, or you don't have access to it.
       </p>
-      <Button variant="outline" size="sm" render={back}>
+      <Button variant="outline" size="sm" render={back} nativeButton={false}>
         {backLabel}
       </Button>
     </Panel>

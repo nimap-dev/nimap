@@ -34,6 +34,8 @@ components:
           $ref: "#/components/schemas/MultiPolygon"
         id:
           type: string
+        locationId:
+          type: string
         name:
           type: string
         notes:
@@ -73,6 +75,9 @@ components:
           $ref: "#/components/schemas/Address"
         footprint:
           $ref: "#/components/schemas/MultiPolygon"
+        locationId:
+          description: The location this building stands in; omit for one that has not been placed yet
+          type: string
         name:
           minLength: 1
           type: string
@@ -298,6 +303,40 @@ components:
         - type
         - coordinates
       type: object
+    SuggestLocationRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/SuggestLocationRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        area:
+          $ref: "#/components/schemas/MultiPolygon"
+          description: The boundary of the place you want to find the best location for
+      required:
+        - area
+      type: object
+    SuggestLocationResponse:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/SuggestLocationResponse.json
+          format: uri
+          readOnly: true
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
+      type: object
     UpdateBuildingRequest:
       additionalProperties: false
       properties:
@@ -312,6 +351,9 @@ components:
           $ref: "#/components/schemas/Address"
         footprint:
           $ref: "#/components/schemas/MultiPolygon"
+        locationId:
+          description: The location this building stands in; omit to detach it from the one it sits in now
+          type: string
         name:
           minLength: 1
           type: string
@@ -714,6 +756,31 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Creates a location
+      tags:
+        - locations
+  /api/locations/suggest:
+    post:
+      operationId: suggest-location
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuggestLocationRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestLocationResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Suggests a location fitting provided area the best.
       tags:
         - locations
   /api/locations/{id}:

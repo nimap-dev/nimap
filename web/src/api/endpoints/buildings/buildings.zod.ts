@@ -34,6 +34,7 @@ export const ListBuildingsResponseItem = zod.object({
   "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
 }),
   "id": zod.string(),
+  "locationId": zod.string().optional(),
   "name": zod.string(),
   "notes": zod.string().optional(),
   "representativePoint": zod.object({
@@ -63,6 +64,7 @@ export const CreateBuildingBody = zod.object({
   "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),
   "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
 }),
+  "locationId": zod.string().optional().describe('The location this building stands in; omit for one that has not been placed yet'),
   "name": zod.string().min(1),
   "notes": zod.string().optional(),
   "status": zod.enum(['planned', 'active', 'decommissioned', 'archived'])
@@ -88,6 +90,7 @@ export const CreateBuildingResponse = zod.object({
   "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
 }),
   "id": zod.string(),
+  "locationId": zod.string().optional(),
   "name": zod.string(),
   "notes": zod.string().optional(),
   "representativePoint": zod.object({
@@ -134,6 +137,7 @@ export const GetBuildingResponse = zod.object({
   "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
 }),
   "id": zod.string(),
+  "locationId": zod.string().optional(),
   "name": zod.string(),
   "notes": zod.string().optional(),
   "representativePoint": zod.object({
@@ -166,6 +170,7 @@ export const UpdateBuildingBody = zod.object({
   "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),
   "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
 }),
+  "locationId": zod.string().optional().describe('The location this building stands in; omit to detach it from the one it sits in now'),
   "name": zod.string().min(1),
   "notes": zod.string().optional()
 })
@@ -190,6 +195,7 @@ export const UpdateBuildingResponse = zod.object({
   "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
 }),
   "id": zod.string(),
+  "locationId": zod.string().optional(),
   "name": zod.string(),
   "notes": zod.string().optional(),
   "representativePoint": zod.object({
@@ -231,6 +237,7 @@ export const UpdateBuildingStatusResponse = zod.object({
   "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
 }),
   "id": zod.string(),
+  "locationId": zod.string().optional(),
   "name": zod.string(),
   "notes": zod.string().optional(),
   "representativePoint": zod.object({

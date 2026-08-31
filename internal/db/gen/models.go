@@ -90,6 +90,7 @@ type Building struct {
 	AddressCity         *string
 	AddressZip          *string
 	AddressCountry      *string
+	LocationID          *uuid.UUID
 }
 
 type Location struct {

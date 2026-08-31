@@ -222,6 +222,7 @@ function ViewLocation() {
                       params={{ locationId }}
                     />
                   }
+                  nativeButton={false}
                 >
                   <Pencil />
                 </Button>

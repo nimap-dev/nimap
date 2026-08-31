@@ -12,6 +12,8 @@ export interface UpdateBuildingRequest {
   readonly $schema?: string;
   address?: Address;
   footprint: MultiPolygon;
+  /** The location this building stands in; omit to detach it from the one it sits in now */
+  locationId?: string;
   /** @minLength 1 */
   name: string;
   notes?: string;

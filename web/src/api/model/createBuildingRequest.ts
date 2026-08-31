@@ -13,6 +13,8 @@ export interface CreateBuildingRequest {
   readonly $schema?: string;
   address?: Address;
   footprint: MultiPolygon;
+  /** The location this building stands in; omit for one that has not been placed yet */
+  locationId?: string;
   /** @minLength 1 */
   name: string;
   notes?: string;

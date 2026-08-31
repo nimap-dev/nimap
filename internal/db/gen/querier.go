@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	CountBuildingsInLocation(ctx context.Context, locationID uuid.UUID) (int64, error)
 	CountLocationChildren(ctx context.Context, id uuid.UUID) (int64, error)
 	CreateBuilding(ctx context.Context, arg CreateBuildingParams) (CreateBuildingRow, error)
 	CreateLocation(ctx context.Context, arg CreateLocationParams) (CreateLocationRow, error)

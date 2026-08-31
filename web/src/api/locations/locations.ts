@@ -28,6 +28,8 @@ import type {
   ErrorModel,
   ListLocationsParams,
   LocationResponse,
+  SuggestLocationRequest,
+  SuggestLocationResponse,
   UpdateLocationRequest,
   UpdateLocationStatusRequest
 } from '../model';
@@ -313,6 +315,102 @@ export const useCreateLocation = <TError = ErrorModel,
         TContext
       > => {
       return useMutation(getCreateLocationMutationOptions(options), queryClient);
+    }
+    export type suggestLocationResponse200 = {
+  data: SuggestLocationResponse
+  status: 200
+}
+
+export type suggestLocationResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 200>
+}
+
+export type suggestLocationResponseSuccess = (suggestLocationResponse200) & {
+  headers: Headers;
+};
+export type suggestLocationResponseError = (suggestLocationResponseDefault) & {
+  headers: Headers;
+};
+
+export type suggestLocationResponse = (suggestLocationResponseSuccess | suggestLocationResponseError)
+
+export const getSuggestLocationUrl = () => {
+
+
+
+
+  return `/api/locations/suggest`
+}
+
+/**
+ * @summary Suggests a location fitting provided area the best.
+ */
+export const suggestLocation = async (suggestLocationRequest: NonReadonly<SuggestLocationRequest>, options?: RequestInit): Promise<suggestLocationResponse> => {
+
+  const res = await fetch(getSuggestLocationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(suggestLocationRequest)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: suggestLocationResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as suggestLocationResponse
+}
+
+
+
+
+
+export const getSuggestLocationMutationOptions = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suggestLocation>>, TError,{data: NonReadonly<SuggestLocationRequest>}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof suggestLocation>>, TError,{data: NonReadonly<SuggestLocationRequest>}, TContext> => {
+
+const mutationKey = ['suggestLocation'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof suggestLocation>>, {data: NonReadonly<SuggestLocationRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  suggestLocation(data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SuggestLocationMutationResult = NonNullable<Awaited<ReturnType<typeof suggestLocation>>>
+    export type SuggestLocationMutationBody = NonReadonly<SuggestLocationRequest>
+    export type SuggestLocationMutationError = ErrorModel
+
+    /**
+ * @summary Suggests a location fitting provided area the best.
+ */
+export const useSuggestLocation = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suggestLocation>>, TError,{data: NonReadonly<SuggestLocationRequest>}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof suggestLocation>>,
+        TError,
+        {data: NonReadonly<SuggestLocationRequest>},
+        TContext
+      > => {
+      return useMutation(getSuggestLocationMutationOptions(options), queryClient);
     }
     export type deleteLocationResponse204 = {
   data: void

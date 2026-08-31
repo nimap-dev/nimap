@@ -2,6 +2,7 @@
 SELECT
   id,
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -19,6 +20,7 @@ WHERE id = sqlc.arg(id);
 SELECT
   id,
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -36,6 +38,7 @@ ORDER BY created_at DESC;
 -- name: CreateBuilding :one
 INSERT INTO buildings (
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -46,6 +49,7 @@ INSERT INTO buildings (
 )
 VALUES (
   sqlc.arg(name),
+  sqlc.narg(location_id),
   sqlc.arg(address_street),
   sqlc.arg(address_city),
   sqlc.arg(address_zip),
@@ -57,6 +61,7 @@ VALUES (
 RETURNING
   id,
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -72,6 +77,7 @@ RETURNING
 UPDATE buildings
 SET
   name = sqlc.arg(name),
+  location_id = sqlc.narg(location_id),
   address_street = sqlc.arg(address_street),
   address_city = sqlc.arg(address_city),
   address_zip = sqlc.arg(address_zip),
@@ -83,6 +89,7 @@ WHERE id = sqlc.arg(id)
 RETURNING
   id,
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -103,6 +110,7 @@ WHERE id = sqlc.arg(id)
 RETURNING
   id,
   name,
+  location_id,
   address_street,
   address_city,
   address_zip,
@@ -117,3 +125,8 @@ RETURNING
 -- name: DeleteBuilding :execrows
 DELETE FROM buildings
 WHERE id = sqlc.arg(id);
+
+-- name: CountBuildingsInLocation :one
+SELECT count(*)
+FROM buildings
+WHERE location_id = sqlc.arg(location_id)::uuid;

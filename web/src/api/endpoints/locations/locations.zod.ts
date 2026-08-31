@@ -111,6 +111,22 @@ export const CreateLocationResponse = zod.object({
 })
 
 /**
+ * @summary Suggests a location fitting provided area the best.
+ */
+export const SuggestLocationBody = zod.object({
+  "area": zod.object({
+  "coordinates": zod.array(zod.array(zod.array(zod.array(zod.number())))).describe('An array of polygons, each an array of linear rings of [longitude, latitude] positions; a ring\'s first entry is its exterior boundary and the rest are holes'),
+  "type": zod.enum(['MultiPolygon']).describe('GeoJSON geometry type')
+}).describe('The boundary of the place you want to find the best location for')
+})
+
+export const SuggestLocationResponse = zod.object({
+  "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "id": zod.string(),
+  "name": zod.string()
+})
+
+/**
  * @summary Deletes the location with the provided id
  */
 export const DeleteLocationParams = zod.object({

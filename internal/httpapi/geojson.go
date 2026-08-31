@@ -1,6 +1,12 @@
 package httpapi
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"errors"
+
+	"github.com/danielgtaylor/huma/v2"
+	"github.com/jackc/pgx/v5/pgconn"
+)
 
 // MultiPolygon is a GeoJSON MultiPolygon geometry.
 type MultiPolygon struct {
@@ -47,4 +53,24 @@ func pointGeoJSON(point *Point) (*string, error) {
 	encoded := string(raw)
 
 	return &encoded, nil
+}
+
+// geometryError turns a geometry PostGIS refused into a readable 422, and
+// returns nil for anything else. A geometry only ever passed through a function
+// never meets a CHECK constraint, so ST_GeomFromGeoJSON is what rejects it: 22023
+// for a parse failure, XX000 for a topology it cannot work with.
+func geometryError(err error) error {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) {
+		return nil
+	}
+
+	switch pgErr.Code {
+	case "22023", "XX000":
+		return huma.Error422UnprocessableEntity(
+			"area is not a valid multipolygon",
+		)
+	default:
+		return nil
+	}
 }

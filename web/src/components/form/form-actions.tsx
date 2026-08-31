@@ -30,7 +30,7 @@ export function FormActions({
       <Button type="submit" form={formId} disabled={disabled || isSubmitting}>
         {isSubmitting ? submitting : submit}
       </Button>
-      <Button type="button" variant="ghost" render={cancel}>
+      <Button variant="ghost" render={cancel} nativeButton={false}>
         Cancel
       </Button>
     </div>
