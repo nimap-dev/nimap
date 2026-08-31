@@ -13,8 +13,7 @@ SELECT
   created_at,
   updated_at
 FROM buildings
-WHERE id = sqlc.arg(id)
-  AND deleted_at IS NULL;
+WHERE id = sqlc.arg(id);
 
 -- name: ListBuildings :many
 SELECT
@@ -31,8 +30,7 @@ SELECT
   created_at,
   updated_at
 FROM buildings
-WHERE deleted_at IS NULL
-  AND status::text = ANY(sqlc.arg(statuses)::text[])
+WHERE status::text = ANY(sqlc.arg(statuses)::text[])
 ORDER BY created_at DESC;
 
 -- name: CreateBuilding :one
@@ -82,7 +80,6 @@ SET
   notes = sqlc.narg(notes),
   updated_at = now()
 WHERE id = sqlc.arg(id)
-  AND deleted_at IS NULL
 RETURNING
   id,
   name,
@@ -103,7 +100,6 @@ SET
   status = sqlc.arg(status),
   updated_at = now()
 WHERE id = sqlc.arg(id)
-  AND deleted_at IS NULL
 RETURNING
   id,
   name,
@@ -119,9 +115,5 @@ RETURNING
   updated_at;
 
 -- name: DeleteBuilding :execrows
-UPDATE buildings
-SET
-  deleted_at = now(),
-  updated_at = now()
-WHERE id = sqlc.arg(id)
-  AND deleted_at IS NULL;
+DELETE FROM buildings
+WHERE id = sqlc.arg(id);

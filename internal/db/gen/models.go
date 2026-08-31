@@ -75,7 +75,6 @@ type AuthUser struct {
 	RoleID       int16
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
-	DeletedAt    *time.Time
 }
 
 type Building struct {
@@ -86,7 +85,6 @@ type Building struct {
 	Notes               *string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
-	DeletedAt           *time.Time
 	Status              LifecycleStatus
 	AddressStreet       *string
 	AddressCity         *string
@@ -108,5 +106,4 @@ type Location struct {
 	Notes               *string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
-	DeletedAt           *time.Time
 }

@@ -477,7 +477,7 @@ export const getDeleteLocationUrl = (id: string,) => {
 }
 
 /**
- * @summary Soft deletes the location with the provided id
+ * @summary Deletes the location with the provided id
  */
 export const deleteLocation = async (id: string, options?: RequestInit): Promise<deleteLocationResponse> => {
 
@@ -533,7 +533,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
     export type DeleteLocationMutationError = ErrorModel
 
     /**
- * @summary Soft deletes the location with the provided id
+ * @summary Deletes the location with the provided id
  */
 export const useDeleteLocation = <TError = ErrorModel,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteLocation>>, TError,{id: string}, TContext>, fetch?: RequestInit}

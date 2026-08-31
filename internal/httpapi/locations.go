@@ -505,7 +505,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 		OperationID:   "delete-location",
 		Method:        http.MethodDelete,
 		Path:          "/api/locations/{id}",
-		Summary:       "Soft deletes the location with the provided id",
+		Summary:       "Deletes the location with the provided id",
 		Tags:          []string{"locations"},
 		DefaultStatus: http.StatusNoContent,
 		Metadata:      map[string]any{requirePermissionMetaKey: auth.WriteRecords},
@@ -515,12 +515,14 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 	) (*struct{}, error) {
 		affected, err := q.DeleteLocation(ctx, in.ID)
 		if err != nil {
-			return nil, huma.Error500InternalServerError(
-				"location deletion failed",
-			)
-		}
+			var pgErr *pgconn.PgError
+			if !errors.As(err, &pgErr) ||
+				(pgErr.Code != "23001" && pgErr.Code != "23503") {
+				return nil, huma.Error500InternalServerError(
+					"location deletion failed",
+				)
+			}
 
-		if affected == 0 {
 			children, err := q.CountLocationChildren(ctx, in.ID)
 			if err != nil {
 				return nil, huma.Error500InternalServerError(
@@ -528,14 +530,14 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 				)
 			}
 
-			if children > 0 {
-				return nil, huma.Error409Conflict(fmt.Sprintf(
-					"location still holds %d %s; decommission it instead of deleting it",
-					children,
-					plural(children, "location", "locations"),
-				))
-			}
+			return nil, huma.Error409Conflict(fmt.Sprintf(
+				"location still holds %d %s; decommission it instead of deleting it",
+				children,
+				plural(children, "location", "locations"),
+			))
+		}
 
+		if affected == 0 {
 			return nil, huma.Error404NotFound("location not found")
 		}
 

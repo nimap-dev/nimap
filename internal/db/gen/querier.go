@@ -16,10 +16,11 @@ type Querier interface {
 	CreateLocation(ctx context.Context, arg CreateLocationParams) (CreateLocationRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeleteBuilding(ctx context.Context, id uuid.UUID) (int64, error)
-	// Refuses in one statement rather than checking first and deleting after, so
-	// a child added in between cannot slip past the guard. Zero rows affected means
-	// either "not found" or "still has children" — CountLocationChildren tells the
-	// two apart for the error message.
+	// A location that still holds children is refused by the parent_id foreign key
+	// rather than by a guard here, so a child added in between cannot slip past:
+	// the delete raises SQLSTATE 23503, which the handler turns into a 409 and asks
+	// CountLocationChildren how many are in the way. Zero rows affected therefore
+	// means "not found" and nothing else.
 	DeleteLocation(ctx context.Context, id uuid.UUID) (int64, error)
 	GetBuilding(ctx context.Context, id uuid.UUID) (GetBuildingRow, error)
 	GetLocation(ctx context.Context, id uuid.UUID) (GetLocationRow, error)
@@ -27,11 +28,11 @@ type Querier interface {
 	GetUserByUsername(ctx context.Context, lower string) (GetUserByUsernameRow, error)
 	GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error)
 	ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error)
-	// The tree is walked over every location that is not deleted, and the status
-	// filter is applied only to what comes out: filtering inside the recursion
-	// would drop the children of a hidden parent along with it. A location whose
-	// parent is filtered out therefore arrives with its depth intact but without a
-	// visible ancestor, which the caller should fall back to rendering flat.
+	// The tree is walked over every location, and the status filter is applied only
+	// to what comes out: filtering inside the recursion would drop the children of a
+	// hidden parent along with it. A location whose parent is filtered out therefore
+	// arrives with its depth intact but without a visible ancestor, which the caller
+	// should fall back to rendering flat.
 	//
 	// `path` never leaves the query. It orders the rows into tree order, and the
 	// caller indents by `depth` from there.
@@ -41,7 +42,7 @@ type Querier interface {
 	// drawn inside a campus lands in the campus rather than in whichever location
 	// happened to be found first. Out-of-service locations are never suggested, and
 	// neither are the ones nobody has drawn yet: `area IS NOT NULL` says so up
-	// front, where the partial GIST index can use it, instead of leaving it to
+	// front, where the GIST index can use it, instead of leaving it to
 	// ST_Intersects returning NULL.
 	SuggestLocationForFootprint(ctx context.Context, footprint string) (SuggestLocationForFootprintRow, error)
 	UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) (UpdateBuildingRow, error)

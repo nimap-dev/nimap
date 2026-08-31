@@ -99,7 +99,7 @@ export const CreateBuildingResponse = zod.object({
 })
 
 /**
- * @summary Soft deletes the building with the provided id
+ * @summary Deletes the building with the provided id
  */
 export const DeleteBuildingParams = zod.object({
   "id": zod.string()

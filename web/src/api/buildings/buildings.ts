@@ -342,7 +342,7 @@ export const getDeleteBuildingUrl = (id: string,) => {
 }
 
 /**
- * @summary Soft deletes the building with the provided id
+ * @summary Deletes the building with the provided id
  */
 export const deleteBuilding = async (id: string, options?: RequestInit): Promise<deleteBuildingResponse> => {
 
@@ -398,7 +398,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
     export type DeleteBuildingMutationError = ErrorModel
 
     /**
- * @summary Soft deletes the building with the provided id
+ * @summary Deletes the building with the provided id
  */
 export const useDeleteBuilding = <TError = ErrorModel,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBuilding>>, TError,{id: string}, TContext>, fetch?: RequestInit}

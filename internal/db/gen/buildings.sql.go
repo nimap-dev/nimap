@@ -104,12 +104,8 @@ func (q *Queries) CreateBuilding(ctx context.Context, arg CreateBuildingParams) 
 }
 
 const deleteBuilding = `-- name: DeleteBuilding :execrows
-UPDATE buildings
-SET
-  deleted_at = now(),
-  updated_at = now()
+DELETE FROM buildings
 WHERE id = $1
-  AND deleted_at IS NULL
 `
 
 func (q *Queries) DeleteBuilding(ctx context.Context, id uuid.UUID) (int64, error) {
@@ -136,7 +132,6 @@ SELECT
   updated_at
 FROM buildings
 WHERE id = $1
-  AND deleted_at IS NULL
 `
 
 type GetBuildingRow struct {
@@ -189,8 +184,7 @@ SELECT
   created_at,
   updated_at
 FROM buildings
-WHERE deleted_at IS NULL
-  AND status::text = ANY($1::text[])
+WHERE status::text = ANY($1::text[])
 ORDER BY created_at DESC
 `
 
@@ -254,7 +248,6 @@ SET
   notes = $7,
   updated_at = now()
 WHERE id = $8
-  AND deleted_at IS NULL
 RETURNING
   id,
   name,
@@ -331,7 +324,6 @@ SET
   status = $1,
   updated_at = now()
 WHERE id = $2
-  AND deleted_at IS NULL
 RETURNING
   id,
   name,

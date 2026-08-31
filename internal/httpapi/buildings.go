@@ -391,7 +391,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 		OperationID:   "delete-building",
 		Method:        http.MethodDelete,
 		Path:          "/api/buildings/{id}",
-		Summary:       "Soft deletes the building with the provided id",
+		Summary:       "Deletes the building with the provided id",
 		Tags:          []string{"buildings"},
 		DefaultStatus: http.StatusNoContent,
 		Metadata:      map[string]any{requirePermissionMetaKey: auth.WriteRecords},

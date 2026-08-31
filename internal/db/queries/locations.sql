@@ -17,8 +17,7 @@ SELECT
   created_at,
   updated_at
 FROM locations
-WHERE id = sqlc.arg(id)
-  AND deleted_at IS NULL;
+WHERE id = sqlc.arg(id);
 
 -- name: ListLocations :many
 SELECT
@@ -39,15 +38,14 @@ SELECT
   created_at,
   updated_at
 FROM locations
-WHERE deleted_at IS NULL
-  AND status::text = ANY(sqlc.arg(statuses)::text[])
+WHERE status::text = ANY(sqlc.arg(statuses)::text[])
 ORDER BY name;
 
--- The tree is walked over every location that is not deleted, and the status
--- filter is applied only to what comes out: filtering inside the recursion
--- would drop the children of a hidden parent along with it. A location whose
--- parent is filtered out therefore arrives with its depth intact but without a
--- visible ancestor, which the caller should fall back to rendering flat.
+-- The tree is walked over every location, and the status filter is applied only
+-- to what comes out: filtering inside the recursion would drop the children of a
+-- hidden parent along with it. A location whose parent is filtered out therefore
+-- arrives with its depth intact but without a visible ancestor, which the caller
+-- should fall back to rendering flat.
 --
 -- `path` never leaves the query. It orders the rows into tree order, and the
 -- caller indents by `depth` from there.
@@ -59,8 +57,7 @@ WITH RECURSIVE tree AS (
     0 AS depth,
     ARRAY[location.name] AS path
   FROM locations AS location
-  WHERE location.deleted_at IS NULL
-    AND location.parent_id IS NULL
+  WHERE location.parent_id IS NULL
 
   UNION ALL
 
@@ -71,7 +68,6 @@ WITH RECURSIVE tree AS (
     parent.path || child.name
   FROM locations AS child
   JOIN tree AS parent ON child.parent_id = parent.id
-  WHERE child.deleted_at IS NULL
 )
 SELECT
   location.id,
@@ -157,7 +153,6 @@ SET
   notes = sqlc.narg(notes),
   updated_at = now()
 WHERE id = sqlc.arg(id)
-  AND deleted_at IS NULL
 RETURNING
   id,
   parent_id,
@@ -182,7 +177,6 @@ SET
   status = sqlc.arg(status),
   updated_at = now()
 WHERE id = sqlc.arg(id)
-  AND deleted_at IS NULL
 RETURNING
   id,
   parent_id,
@@ -201,43 +195,27 @@ RETURNING
   created_at,
   updated_at;
 
--- Refuses in one statement rather than checking first and deleting after, so
--- a child added in between cannot slip past the guard. Zero rows affected means
--- either "not found" or "still has children" — CountLocationChildren tells the
--- two apart for the error message.
 -- name: DeleteLocation :execrows
-UPDATE locations
-SET
-  deleted_at = now(),
-  updated_at = now()
-WHERE locations.id = sqlc.arg(id)
-  AND locations.deleted_at IS NULL
-  AND NOT EXISTS (
-    SELECT 1
-    FROM locations AS child
-    WHERE child.parent_id = locations.id
-      AND child.deleted_at IS NULL
-  );
+DELETE FROM locations
+WHERE id = sqlc.arg(id);
 
 -- name: CountLocationChildren :one
 SELECT count(*)
 FROM locations
-WHERE parent_id = sqlc.arg(id)::uuid
-  AND deleted_at IS NULL;
+WHERE parent_id = sqlc.arg(id)::uuid;
 
 -- Picks the location whose area a footprint overlaps the most, so a building
 -- drawn inside a campus lands in the campus rather than in whichever location
 -- happened to be found first. Out-of-service locations are never suggested, and
 -- neither are the ones nobody has drawn yet: `area IS NOT NULL` says so up
--- front, where the partial GIST index can use it, instead of leaving it to
+-- front, where the GIST index can use it, instead of leaving it to
 -- ST_Intersects returning NULL.
 -- name: SuggestLocationForFootprint :one
 SELECT
   id,
   name
 FROM locations
-WHERE deleted_at IS NULL
-  AND area IS NOT NULL
+WHERE area IS NOT NULL
   AND status IN ('planned', 'active')
   AND ST_Intersects(area, ST_GeomFromGeoJSON(sqlc.arg(footprint)::text))
 ORDER BY

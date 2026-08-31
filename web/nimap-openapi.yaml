@@ -612,7 +612,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
-      summary: Soft deletes the building with the provided id
+      summary: Deletes the building with the provided id
       tags:
         - buildings
     get:
@@ -814,7 +814,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
-      summary: Soft deletes the location with the provided id
+      summary: Deletes the location with the provided id
       tags:
         - locations
     get:

@@ -16,7 +16,6 @@ const countLocationChildren = `-- name: CountLocationChildren :one
 SELECT count(*)
 FROM locations
 WHERE parent_id = $1::uuid
-  AND deleted_at IS NULL
 `
 
 func (q *Queries) CountLocationChildren(ctx context.Context, id uuid.UUID) (int64, error) {
@@ -134,24 +133,15 @@ func (q *Queries) CreateLocation(ctx context.Context, arg CreateLocationParams) 
 }
 
 const deleteLocation = `-- name: DeleteLocation :execrows
-UPDATE locations
-SET
-  deleted_at = now(),
-  updated_at = now()
-WHERE locations.id = $1
-  AND locations.deleted_at IS NULL
-  AND NOT EXISTS (
-    SELECT 1
-    FROM locations AS child
-    WHERE child.parent_id = locations.id
-      AND child.deleted_at IS NULL
-  )
+DELETE FROM locations
+WHERE id = $1
 `
 
-// Refuses in one statement rather than checking first and deleting after, so
-// a child added in between cannot slip past the guard. Zero rows affected means
-// either "not found" or "still has children" — CountLocationChildren tells the
-// two apart for the error message.
+// A location that still holds children is refused by the parent_id foreign key
+// rather than by a guard here, so a child added in between cannot slip past:
+// the delete raises SQLSTATE 23503, which the handler turns into a 409 and asks
+// CountLocationChildren how many are in the way. Zero rows affected therefore
+// means "not found" and nothing else.
 func (q *Queries) DeleteLocation(ctx context.Context, id uuid.UUID) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteLocation, id)
 	if err != nil {
@@ -180,7 +170,6 @@ SELECT
   updated_at
 FROM locations
 WHERE id = $1
-  AND deleted_at IS NULL
 `
 
 type GetLocationRow struct {
@@ -230,8 +219,7 @@ WITH RECURSIVE tree AS (
     0 AS depth,
     ARRAY[location.name] AS path
   FROM locations AS location
-  WHERE location.deleted_at IS NULL
-    AND location.parent_id IS NULL
+  WHERE location.parent_id IS NULL
 
   UNION ALL
 
@@ -242,7 +230,6 @@ WITH RECURSIVE tree AS (
     parent.path || child.name
   FROM locations AS child
   JOIN tree AS parent ON child.parent_id = parent.id
-  WHERE child.deleted_at IS NULL
 )
 SELECT
   location.id,
@@ -286,11 +273,11 @@ type ListLocationTreeRow struct {
 	Depth                     int32
 }
 
-// The tree is walked over every location that is not deleted, and the status
-// filter is applied only to what comes out: filtering inside the recursion
-// would drop the children of a hidden parent along with it. A location whose
-// parent is filtered out therefore arrives with its depth intact but without a
-// visible ancestor, which the caller should fall back to rendering flat.
+// The tree is walked over every location, and the status filter is applied only
+// to what comes out: filtering inside the recursion would drop the children of a
+// hidden parent along with it. A location whose parent is filtered out therefore
+// arrives with its depth intact but without a visible ancestor, which the caller
+// should fall back to rendering flat.
 //
 // `path` never leaves the query. It orders the rows into tree order, and the
 // caller indents by `depth` from there.
@@ -349,8 +336,7 @@ SELECT
   created_at,
   updated_at
 FROM locations
-WHERE deleted_at IS NULL
-  AND status::text = ANY($1::text[])
+WHERE status::text = ANY($1::text[])
 ORDER BY name
 `
 
@@ -411,8 +397,7 @@ SELECT
   id,
   name
 FROM locations
-WHERE deleted_at IS NULL
-  AND area IS NOT NULL
+WHERE area IS NOT NULL
   AND status IN ('planned', 'active')
   AND ST_Intersects(area, ST_GeomFromGeoJSON($1::text))
 ORDER BY
@@ -431,7 +416,7 @@ type SuggestLocationForFootprintRow struct {
 // drawn inside a campus lands in the campus rather than in whichever location
 // happened to be found first. Out-of-service locations are never suggested, and
 // neither are the ones nobody has drawn yet: `area IS NOT NULL` says so up
-// front, where the partial GIST index can use it, instead of leaving it to
+// front, where the GIST index can use it, instead of leaving it to
 // ST_Intersects returning NULL.
 func (q *Queries) SuggestLocationForFootprint(ctx context.Context, footprint string) (SuggestLocationForFootprintRow, error) {
 	row := q.db.QueryRow(ctx, suggestLocationForFootprint, footprint)
@@ -456,7 +441,6 @@ SET
   notes = $9,
   updated_at = now()
 WHERE id = $10
-  AND deleted_at IS NULL
 RETURNING
   id,
   parent_id,
@@ -547,7 +531,6 @@ SET
   status = $1,
   updated_at = now()
 WHERE id = $2
-  AND deleted_at IS NULL
 RETURNING
   id,
   parent_id,

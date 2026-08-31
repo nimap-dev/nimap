@@ -79,9 +79,9 @@ func NewAuthMiddleware(api huma.API, sm *scs.SessionManager, q *gen.Queries) fun
 
 // resolveUser reads the logged-in user from the session and looks up the role
 // that decides what they may do. ok is false when nobody is logged in, and also
-// when the account behind a live session has since been deleted: the query
-// filters those out, so the session stops opening doors on the next request
-// rather than at its next login.
+// when the session names an account that is no longer there: the lookup finds
+// nothing, so the session stops opening doors on the next request rather than
+// at its next login.
 func resolveUser(ctx context.Context, sm *scs.SessionManager, q *gen.Queries) (sessionUser, bool) {
 	raw := sm.GetString(ctx, sessionUserIDKey)
 	if raw == "" {

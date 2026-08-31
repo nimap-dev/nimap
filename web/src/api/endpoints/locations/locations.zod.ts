@@ -151,7 +151,7 @@ export const ListLocationTreeResponseItem = zod.object({
 export const ListLocationTreeResponse = zod.array(ListLocationTreeResponseItem)
 
 /**
- * @summary Soft deletes the location with the provided id
+ * @summary Deletes the location with the provided id
  */
 export const DeleteLocationParams = zod.object({
   "id": zod.string()

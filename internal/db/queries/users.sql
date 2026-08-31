@@ -2,15 +2,13 @@
 SELECT u.id, u.username, u.email, u.password_hash, u.role_id, u.created_at, u.updated_at, r.name AS role
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
-WHERE lower(u.username) = lower($1)
-  AND u.deleted_at IS NULL;
+WHERE lower(u.username) = lower($1);
 
 -- name: GetUserByID :one
 SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
-WHERE u.id = $1
-  AND u.deleted_at IS NULL;
+WHERE u.id = $1;
 
 -- name: CreateUser :one
 INSERT INTO auth.users (username, email, password_hash, role_id)
@@ -26,5 +24,4 @@ WHERE id = $1;
 -- name: GetUserRoleID :one
 SELECT role_id
 FROM auth.users
-WHERE id = $1
-  AND deleted_at IS NULL;
+WHERE id = $1;

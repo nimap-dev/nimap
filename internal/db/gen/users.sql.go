@@ -56,7 +56,6 @@ SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name 
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
 WHERE u.id = $1
-  AND u.deleted_at IS NULL
 `
 
 type GetUserByIDRow struct {
@@ -89,7 +88,6 @@ SELECT u.id, u.username, u.email, u.password_hash, u.role_id, u.created_at, u.up
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
 WHERE lower(u.username) = lower($1)
-  AND u.deleted_at IS NULL
 `
 
 type GetUserByUsernameRow struct {
@@ -123,7 +121,6 @@ const getUserRoleID = `-- name: GetUserRoleID :one
 SELECT role_id
 FROM auth.users
 WHERE id = $1
-  AND deleted_at IS NULL
 `
 
 func (q *Queries) GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error) {
