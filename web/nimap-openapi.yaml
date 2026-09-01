@@ -337,6 +337,35 @@ components:
         - id
         - name
       type: object
+    UpdateAccountInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateAccountInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        currentPassword:
+          description: Current account password, confirming the change
+          minLength: 1
+          type: string
+        email:
+          description: New account email address
+          format: email
+          type: string
+        username:
+          description: New account username
+          examples:
+            - admin
+          minLength: 3
+          type: string
+      required:
+        - username
+        - email
+        - currentPassword
+      type: object
     UpdateBuildingRequest:
       additionalProperties: false
       properties:
@@ -431,6 +460,28 @@ components:
       required:
         - status
       type: object
+    UpdatePasswordInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdatePasswordInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        newPassword:
+          description: New account password
+          minLength: 8
+          type: string
+        oldPassword:
+          description: Current account password
+          minLength: 1
+          type: string
+      required:
+        - oldPassword
+        - newPassword
+      type: object
     User:
       additionalProperties: false
       properties:
@@ -473,6 +524,52 @@ info:
   version: dev
 openapi: 3.1.0
 paths:
+  /api/auth/account:
+    put:
+      operationId: update-account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAccountInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Update the current user's username and email
+      tags:
+        - auth
+  /api/auth/account/password:
+    patch:
+      operationId: update-password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePasswordInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Change the current user's password
+      tags:
+        - auth
   /api/auth/login:
     post:
       operationId: login

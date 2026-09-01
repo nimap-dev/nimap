@@ -25,3 +25,17 @@ WHERE id = $1;
 SELECT role_id
 FROM auth.users
 WHERE id = $1;
+
+-- name: GetUserPasswordHashByID :one
+SELECT password_hash
+FROM auth.users
+WHERE id = $1;
+
+-- name: UpdateUserAccount :one
+UPDATE auth.users u
+SET username = $2,
+    email = $3,
+    updated_at = now()
+FROM auth.roles r
+WHERE u.id = $1 AND r.id = u.role_id
+RETURNING u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role;

@@ -26,6 +26,8 @@ import type {
 import type {
   ErrorModel,
   LoginInputBody,
+  UpdateAccountInputBody,
+  UpdatePasswordInputBody,
   User
 } from '../model';
 
@@ -82,7 +84,199 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export type loginResponse200 = {
+export type updateAccountResponse200 = {
+  data: User
+  status: 200
+}
+
+export type updateAccountResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 200>
+}
+
+export type updateAccountResponseSuccess = (updateAccountResponse200) & {
+  headers: Headers;
+};
+export type updateAccountResponseError = (updateAccountResponseDefault) & {
+  headers: Headers;
+};
+
+export type updateAccountResponse = (updateAccountResponseSuccess | updateAccountResponseError)
+
+export const getUpdateAccountUrl = () => {
+
+
+
+
+  return `/api/auth/account`
+}
+
+/**
+ * @summary Update the current user's username and email
+ */
+export const updateAccount = async (updateAccountInputBody: NonReadonly<UpdateAccountInputBody>, options?: RequestInit): Promise<updateAccountResponse> => {
+
+  const res = await fetch(getUpdateAccountUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateAccountInputBody)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateAccountResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateAccountResponse
+}
+
+
+
+
+
+export const getUpdateAccountMutationOptions = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,{data: NonReadonly<UpdateAccountInputBody>}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,{data: NonReadonly<UpdateAccountInputBody>}, TContext> => {
+
+const mutationKey = ['updateAccount'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAccount>>, {data: NonReadonly<UpdateAccountInputBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateAccount(data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAccountMutationResult = NonNullable<Awaited<ReturnType<typeof updateAccount>>>
+    export type UpdateAccountMutationBody = NonReadonly<UpdateAccountInputBody>
+    export type UpdateAccountMutationError = ErrorModel
+
+    /**
+ * @summary Update the current user's username and email
+ */
+export const useUpdateAccount = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccount>>, TError,{data: NonReadonly<UpdateAccountInputBody>}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAccount>>,
+        TError,
+        {data: NonReadonly<UpdateAccountInputBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateAccountMutationOptions(options), queryClient);
+    }
+    export type updatePasswordResponse204 = {
+  data: void
+  status: 204
+}
+
+export type updatePasswordResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 204>
+}
+
+export type updatePasswordResponseSuccess = (updatePasswordResponse204) & {
+  headers: Headers;
+};
+export type updatePasswordResponseError = (updatePasswordResponseDefault) & {
+  headers: Headers;
+};
+
+export type updatePasswordResponse = (updatePasswordResponseSuccess | updatePasswordResponseError)
+
+export const getUpdatePasswordUrl = () => {
+
+
+
+
+  return `/api/auth/account/password`
+}
+
+/**
+ * @summary Change the current user's password
+ */
+export const updatePassword = async (updatePasswordInputBody: NonReadonly<UpdatePasswordInputBody>, options?: RequestInit): Promise<updatePasswordResponse> => {
+
+  const res = await fetch(getUpdatePasswordUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updatePasswordInputBody)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updatePasswordResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as updatePasswordResponse
+}
+
+
+
+
+
+export const getUpdatePasswordMutationOptions = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePassword>>, TError,{data: NonReadonly<UpdatePasswordInputBody>}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePassword>>, TError,{data: NonReadonly<UpdatePasswordInputBody>}, TContext> => {
+
+const mutationKey = ['updatePassword'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePassword>>, {data: NonReadonly<UpdatePasswordInputBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updatePassword(data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePasswordMutationResult = NonNullable<Awaited<ReturnType<typeof updatePassword>>>
+    export type UpdatePasswordMutationBody = NonReadonly<UpdatePasswordInputBody>
+    export type UpdatePasswordMutationError = ErrorModel
+
+    /**
+ * @summary Change the current user's password
+ */
+export const useUpdatePassword = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePassword>>, TError,{data: NonReadonly<UpdatePasswordInputBody>}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePassword>>,
+        TError,
+        {data: NonReadonly<UpdatePasswordInputBody>},
+        TContext
+      > => {
+      return useMutation(getUpdatePasswordMutationOptions(options), queryClient);
+    }
+    export type loginResponse200 = {
   data: User
   status: 200
 }

@@ -22,6 +22,7 @@ type Querier interface {
 	GetLocation(ctx context.Context, id uuid.UUID) (GetLocationRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
 	GetUserByUsername(ctx context.Context, lower string) (GetUserByUsernameRow, error)
+	GetUserPasswordHashByID(ctx context.Context, id uuid.UUID) (string, error)
 	GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error)
 	ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error)
 	ListLocations(ctx context.Context, statuses []string) ([]ListLocationsRow, error)
@@ -38,6 +39,7 @@ type Querier interface {
 	// operation, the same split the buildings queries make.
 	UpdateLocation(ctx context.Context, arg UpdateLocationParams) (UpdateLocationRow, error)
 	UpdateLocationStatus(ctx context.Context, arg UpdateLocationStatusParams) (UpdateLocationStatusRow, error)
+	UpdateUserAccount(ctx context.Context, arg UpdateUserAccountParams) (UpdateUserAccountRow, error)
 	UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) error
 }
 

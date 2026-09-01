@@ -117,6 +117,19 @@ func (q *Queries) GetUserByUsername(ctx context.Context, lower string) (GetUserB
 	return i, err
 }
 
+const getUserPasswordHashByID = `-- name: GetUserPasswordHashByID :one
+SELECT password_hash
+FROM auth.users
+WHERE id = $1
+`
+
+func (q *Queries) GetUserPasswordHashByID(ctx context.Context, id uuid.UUID) (string, error) {
+	row := q.db.QueryRow(ctx, getUserPasswordHashByID, id)
+	var password_hash string
+	err := row.Scan(&password_hash)
+	return password_hash, err
+}
+
 const getUserRoleID = `-- name: GetUserRoleID :one
 SELECT role_id
 FROM auth.users
@@ -128,6 +141,47 @@ func (q *Queries) GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error
 	var role_id int16
 	err := row.Scan(&role_id)
 	return role_id, err
+}
+
+const updateUserAccount = `-- name: UpdateUserAccount :one
+UPDATE auth.users u
+SET username = $2,
+    email = $3,
+    updated_at = now()
+FROM auth.roles r
+WHERE u.id = $1 AND r.id = u.role_id
+RETURNING u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
+`
+
+type UpdateUserAccountParams struct {
+	ID       uuid.UUID
+	Username string
+	Email    string
+}
+
+type UpdateUserAccountRow struct {
+	ID        uuid.UUID
+	Username  string
+	Email     string
+	RoleID    int16
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Role      string
+}
+
+func (q *Queries) UpdateUserAccount(ctx context.Context, arg UpdateUserAccountParams) (UpdateUserAccountRow, error) {
+	row := q.db.QueryRow(ctx, updateUserAccount, arg.ID, arg.Username, arg.Email)
+	var i UpdateUserAccountRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.RoleID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Role,
+	)
+	return i, err
 }
 
 const updateUserPasswordHash = `-- name: UpdateUserPasswordHash :exec

@@ -8,6 +8,46 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Update the current user's username and email
+ */
+
+export const updateAccountBodyUsernameMin = 3;
+
+
+
+export const UpdateAccountBody = zod.object({
+  "currentPassword": zod.string().min(1).describe('Current account password, confirming the change'),
+  "email": zod.email().describe('New account email address'),
+  "username": zod.string().min(updateAccountBodyUsernameMin).describe('New account username')
+})
+
+export const UpdateAccountResponse = zod.object({
+  "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "created_at": zod.iso.datetime({"offset":true}),
+  "email": zod.string(),
+  "id": zod.string(),
+  "permissions": zod.array(zod.string()),
+  "role": zod.string(),
+  "updated_at": zod.iso.datetime({"offset":true}),
+  "username": zod.string()
+})
+
+/**
+ * @summary Change the current user's password
+ */
+export const updatePasswordBodyNewPasswordMin = 8;
+
+
+
+
+export const UpdatePasswordBody = zod.object({
+  "newPassword": zod.string().min(updatePasswordBodyNewPasswordMin).describe('New account password'),
+  "oldPassword": zod.string().min(1).describe('Current account password')
+})
+
+export const UpdatePasswordResponse = zod.void()
+
+/**
  * @summary Log in with username and password
  */
 
