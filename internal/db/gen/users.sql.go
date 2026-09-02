@@ -12,10 +12,23 @@ import (
 	"github.com/google/uuid"
 )
 
+const countUsersWithRole = `-- name: CountUsersWithRole :one
+SELECT count(*)
+FROM auth.users
+WHERE role_id = $1
+`
+
+func (q *Queries) CountUsersWithRole(ctx context.Context, roleID int16) (int64, error) {
+	row := q.db.QueryRow(ctx, countUsersWithRole, roleID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO auth.users (username, email, password_hash, role_id)
 VALUES ($1, $2, $3, $4)
-RETURNING id, username, email, created_at, updated_at
+RETURNING id, username, email, role_id, created_at, updated_at
 `
 
 type CreateUserParams struct {
@@ -29,6 +42,7 @@ type CreateUserRow struct {
 	ID        uuid.UUID
 	Username  string
 	Email     string
+	RoleID    int16
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -45,10 +59,24 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 		&i.ID,
 		&i.Username,
 		&i.Email,
+		&i.RoleID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const deleteUser = `-- name: DeleteUser :execrows
+DELETE FROM auth.users
+WHERE id = $1
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUser, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getUserByID = `-- name: GetUserByID :one
@@ -143,6 +171,51 @@ func (q *Queries) GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error
 	return role_id, err
 }
 
+const listUsers = `-- name: ListUsers :many
+SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
+FROM auth.users u
+JOIN auth.roles r ON r.id = u.role_id
+ORDER BY lower(u.username)
+`
+
+type ListUsersRow struct {
+	ID        uuid.UUID
+	Username  string
+	Email     string
+	RoleID    int16
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Role      string
+}
+
+func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
+	rows, err := q.db.Query(ctx, listUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListUsersRow
+	for rows.Next() {
+		var i ListUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Email,
+			&i.RoleID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Role,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateUserAccount = `-- name: UpdateUserAccount :one
 UPDATE auth.users u
 SET username = $2,
@@ -199,4 +272,43 @@ type UpdateUserPasswordHashParams struct {
 func (q *Queries) UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) error {
 	_, err := q.db.Exec(ctx, updateUserPasswordHash, arg.ID, arg.PasswordHash)
 	return err
+}
+
+const updateUserRole = `-- name: UpdateUserRole :one
+UPDATE auth.users u
+SET role_id = $2,
+    updated_at = now()
+FROM auth.roles r
+WHERE u.id = $1 AND r.id = $2
+RETURNING u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
+`
+
+type UpdateUserRoleParams struct {
+	ID     uuid.UUID
+	RoleID int16
+}
+
+type UpdateUserRoleRow struct {
+	ID        uuid.UUID
+	Username  string
+	Email     string
+	RoleID    int16
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Role      string
+}
+
+func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (UpdateUserRoleRow, error) {
+	row := q.db.QueryRow(ctx, updateUserRole, arg.ID, arg.RoleID)
+	var i UpdateUserRoleRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.RoleID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Role,
+	)
+	return i, err
 }

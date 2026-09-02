@@ -16,6 +16,7 @@ import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthenticatedMapIndexRouteImport } from './routes/_authenticated/_map/index'
 import { Route as AuthenticatedMapBuildingsRouteImport } from './routes/_authenticated/_map/buildings'
 import { Route as AuthenticatedMapLocationsRouteImport } from './routes/_authenticated/_map/locations'
+import { Route as AuthenticatedNavAdminRouteImport } from './routes/_authenticated/_nav/admin'
 import { Route as AuthenticatedMapBuildingsBuildingIdRouteImport } from './routes/_authenticated/_map/buildings.$buildingId'
 import { Route as AuthenticatedMapBuildingsNewRouteImport } from './routes/_authenticated/_map/buildings.new'
 import { Route as AuthenticatedMapLocationsLocationIdRouteImport } from './routes/_authenticated/_map/locations.$locationId'
@@ -25,6 +26,9 @@ import { Route as AuthenticatedNavBuildingsIndexRouteImport } from './routes/_au
 import { Route as AuthenticatedNavLocationsIndexRouteImport } from './routes/_authenticated/_nav/locations.index'
 import { Route as AuthenticatedMapBuildingsBuildingIdEditRouteImport } from './routes/_authenticated/_map/buildings.$buildingId_.edit'
 import { Route as AuthenticatedMapLocationsLocationIdEditRouteImport } from './routes/_authenticated/_map/locations.$locationId_.edit'
+import { Route as AuthenticatedNavAdminUsersIndexRouteImport } from './routes/_authenticated/_nav/admin.users.index'
+import { Route as AuthenticatedNavAdminUsersUserIdRouteImport } from './routes/_authenticated/_nav/admin.users.$userId'
+import { Route as AuthenticatedNavAdminUsersNewRouteImport } from './routes/_authenticated/_nav/admin.users.new'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -60,6 +64,11 @@ const AuthenticatedMapLocationsRoute =
     path: '/locations',
     getParentRoute: () => AuthenticatedMapRoute,
   } as any)
+const AuthenticatedNavAdminRoute = AuthenticatedNavAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedNavRoute,
+} as any)
 const AuthenticatedMapBuildingsBuildingIdRoute =
   AuthenticatedMapBuildingsBuildingIdRouteImport.update({
     id: '/$buildingId',
@@ -114,12 +123,31 @@ const AuthenticatedMapLocationsLocationIdEditRoute =
     path: '/$locationId/edit',
     getParentRoute: () => AuthenticatedMapLocationsRoute,
   } as any)
+const AuthenticatedNavAdminUsersIndexRoute =
+  AuthenticatedNavAdminUsersIndexRouteImport.update({
+    id: '/users/',
+    path: '/users/',
+    getParentRoute: () => AuthenticatedNavAdminRoute,
+  } as any)
+const AuthenticatedNavAdminUsersUserIdRoute =
+  AuthenticatedNavAdminUsersUserIdRouteImport.update({
+    id: '/users/$userId',
+    path: '/users/$userId',
+    getParentRoute: () => AuthenticatedNavAdminRoute,
+  } as any)
+const AuthenticatedNavAdminUsersNewRoute =
+  AuthenticatedNavAdminUsersNewRouteImport.update({
+    id: '/users/new',
+    path: '/users/new',
+    getParentRoute: () => AuthenticatedNavAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedMapIndexRoute
   '/auth/login': typeof AuthLoginRoute
   '/buildings': typeof AuthenticatedMapBuildingsRouteWithChildren
   '/locations': typeof AuthenticatedMapLocationsRouteWithChildren
+  '/admin': typeof AuthenticatedNavAdminRouteWithChildren
   '/buildings/$buildingId': typeof AuthenticatedMapBuildingsBuildingIdRoute
   '/buildings/new': typeof AuthenticatedMapBuildingsNewRoute
   '/locations/$locationId': typeof AuthenticatedMapLocationsLocationIdRoute
@@ -129,12 +157,16 @@ export interface FileRoutesByFullPath {
   '/locations/': typeof AuthenticatedNavLocationsIndexRoute
   '/buildings/$buildingId/edit': typeof AuthenticatedMapBuildingsBuildingIdEditRoute
   '/locations/$locationId/edit': typeof AuthenticatedMapLocationsLocationIdEditRoute
+  '/admin/users/$userId': typeof AuthenticatedNavAdminUsersUserIdRoute
+  '/admin/users/new': typeof AuthenticatedNavAdminUsersNewRoute
+  '/admin/users/': typeof AuthenticatedNavAdminUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AuthenticatedMapIndexRoute
   '/auth/login': typeof AuthLoginRoute
   '/buildings': typeof AuthenticatedNavBuildingsIndexRoute
   '/locations': typeof AuthenticatedNavLocationsIndexRoute
+  '/admin': typeof AuthenticatedNavAdminRouteWithChildren
   '/buildings/$buildingId': typeof AuthenticatedMapBuildingsBuildingIdRoute
   '/buildings/new': typeof AuthenticatedMapBuildingsNewRoute
   '/locations/$locationId': typeof AuthenticatedMapLocationsLocationIdRoute
@@ -142,6 +174,9 @@ export interface FileRoutesByTo {
   '/auth/account': typeof AuthenticatedNavAuthAccountRoute
   '/buildings/$buildingId/edit': typeof AuthenticatedMapBuildingsBuildingIdEditRoute
   '/locations/$locationId/edit': typeof AuthenticatedMapLocationsLocationIdEditRoute
+  '/admin/users/$userId': typeof AuthenticatedNavAdminUsersUserIdRoute
+  '/admin/users/new': typeof AuthenticatedNavAdminUsersNewRoute
+  '/admin/users': typeof AuthenticatedNavAdminUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,6 +186,7 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/_authenticated/_map/buildings': typeof AuthenticatedMapBuildingsRouteWithChildren
   '/_authenticated/_map/locations': typeof AuthenticatedMapLocationsRouteWithChildren
+  '/_authenticated/_nav/admin': typeof AuthenticatedNavAdminRouteWithChildren
   '/_authenticated/_map/': typeof AuthenticatedMapIndexRoute
   '/_authenticated/_map/buildings/$buildingId': typeof AuthenticatedMapBuildingsBuildingIdRoute
   '/_authenticated/_map/buildings/new': typeof AuthenticatedMapBuildingsNewRoute
@@ -161,6 +197,9 @@ export interface FileRoutesById {
   '/_authenticated/_nav/locations/': typeof AuthenticatedNavLocationsIndexRoute
   '/_authenticated/_map/buildings/$buildingId_/edit': typeof AuthenticatedMapBuildingsBuildingIdEditRoute
   '/_authenticated/_map/locations/$locationId_/edit': typeof AuthenticatedMapLocationsLocationIdEditRoute
+  '/_authenticated/_nav/admin/users/$userId': typeof AuthenticatedNavAdminUsersUserIdRoute
+  '/_authenticated/_nav/admin/users/new': typeof AuthenticatedNavAdminUsersNewRoute
+  '/_authenticated/_nav/admin/users/': typeof AuthenticatedNavAdminUsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -169,6 +208,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/buildings'
     | '/locations'
+    | '/admin'
     | '/buildings/$buildingId'
     | '/buildings/new'
     | '/locations/$locationId'
@@ -178,12 +218,16 @@ export interface FileRouteTypes {
     | '/locations/'
     | '/buildings/$buildingId/edit'
     | '/locations/$locationId/edit'
+    | '/admin/users/$userId'
+    | '/admin/users/new'
+    | '/admin/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth/login'
     | '/buildings'
     | '/locations'
+    | '/admin'
     | '/buildings/$buildingId'
     | '/buildings/new'
     | '/locations/$locationId'
@@ -191,6 +235,9 @@ export interface FileRouteTypes {
     | '/auth/account'
     | '/buildings/$buildingId/edit'
     | '/locations/$locationId/edit'
+    | '/admin/users/$userId'
+    | '/admin/users/new'
+    | '/admin/users'
   id:
     | '__root__'
     | '/_authenticated'
@@ -199,6 +246,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/_authenticated/_map/buildings'
     | '/_authenticated/_map/locations'
+    | '/_authenticated/_nav/admin'
     | '/_authenticated/_map/'
     | '/_authenticated/_map/buildings/$buildingId'
     | '/_authenticated/_map/buildings/new'
@@ -209,6 +257,9 @@ export interface FileRouteTypes {
     | '/_authenticated/_nav/locations/'
     | '/_authenticated/_map/buildings/$buildingId_/edit'
     | '/_authenticated/_map/locations/$locationId_/edit'
+    | '/_authenticated/_nav/admin/users/$userId'
+    | '/_authenticated/_nav/admin/users/new'
+    | '/_authenticated/_nav/admin/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -266,6 +317,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/locations'
       preLoaderRoute: typeof AuthenticatedMapLocationsRouteImport
       parentRoute: typeof AuthenticatedMapRoute
+    }
+    '/_authenticated/_nav/admin': {
+      id: '/_authenticated/_nav/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedNavAdminRouteImport
+      parentRoute: typeof AuthenticatedNavRoute
     }
     '/_authenticated/_map/buildings/$buildingId': {
       id: '/_authenticated/_map/buildings/$buildingId'
@@ -330,6 +388,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMapLocationsLocationIdEditRouteImport
       parentRoute: typeof AuthenticatedMapLocationsRoute
     }
+    '/_authenticated/_nav/admin/users/': {
+      id: '/_authenticated/_nav/admin/users/'
+      path: '/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AuthenticatedNavAdminUsersIndexRouteImport
+      parentRoute: typeof AuthenticatedNavAdminRoute
+    }
+    '/_authenticated/_nav/admin/users/$userId': {
+      id: '/_authenticated/_nav/admin/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof AuthenticatedNavAdminUsersUserIdRouteImport
+      parentRoute: typeof AuthenticatedNavAdminRoute
+    }
+    '/_authenticated/_nav/admin/users/new': {
+      id: '/_authenticated/_nav/admin/users/new'
+      path: '/users/new'
+      fullPath: '/admin/users/new'
+      preLoaderRoute: typeof AuthenticatedNavAdminUsersNewRouteImport
+      parentRoute: typeof AuthenticatedNavAdminRoute
+    }
   }
 }
 
@@ -388,13 +467,32 @@ const AuthenticatedMapRouteChildren: AuthenticatedMapRouteChildren = {
 const AuthenticatedMapRouteWithChildren =
   AuthenticatedMapRoute._addFileChildren(AuthenticatedMapRouteChildren)
 
+interface AuthenticatedNavAdminRouteChildren {
+  AuthenticatedNavAdminUsersUserIdRoute: typeof AuthenticatedNavAdminUsersUserIdRoute
+  AuthenticatedNavAdminUsersNewRoute: typeof AuthenticatedNavAdminUsersNewRoute
+  AuthenticatedNavAdminUsersIndexRoute: typeof AuthenticatedNavAdminUsersIndexRoute
+}
+
+const AuthenticatedNavAdminRouteChildren: AuthenticatedNavAdminRouteChildren = {
+  AuthenticatedNavAdminUsersUserIdRoute: AuthenticatedNavAdminUsersUserIdRoute,
+  AuthenticatedNavAdminUsersNewRoute: AuthenticatedNavAdminUsersNewRoute,
+  AuthenticatedNavAdminUsersIndexRoute: AuthenticatedNavAdminUsersIndexRoute,
+}
+
+const AuthenticatedNavAdminRouteWithChildren =
+  AuthenticatedNavAdminRoute._addFileChildren(
+    AuthenticatedNavAdminRouteChildren,
+  )
+
 interface AuthenticatedNavRouteChildren {
+  AuthenticatedNavAdminRoute: typeof AuthenticatedNavAdminRouteWithChildren
   AuthenticatedNavAuthAccountRoute: typeof AuthenticatedNavAuthAccountRoute
   AuthenticatedNavBuildingsIndexRoute: typeof AuthenticatedNavBuildingsIndexRoute
   AuthenticatedNavLocationsIndexRoute: typeof AuthenticatedNavLocationsIndexRoute
 }
 
 const AuthenticatedNavRouteChildren: AuthenticatedNavRouteChildren = {
+  AuthenticatedNavAdminRoute: AuthenticatedNavAdminRouteWithChildren,
   AuthenticatedNavAuthAccountRoute: AuthenticatedNavAuthAccountRoute,
   AuthenticatedNavBuildingsIndexRoute: AuthenticatedNavBuildingsIndexRoute,
   AuthenticatedNavLocationsIndexRoute: AuthenticatedNavLocationsIndexRoute,

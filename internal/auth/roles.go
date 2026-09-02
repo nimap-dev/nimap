@@ -19,6 +19,21 @@ var roleIDsByName = map[string]int16{
 	"admin":  RoleAdminID,
 }
 
+// RoleNames lists every role, least privileged first, for the places that have
+// to offer a choice of them rather than ask about a particular one.
+var RoleNames = []string{"viewer", "editor", "admin"}
+
+// RoleName maps a role id back to its name. ok is false for unknown ids.
+func RoleName(id int16) (name string, ok bool) {
+	for name, roleID := range roleIDsByName {
+		if roleID == id {
+			return name, true
+		}
+	}
+
+	return "", false
+}
+
 // RoleID maps a role name to its lookup id. ok is false for unknown names.
 func RoleID(name string) (id int16, ok bool) {
 	id, ok = roleIDsByName[strings.ToLower(strings.TrimSpace(name))]

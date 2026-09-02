@@ -1,4 +1,4 @@
-import { BadgeCheck, ChevronsUpDown, LogOut } from 'lucide-react'
+import { BadgeCheck, ChevronsUpDown, LogOut, Users } from 'lucide-react'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -16,7 +16,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useAuth } from '#/lib/auth'
+import { useAuth, useCan } from '#/lib/auth'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { getGetCurrentUserQueryKey, useLogout } from '#/api/auth/auth'
@@ -24,6 +24,7 @@ import { getGetCurrentUserQueryKey, useLogout } from '#/api/auth/auth'
 export function NavUser() {
   const { isMobile } = useSidebar()
   const { user } = useAuth()
+  const canManageUsers = useCan('users:manage')
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const logoutMutation = useLogout({
@@ -91,6 +92,12 @@ export function NavUser() {
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
+              {canManageUsers && (
+                <DropdownMenuItem render={<Link to="/admin/users" />}>
+                  <Users />
+                  Manage users
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem

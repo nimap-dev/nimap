@@ -131,6 +131,43 @@ components:
         - name
         - status
       type: object
+    CreateUserInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/CreateUserInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        email:
+          description: Account email address
+          format: email
+          type: string
+        password:
+          description: Initial account password
+          minLength: 8
+          type: string
+        role:
+          description: Role the account starts with
+          enum:
+            - viewer
+            - editor
+            - admin
+          type: string
+        username:
+          description: Account username
+          examples:
+            - admin
+          minLength: 3
+          type: string
+      required:
+        - username
+        - email
+        - password
+        - role
+      type: object
     ErrorDetail:
       additionalProperties: false
       properties:
@@ -302,6 +339,23 @@ components:
       required:
         - type
         - coordinates
+      type: object
+    ResetUserPasswordInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ResetUserPasswordInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        newPassword:
+          description: New account password
+          minLength: 8
+          type: string
+      required:
+        - newPassword
       type: object
     SuggestLocationRequest:
       additionalProperties: false
@@ -482,6 +536,48 @@ components:
         - oldPassword
         - newPassword
       type: object
+    UpdateUserInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateUserInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        email:
+          description: New account email address
+          format: email
+          type: string
+        username:
+          description: New account username
+          minLength: 3
+          type: string
+      required:
+        - username
+        - email
+      type: object
+    UpdateUserRoleInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateUserRoleInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        role:
+          description: Role to move the account to
+          enum:
+            - viewer
+            - editor
+            - admin
+          type: string
+      required:
+        - role
+      type: object
     User:
       additionalProperties: false
       properties:
@@ -524,6 +620,184 @@ info:
   version: dev
 openapi: 3.1.0
 paths:
+  /api/admin/users:
+    get:
+      operationId: list-users
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/User"
+                type: array
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns all user accounts
+      tags:
+        - admin
+    post:
+      operationId: create-user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserInputBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Creates a user account
+      tags:
+        - admin
+  /api/admin/users/{id}:
+    delete:
+      operationId: delete-user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Deletes the user account with the provided id
+      tags:
+        - admin
+    get:
+      operationId: get-user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns the user account with the provided id
+      tags:
+        - admin
+    put:
+      operationId: update-user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Updates the username and email of the account with the provided id
+      tags:
+        - admin
+  /api/admin/users/{id}/password:
+    patch:
+      operationId: reset-user-password
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetUserPasswordInputBody"
+        required: true
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Sets a new password on the account with the provided id
+      tags:
+        - admin
+  /api/admin/users/{id}/role:
+    patch:
+      operationId: update-user-role
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRoleInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Changes the role of the account with the provided id
+      tags:
+        - admin
   /api/auth/account:
     put:
       operationId: update-account

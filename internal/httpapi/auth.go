@@ -286,6 +286,7 @@ func verifyCurrentPassword(
 // userConstraintError turns a constraint on `auth.users` that the caller
 // violated into a readable error, and returns nil for anything else. The unique
 // indexes are case-insensitive, so a name differing only in case still collides.
+// The 23503 is the foreign key, which only ever fires on `role_id`.
 func userConstraintError(err error) error {
 	var pgErr *pgconn.PgError
 	if !errors.As(err, &pgErr) {
@@ -293,6 +294,8 @@ func userConstraintError(err error) error {
 	}
 
 	switch pgErr.Code {
+	case "23503":
+		return huma.Error422UnprocessableEntity("unknown role")
 	case "23505":
 		switch pgErr.ConstraintName {
 		case "users_username_unique_ci":

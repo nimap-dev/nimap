@@ -13,11 +13,13 @@ import (
 type Querier interface {
 	CountBuildingsInLocation(ctx context.Context, locationID uuid.UUID) (int64, error)
 	CountLocationChildren(ctx context.Context, id uuid.UUID) (int64, error)
+	CountUsersWithRole(ctx context.Context, roleID int16) (int64, error)
 	CreateBuilding(ctx context.Context, arg CreateBuildingParams) (CreateBuildingRow, error)
 	CreateLocation(ctx context.Context, arg CreateLocationParams) (CreateLocationRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeleteBuilding(ctx context.Context, id uuid.UUID) (int64, error)
 	DeleteLocation(ctx context.Context, id uuid.UUID) (int64, error)
+	DeleteUser(ctx context.Context, id uuid.UUID) (int64, error)
 	GetBuilding(ctx context.Context, id uuid.UUID) (GetBuildingRow, error)
 	GetLocation(ctx context.Context, id uuid.UUID) (GetLocationRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
@@ -26,6 +28,7 @@ type Querier interface {
 	GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error)
 	ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error)
 	ListLocations(ctx context.Context, statuses []string) ([]ListLocationsRow, error)
+	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	// Picks the location whose area a footprint overlaps the most, so a building
 	// drawn inside a campus lands in the campus rather than in whichever location
 	// happened to be found first. Out-of-service locations are never suggested, and
@@ -41,6 +44,7 @@ type Querier interface {
 	UpdateLocationStatus(ctx context.Context, arg UpdateLocationStatusParams) (UpdateLocationStatusRow, error)
 	UpdateUserAccount(ctx context.Context, arg UpdateUserAccountParams) (UpdateUserAccountRow, error)
 	UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) error
+	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (UpdateUserRoleRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -20,6 +20,8 @@ import {
   UpdatePasswordBody,
 } from '#/api/endpoints/auth/auth.zod'
 import { Panel } from '#/components/panel'
+import { RoleBadge } from '#/components/role-badge'
+import { asRole } from '#/lib/roles'
 import { TextField } from '#/components/form/text-field'
 import { Button } from '#/components/ui/button'
 import { FieldGroup } from '#/components/ui/field'
@@ -37,11 +39,7 @@ function Account() {
       title={
         <span className="flex items-center gap-2">
           Account
-          {user && (
-            <span className="shrink-0 rounded-md border px-1.5 py-0.5 text-xs font-medium text-muted-foreground capitalize">
-              {user.role}
-            </span>
-          )}
+          {user && <RoleBadge role={asRole(user.role)} />}
         </span>
       }
     >
