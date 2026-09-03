@@ -1,5 +1,9 @@
 # nimap
 
+[![ci](https://github.com/nimap-dev/nimap/actions/workflows/ci.yml/badge.svg)](https://github.com/nimap-dev/nimap/actions/workflows/ci.yml)
+[![go](https://img.shields.io/github/go-mod/go-version/nimap-dev/nimap)](go.mod)
+[![license](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+
 nimap is a map-oriented system for documenting physical network and technical
 infrastructure. The goal is to answer two questions: where a device physically
 is, and which route the cable to it takes.
@@ -37,6 +41,14 @@ binary as embedded assets, so the deployment is a single container.
 | `static`           | embedded frontend build                             |
 | `web/src`          | frontend: routes, components, generated API client  |
 
+## Requirements
+
+PostgreSQL 18 with PostGIS. 18 is a hard minimum: the schema uses the built-in
+`uuidv7()` function, which older versions do not have. The compose file uses
+`postgis/postgis:18-3.6-alpine`.
+
+Building from source additionally needs Go 1.26 and Node 26 with pnpm.
+
 ## Running
 
 ```bash
@@ -54,8 +66,8 @@ docker compose exec nimap /nimap new-user --username admin --email admin@example
 
 ## Development
 
-Requires Go, Node with pnpm, and a database. `goose` and `sqlc` are only needed
-when working on migrations or queries.
+See [Requirements](#requirements) for versions. `goose` and `sqlc` are only
+needed when working on migrations or queries.
 
 ```bash
 cp .env.example .env
