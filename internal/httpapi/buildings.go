@@ -14,15 +14,16 @@ import (
 
 	"github.com/nimap-dev/nimap/internal/auth"
 	"github.com/nimap-dev/nimap/internal/db/gen"
+	"github.com/nimap-dev/nimap/internal/httpapi/apitypes"
 )
 
 type CreateBuildingRequest struct {
-	Name       string          `json:"name" minLength:"1"`
-	LocationID *uuid.UUID      `json:"locationId,omitempty" doc:"The location this building stands in; omit for one that has not been placed yet"`
-	Address    *Address        `json:"address,omitempty"`
-	Footprint  MultiPolygon    `json:"footprint"`
-	Notes      *string         `json:"notes,omitempty"`
-	Status     LifecycleStatus `json:"status"`
+	Name       string                   `json:"name" minLength:"1"`
+	LocationID *uuid.UUID               `json:"locationId,omitempty" doc:"The location this building stands in; omit for one that has not been placed yet"`
+	Address    *apitypes.Address        `json:"address,omitempty"`
+	Footprint  apitypes.MultiPolygon    `json:"footprint"`
+	Notes      *string                  `json:"notes,omitempty"`
+	Status     apitypes.LifecycleStatus `json:"status"`
 }
 
 type CreateBuildingInput struct {
@@ -30,15 +31,15 @@ type CreateBuildingInput struct {
 }
 
 type UpdateBuildingRequest struct {
-	Name       string       `json:"name" minLength:"1"`
-	LocationID *uuid.UUID   `json:"locationId,omitempty" doc:"The location this building stands in; omit to detach it from the one it sits in now"`
-	Address    *Address     `json:"address,omitempty"`
-	Footprint  MultiPolygon `json:"footprint"`
-	Notes      *string      `json:"notes,omitempty"`
+	Name       string                `json:"name" minLength:"1"`
+	LocationID *uuid.UUID            `json:"locationId,omitempty" doc:"The location this building stands in; omit to detach it from the one it sits in now"`
+	Address    *apitypes.Address     `json:"address,omitempty"`
+	Footprint  apitypes.MultiPolygon `json:"footprint"`
+	Notes      *string               `json:"notes,omitempty"`
 }
 
 type UpdateBuildingStatusRequest struct {
-	Status LifecycleStatus `json:"status"`
+	Status apitypes.LifecycleStatus `json:"status"`
 }
 
 type UpdateBuildingInput struct {
@@ -56,7 +57,7 @@ type GetBuildingInput struct {
 }
 
 type ListBuildingsInput struct {
-	Status []LifecycleStatus `query:"status" doc:"Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup."`
+	Status []apitypes.LifecycleStatus `query:"status" doc:"Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup."`
 }
 
 type DeleteBuildingInput struct {
@@ -64,16 +65,16 @@ type DeleteBuildingInput struct {
 }
 
 type BuildingResponse struct {
-	ID                  uuid.UUID       `json:"id"`
-	Name                string          `json:"name"`
-	LocationID          *uuid.UUID      `json:"locationId,omitempty"`
-	Address             *Address        `json:"address,omitempty"`
-	Footprint           MultiPolygon    `json:"footprint"`
-	RepresentativePoint Point           `json:"representativePoint"`
-	Notes               *string         `json:"notes,omitempty"`
-	Status              LifecycleStatus `json:"status"`
-	CreatedAt           time.Time       `json:"createdAt"`
-	UpdatedAt           time.Time       `json:"updatedAt"`
+	ID                  uuid.UUID                `json:"id"`
+	Name                string                   `json:"name"`
+	LocationID          *uuid.UUID               `json:"locationId,omitempty"`
+	Address             *apitypes.Address        `json:"address,omitempty"`
+	Footprint           apitypes.MultiPolygon    `json:"footprint"`
+	RepresentativePoint apitypes.Point           `json:"representativePoint"`
+	Notes               *string                  `json:"notes,omitempty"`
+	Status              apitypes.LifecycleStatus `json:"status"`
+	CreatedAt           time.Time                `json:"createdAt"`
+	UpdatedAt           time.Time                `json:"updatedAt"`
 }
 
 type GetBuildingOutput struct {
@@ -119,7 +120,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			building.ID,
 			building.Name,
 			building.LocationID,
-			Address{
+			apitypes.Address{
 				Street:  building.AddressStreet,
 				City:    building.AddressCity,
 				Zip:     building.AddressZip,
@@ -128,7 +129,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			building.Footprint,
 			building.RepresentativePoint,
 			building.Notes,
-			LifecycleStatus(building.Status),
+			apitypes.LifecycleStatus(building.Status),
 			building.CreatedAt,
 			building.UpdatedAt,
 		)
@@ -154,10 +155,10 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 	) (*ListBuildingsOutput, error) {
 		statuses := in.Status
 		if len(statuses) == 0 {
-			statuses = ActiveLifecycleStatuses
+			statuses = apitypes.ActiveLifecycleStatuses
 		}
 
-		buildings, err := q.ListBuildings(ctx, lifecycleStatusStrings(statuses))
+		buildings, err := q.ListBuildings(ctx, apitypes.LifecycleStatusStrings(statuses))
 		if err != nil {
 			return nil, huma.Error500InternalServerError(
 				"building list failed",
@@ -171,7 +172,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 				building.ID,
 				building.Name,
 				building.LocationID,
-				Address{
+				apitypes.Address{
 					Street:  building.AddressStreet,
 					City:    building.AddressCity,
 					Zip:     building.AddressZip,
@@ -180,7 +181,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 				building.Footprint,
 				building.RepresentativePoint,
 				building.Notes,
-				LifecycleStatus(building.Status),
+				apitypes.LifecycleStatus(building.Status),
 				building.CreatedAt,
 				building.UpdatedAt,
 			)
@@ -247,7 +248,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			building.ID,
 			building.Name,
 			building.LocationID,
-			Address{
+			apitypes.Address{
 				Street:  building.AddressStreet,
 				City:    building.AddressCity,
 				Zip:     building.AddressZip,
@@ -256,7 +257,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			building.Footprint,
 			building.RepresentativePoint,
 			building.Notes,
-			LifecycleStatus(building.Status),
+			apitypes.LifecycleStatus(building.Status),
 			building.CreatedAt,
 			building.UpdatedAt,
 		)
@@ -321,7 +322,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			building.ID,
 			building.Name,
 			building.LocationID,
-			Address{
+			apitypes.Address{
 				Street:  building.AddressStreet,
 				City:    building.AddressCity,
 				Zip:     building.AddressZip,
@@ -330,7 +331,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			building.Footprint,
 			building.RepresentativePoint,
 			building.Notes,
-			LifecycleStatus(building.Status),
+			apitypes.LifecycleStatus(building.Status),
 			building.CreatedAt,
 			building.UpdatedAt,
 		)
@@ -375,7 +376,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			building.ID,
 			building.Name,
 			building.LocationID,
-			Address{
+			apitypes.Address{
 				Street:  building.AddressStreet,
 				City:    building.AddressCity,
 				Zip:     building.AddressZip,
@@ -384,7 +385,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			building.Footprint,
 			building.RepresentativePoint,
 			building.Notes,
-			LifecycleStatus(building.Status),
+			apitypes.LifecycleStatus(building.Status),
 			building.CreatedAt,
 			building.UpdatedAt,
 		)
@@ -457,20 +458,20 @@ func buildingResponse(
 	id uuid.UUID,
 	name string,
 	locationID *uuid.UUID,
-	address Address,
+	address apitypes.Address,
 	footprint string,
 	representativePoint string,
 	notes *string,
-	status LifecycleStatus,
+	status apitypes.LifecycleStatus,
 	createdAt time.Time,
 	updatedAt time.Time,
 ) (BuildingResponse, error) {
-	var fp MultiPolygon
+	var fp apitypes.MultiPolygon
 	if err := json.Unmarshal([]byte(footprint), &fp); err != nil {
 		return BuildingResponse{}, err
 	}
 
-	var rp Point
+	var rp apitypes.Point
 	if err := json.Unmarshal([]byte(representativePoint), &rp); err != nil {
 		return BuildingResponse{}, err
 	}
@@ -479,7 +480,7 @@ func buildingResponse(
 		ID:                  id,
 		Name:                name,
 		LocationID:          locationID,
-		Address:             address.orNil(),
+		Address:             address.OrNil(),
 		Footprint:           fp,
 		RepresentativePoint: rp,
 		Notes:               notes,

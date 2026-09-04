@@ -33,3 +33,5 @@ go.work.sum
 
 /static/dist/*
 !/static/dist/index.html
+
+/data/

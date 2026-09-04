@@ -6,6 +6,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/google/uuid"
 
 	"github.com/nimap-dev/nimap/internal/auth"
@@ -22,6 +23,10 @@ const (
 
 	// roleIDKey holds that user's role id, as auth.Allows takes it.
 	roleIDKey ctxKey = "role_id"
+
+	// rawIOKey holds the request and writer for an operation that reads or
+	// writes the HTTP message itself.
+	rawIOKey ctxKey = "raw_io"
 )
 
 // Operation metadata driving the auth middleware. Set one of these when
@@ -39,12 +44,18 @@ const (
 const (
 	requireAuthMetaKey       = "requireAuth"
 	requirePermissionMetaKey = "requirePermission"
+	rawIOMetaKey             = "rawIO"
 )
 
 // sessionUser is who the request is from, as far as the middleware cares.
 type sessionUser struct {
 	id     uuid.UUID
 	roleID int16
+}
+
+type rawIO struct {
+	r *http.Request
+	w http.ResponseWriter
 }
 
 // NewAuthMiddleware resolves the session user once per request and stores its
@@ -71,6 +82,14 @@ func NewAuthMiddleware(api huma.API, sm *scs.SessionManager, q *gen.Queries) fun
 				_ = huma.WriteErr(api, ctx, http.StatusForbidden, "not allowed")
 				return
 			}
+		}
+
+		if wantsRawIO(op) {
+			// The request captured here is the one before the WithValue below
+			// copies it, but Body, Header and ContentLength are the same
+			// objects, so streaming from it is the same stream.
+			r, w := humachi.Unwrap(ctx)
+			ctx = huma.WithValue(ctx, rawIOKey, rawIO{r: r, w: w})
 		}
 
 		next(ctx)
@@ -132,4 +151,25 @@ func requiredPermission(op *huma.Operation) (auth.Permission, bool) {
 
 	permission, ok := op.Metadata[requirePermissionMetaKey].(auth.Permission)
 	return permission, ok
+}
+
+// RawIOFromContext returns the request and writer underneath a handler whose
+// operation carries rawIOMetaKey. ok is false for every other operation, where
+// huma has already read the body itself.
+func RawIOFromContext(ctx context.Context) (*http.Request, http.ResponseWriter, bool) {
+	io, ok := ctx.Value(rawIOKey).(rawIO)
+	if !ok {
+		return nil, nil, false
+	}
+
+	return io.r, io.w, true
+}
+
+func wantsRawIO(op *huma.Operation) bool {
+	if op == nil {
+		return false
+	}
+
+	wants, _ := op.Metadata[rawIOMetaKey].(bool)
+	return wants
 }

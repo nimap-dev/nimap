@@ -1,4 +1,4 @@
-package httpapi
+package apitypes
 
 import (
 	"encoding/json"
@@ -22,7 +22,7 @@ type Point struct {
 
 // multiPolygonGeoJSON renders an optional polygon for the generated queries.
 // See pointGeoJSON for what a missing one means.
-func multiPolygonGeoJSON(area *MultiPolygon) (*string, error) {
+func MultiPolygonGeoJSON(area *MultiPolygon) (*string, error) {
 	if area == nil {
 		return nil, nil
 	}
@@ -40,7 +40,7 @@ func multiPolygonGeoJSON(area *MultiPolygon) (*string, error) {
 // pointGeoJSON renders an optional point for the generated queries, which take
 // the geometry as GeoJSON text. A missing point stays missing: the queries hand
 // NULL to ST_GeomFromGeoJSON, which returns NULL rather than a geometry.
-func pointGeoJSON(point *Point) (*string, error) {
+func PointGeoJSON(point *Point) (*string, error) {
 	if point == nil {
 		return nil, nil
 	}
@@ -59,7 +59,7 @@ func pointGeoJSON(point *Point) (*string, error) {
 // returns nil for anything else. A geometry only ever passed through a function
 // never meets a CHECK constraint, so ST_GeomFromGeoJSON is what rejects it: 22023
 // for a parse failure, XX000 for a topology it cannot work with.
-func geometryError(err error) error {
+func GeometryError(err error) error {
 	var pgErr *pgconn.PgError
 	if !errors.As(err, &pgErr) {
 		return nil

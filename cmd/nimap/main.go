@@ -20,6 +20,7 @@ import (
 	"github.com/nimap-dev/nimap/internal/db"
 	"github.com/nimap-dev/nimap/internal/httpapi"
 	"github.com/nimap-dev/nimap/internal/logging"
+	"github.com/nimap-dev/nimap/internal/media"
 )
 
 func main() {
@@ -42,6 +43,11 @@ func main() {
 				os.Exit(1)
 			}
 
+			store, err := media.NewStore(cfg.MediaDir)
+			if err != nil {
+				fatal("media directory unusable", err)
+			}
+
 			ctx := context.Background()
 
 			if cfg.AutoMigrate {
@@ -51,7 +57,6 @@ func main() {
 				}
 			}
 
-			var err error
 			pool, err = db.NewPool(ctx, cfg.DatabaseURL)
 			if err != nil {
 				fatal("database connection failed", err)
@@ -69,7 +74,7 @@ func main() {
 
 			router.Group(func(r chi.Router) {
 				r.Use(sessions.LoadAndSave)
-				httpapi.NewAPI(r, config.Version, pool, sessions)
+				httpapi.NewAPI(r, config.Version, pool, sessions, store)
 			})
 
 			// Must stay last: RegisterFrontend claims "/*" and answers anything

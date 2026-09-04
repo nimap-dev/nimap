@@ -1,4 +1,4 @@
-package httpapi
+package apitypes
 
 import "github.com/danielgtaylor/huma/v2"
 
@@ -35,7 +35,7 @@ func (LifecycleStatus) Schema(r huma.Registry) *huma.Schema {
 	}
 }
 
-func lifecycleStatusStrings(statuses []LifecycleStatus) []string {
+func LifecycleStatusStrings(statuses []LifecycleStatus) []string {
 	out := make([]string, len(statuses))
 	for i, status := range statuses {
 		out[i] = string(status)

@@ -1,4 +1,4 @@
-package httpapi
+package apitypes
 
 import "strings"
 
@@ -26,7 +26,7 @@ func (a *Address) Normalized() Address {
 
 // orNil drops an address that is empty all the way through, so clients get no
 // address at all rather than an object of four nulls.
-func (a Address) orNil() *Address {
+func (a Address) OrNil() *Address {
 	if a.Street == nil &&
 		a.City == nil &&
 		a.Zip == nil &&

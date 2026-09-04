@@ -12,6 +12,51 @@ import (
 	"github.com/google/uuid"
 )
 
+type AssetType string
+
+const (
+	AssetTypeImage    AssetType = "image"
+	AssetTypeVideo    AssetType = "video"
+	AssetTypeAudio    AssetType = "audio"
+	AssetTypeDocument AssetType = "document"
+	AssetTypeOther    AssetType = "other"
+)
+
+func (e *AssetType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AssetType(s)
+	case string:
+		*e = AssetType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AssetType: %T", src)
+	}
+	return nil
+}
+
+type NullAssetType struct {
+	AssetType AssetType
+	Valid     bool // Valid is true if AssetType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAssetType) Scan(value interface{}) error {
+	if value == nil {
+		ns.AssetType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AssetType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAssetType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AssetType), nil
+}
+
 type LifecycleStatus string
 
 const (
@@ -54,6 +99,32 @@ func (ns NullLifecycleStatus) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.LifecycleStatus), nil
+}
+
+type Asset struct {
+	ID               uuid.UUID
+	StoragePath      string
+	Title            string
+	OriginalFilename string
+	ContentType      string
+	Type             AssetType
+	ByteSize         int64
+	Checksum         []byte
+	Width            *int32
+	Height           *int32
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
+type AssetAttachment struct {
+	ID         uuid.UUID
+	AssetID    uuid.UUID
+	LocationID *uuid.UUID
+	BuildingID *uuid.UUID
+	Position   int32
+	Caption    *string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 type AuthRole struct {

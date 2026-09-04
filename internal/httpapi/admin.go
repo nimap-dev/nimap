@@ -12,6 +12,7 @@ import (
 
 	"github.com/nimap-dev/nimap/internal/auth"
 	"github.com/nimap-dev/nimap/internal/db/gen"
+	"github.com/nimap-dev/nimap/internal/httpapi/apitypes"
 )
 
 type UserIDInput struct {
@@ -20,10 +21,10 @@ type UserIDInput struct {
 
 type CreateUserInput struct {
 	Body struct {
-		Username string `json:"username" minLength:"3" example:"admin" doc:"Account username"`
-		Email    string `json:"email" format:"email" doc:"Account email address"`
-		Password string `json:"password" minLength:"8" doc:"Initial account password"`
-		Role     Role   `json:"role" doc:"Role the account starts with"`
+		Username string        `json:"username" minLength:"3" example:"admin" doc:"Account username"`
+		Email    string        `json:"email" format:"email" doc:"Account email address"`
+		Password string        `json:"password" minLength:"8" doc:"Initial account password"`
+		Role     apitypes.Role `json:"role" doc:"Role the account starts with"`
 	}
 }
 
@@ -38,7 +39,7 @@ type UpdateUserInput struct {
 type UpdateUserRoleInput struct {
 	ID   uuid.UUID `path:"id"`
 	Body struct {
-		Role Role `json:"role" doc:"Role to move the account to"`
+		Role apitypes.Role `json:"role" doc:"Role to move the account to"`
 	}
 }
 

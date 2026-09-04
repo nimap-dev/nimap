@@ -6,6 +6,8 @@
  */
 
 export * from './address.ts';
+export * from './assetResponse.ts';
+export * from './assetResponseType.ts';
 export * from './buildingResponse.ts';
 export * from './buildingResponseStatus.ts';
 export * from './createBuildingRequest.ts';
@@ -41,4 +43,6 @@ export * from './updatePasswordInputBody.ts';
 export * from './updateUserInputBody.ts';
 export * from './updateUserRoleInputBody.ts';
 export * from './updateUserRoleInputBodyRole.ts';
+export * from './uploadAssetParams.ts';
+export * from './uploadAssetResourceType.ts';
 export * from './user.ts';

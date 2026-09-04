@@ -15,16 +15,17 @@ import (
 
 	"github.com/nimap-dev/nimap/internal/auth"
 	"github.com/nimap-dev/nimap/internal/db/gen"
+	"github.com/nimap-dev/nimap/internal/httpapi/apitypes"
 )
 
 type CreateLocationRequest struct {
-	ParentID            *uuid.UUID      `json:"parentId,omitempty" doc:"The location this one sits inside; omit for a location that stands on its own"`
-	Name                string          `json:"name" minLength:"1"`
-	Address             *Address        `json:"address,omitempty"`
-	Area                *MultiPolygon   `json:"area,omitempty" doc:"The boundary of the location; omit for one whose extent nobody has established yet"`
-	RepresentativePoint *Point          `json:"representativePoint,omitempty"`
-	Notes               *string         `json:"notes,omitempty"`
-	Status              LifecycleStatus `json:"status"`
+	ParentID            *uuid.UUID               `json:"parentId,omitempty" doc:"The location this one sits inside; omit for a location that stands on its own"`
+	Name                string                   `json:"name" minLength:"1"`
+	Address             *apitypes.Address        `json:"address,omitempty"`
+	Area                *apitypes.MultiPolygon   `json:"area,omitempty" doc:"The boundary of the location; omit for one whose extent nobody has established yet"`
+	RepresentativePoint *apitypes.Point          `json:"representativePoint,omitempty"`
+	Notes               *string                  `json:"notes,omitempty"`
+	Status              apitypes.LifecycleStatus `json:"status"`
 }
 
 type CreateLocationInput struct {
@@ -32,20 +33,20 @@ type CreateLocationInput struct {
 }
 
 type UpdateLocationRequest struct {
-	ParentID            *uuid.UUID    `json:"parentId,omitempty" doc:"The location this one sits inside; omit to move it to the top level"`
-	Name                string        `json:"name" minLength:"1"`
-	Address             *Address      `json:"address,omitempty"`
-	Area                *MultiPolygon `json:"area,omitempty" doc:"The boundary of the location; omit for one whose extent nobody has established yet"`
-	RepresentativePoint *Point        `json:"representativePoint,omitempty"`
-	Notes               *string       `json:"notes,omitempty"`
+	ParentID            *uuid.UUID             `json:"parentId,omitempty" doc:"The location this one sits inside; omit to move it to the top level"`
+	Name                string                 `json:"name" minLength:"1"`
+	Address             *apitypes.Address      `json:"address,omitempty"`
+	Area                *apitypes.MultiPolygon `json:"area,omitempty" doc:"The boundary of the location; omit for one whose extent nobody has established yet"`
+	RepresentativePoint *apitypes.Point        `json:"representativePoint,omitempty"`
+	Notes               *string                `json:"notes,omitempty"`
 }
 
 type UpdateLocationStatusRequest struct {
-	Status LifecycleStatus `json:"status"`
+	Status apitypes.LifecycleStatus `json:"status"`
 }
 
 type SuggestLocationRequest struct {
-	Area MultiPolygon `json:"area" doc:"The boundary of the place you want to find the best location for"`
+	Area apitypes.MultiPolygon `json:"area" doc:"The boundary of the place you want to find the best location for"`
 }
 
 type UpdateLocationInput struct {
@@ -63,7 +64,7 @@ type GetLocationInput struct {
 }
 
 type ListLocationsInput struct {
-	Status []LifecycleStatus `query:"status" doc:"Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived locations off the map and out of the default lists without hiding them from a direct lookup."`
+	Status []apitypes.LifecycleStatus `query:"status" doc:"Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived locations off the map and out of the default lists without hiding them from a direct lookup."`
 }
 
 type DeleteLocationInput struct {
@@ -75,21 +76,21 @@ type SuggestLocationInput struct {
 }
 
 type LocationResponse struct {
-	ID                  uuid.UUID     `json:"id"`
-	ParentID            *uuid.UUID    `json:"parentId,omitempty"`
-	Name                string        `json:"name"`
-	Address             *Address      `json:"address,omitempty"`
-	Area                *MultiPolygon `json:"area,omitempty"`
-	RepresentativePoint *Point        `json:"representativePoint,omitempty"`
+	ID                  uuid.UUID              `json:"id"`
+	ParentID            *uuid.UUID             `json:"parentId,omitempty"`
+	Name                string                 `json:"name"`
+	Address             *apitypes.Address      `json:"address,omitempty"`
+	Area                *apitypes.MultiPolygon `json:"area,omitempty"`
+	RepresentativePoint *apitypes.Point        `json:"representativePoint,omitempty"`
 	// RepresentativePointManual says whether the point was placed by hand or
 	// derived from the area. Without it a client editing a location cannot tell
 	// the two apart, and saving the form would quietly turn a derived point into
 	// a stored one that no longer follows the boundary.
-	RepresentativePointManual bool            `json:"representativePointManual"`
-	Notes                     *string         `json:"notes,omitempty"`
-	Status                    LifecycleStatus `json:"status"`
-	CreatedAt                 time.Time       `json:"createdAt"`
-	UpdatedAt                 time.Time       `json:"updatedAt"`
+	RepresentativePointManual bool                     `json:"representativePointManual"`
+	Notes                     *string                  `json:"notes,omitempty"`
+	Status                    apitypes.LifecycleStatus `json:"status"`
+	CreatedAt                 time.Time                `json:"createdAt"`
+	UpdatedAt                 time.Time                `json:"updatedAt"`
 }
 
 type SuggestLocationResponse struct {
@@ -144,7 +145,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 			location.ID,
 			location.ParentID,
 			location.Name,
-			Address{
+			apitypes.Address{
 				Street:  location.AddressStreet,
 				City:    location.AddressCity,
 				Zip:     location.AddressZip,
@@ -154,7 +155,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 			location.RepresentativePoint,
 			location.RepresentativePointManual,
 			location.Notes,
-			LifecycleStatus(location.Status),
+			apitypes.LifecycleStatus(location.Status),
 			location.CreatedAt,
 			location.UpdatedAt,
 		)
@@ -180,10 +181,10 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 	) (*ListLocationsOutput, error) {
 		statuses := in.Status
 		if len(statuses) == 0 {
-			statuses = ActiveLifecycleStatuses
+			statuses = apitypes.ActiveLifecycleStatuses
 		}
 
-		locations, err := q.ListLocations(ctx, lifecycleStatusStrings(statuses))
+		locations, err := q.ListLocations(ctx, apitypes.LifecycleStatusStrings(statuses))
 		if err != nil {
 			return nil, huma.Error500InternalServerError(
 				"location list failed",
@@ -197,7 +198,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 				location.ID,
 				location.ParentID,
 				location.Name,
-				Address{
+				apitypes.Address{
 					Street:  location.AddressStreet,
 					City:    location.AddressCity,
 					Zip:     location.AddressZip,
@@ -207,7 +208,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 				location.RepresentativePoint,
 				location.RepresentativePointManual,
 				location.Notes,
-				LifecycleStatus(location.Status),
+				apitypes.LifecycleStatus(location.Status),
 				location.CreatedAt,
 				location.UpdatedAt,
 			)
@@ -237,7 +238,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 		ctx context.Context,
 		in *CreateLocationInput,
 	) (*CreateLocationOutput, error) {
-		area, err := multiPolygonGeoJSON(in.Body.Area)
+		area, err := apitypes.MultiPolygonGeoJSON(in.Body.Area)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(
 				"location creation failed",
@@ -246,7 +247,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 
 		address := in.Body.Address.Normalized()
 
-		representativePoint, err := pointGeoJSON(in.Body.RepresentativePoint)
+		representativePoint, err := apitypes.PointGeoJSON(in.Body.RepresentativePoint)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(
 				"location creation failed",
@@ -282,7 +283,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 			location.ID,
 			location.ParentID,
 			location.Name,
-			Address{
+			apitypes.Address{
 				Street:  location.AddressStreet,
 				City:    location.AddressCity,
 				Zip:     location.AddressZip,
@@ -292,7 +293,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 			location.RepresentativePoint,
 			location.RepresentativePointManual,
 			location.Notes,
-			LifecycleStatus(location.Status),
+			apitypes.LifecycleStatus(location.Status),
 			location.CreatedAt,
 			location.UpdatedAt,
 		)
@@ -316,7 +317,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 		ctx context.Context,
 		in *UpdateLocationInput,
 	) (*UpdateLocationOutput, error) {
-		area, err := multiPolygonGeoJSON(in.Body.Area)
+		area, err := apitypes.MultiPolygonGeoJSON(in.Body.Area)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(
 				"location update failed",
@@ -325,7 +326,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 
 		address := in.Body.Address.Normalized()
 
-		representativePoint, err := pointGeoJSON(in.Body.RepresentativePoint)
+		representativePoint, err := apitypes.PointGeoJSON(in.Body.RepresentativePoint)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(
 				"location update failed",
@@ -365,7 +366,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 			location.ID,
 			location.ParentID,
 			location.Name,
-			Address{
+			apitypes.Address{
 				Street:  location.AddressStreet,
 				City:    location.AddressCity,
 				Zip:     location.AddressZip,
@@ -375,7 +376,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 			location.RepresentativePoint,
 			location.RepresentativePointManual,
 			location.Notes,
-			LifecycleStatus(location.Status),
+			apitypes.LifecycleStatus(location.Status),
 			location.CreatedAt,
 			location.UpdatedAt,
 		)
@@ -420,7 +421,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 			location.ID,
 			location.ParentID,
 			location.Name,
-			Address{
+			apitypes.Address{
 				Street:  location.AddressStreet,
 				City:    location.AddressCity,
 				Zip:     location.AddressZip,
@@ -430,7 +431,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 			location.RepresentativePoint,
 			location.RepresentativePointManual,
 			location.Notes,
-			LifecycleStatus(location.Status),
+			apitypes.LifecycleStatus(location.Status),
 			location.CreatedAt,
 			location.UpdatedAt,
 		)
@@ -518,7 +519,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 		ctx context.Context,
 		in *SuggestLocationInput,
 	) (*SuggestLocationOutput, error) {
-		area, err := multiPolygonGeoJSON(&in.Body.Area)
+		area, err := apitypes.MultiPolygonGeoJSON(&in.Body.Area)
 		if err != nil {
 			return nil, huma.Error500InternalServerError(
 				"location suggestion failed",
@@ -533,7 +534,7 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 				)
 			}
 
-			if invalid := geometryError(err); invalid != nil {
+			if invalid := apitypes.GeometryError(err); invalid != nil {
 				return nil, invalid
 			}
 
@@ -584,28 +585,28 @@ func locationResponse(
 	id uuid.UUID,
 	parentID *uuid.UUID,
 	name string,
-	address Address,
+	address apitypes.Address,
 	areaGeoJSON string,
 	representativePoint string,
 	representativePointManual bool,
 	notes *string,
-	status LifecycleStatus,
+	status apitypes.LifecycleStatus,
 	createdAt time.Time,
 	updatedAt time.Time,
 ) (LocationResponse, error) {
 	// The queries hand back an empty string for a location with no area, and
 	// with no area there is no point to derive from it either.
-	var area *MultiPolygon
+	var area *apitypes.MultiPolygon
 	if areaGeoJSON != "" {
-		area = &MultiPolygon{}
+		area = &apitypes.MultiPolygon{}
 		if err := json.Unmarshal([]byte(areaGeoJSON), area); err != nil {
 			return LocationResponse{}, err
 		}
 	}
 
-	var rp *Point
+	var rp *apitypes.Point
 	if representativePoint != "" {
-		rp = &Point{}
+		rp = &apitypes.Point{}
 		if err := json.Unmarshal([]byte(representativePoint), rp); err != nil {
 			return LocationResponse{}, err
 		}
@@ -615,7 +616,7 @@ func locationResponse(
 		ID:                        id,
 		ParentID:                  parentID,
 		Name:                      name,
-		Address:                   address.orNil(),
+		Address:                   address.OrNil(),
 		Area:                      area,
 		RepresentativePoint:       rp,
 		RepresentativePointManual: representativePointManual,

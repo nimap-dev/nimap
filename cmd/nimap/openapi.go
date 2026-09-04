@@ -18,7 +18,7 @@ func registerOpenAPICommand(cli humacli.CLI) {
 		Use:   "openapi",
 		Short: "Print the OpenAPI 3.1 specification to stdout",
 		Run: func(_ *cobra.Command, _ []string) {
-			api := httpapi.NewAPI(chi.NewMux(), config.Version, nil, nil)
+			api := httpapi.NewAPI(chi.NewMux(), config.Version, nil, nil, nil)
 			spec, err := api.OpenAPI().YAML()
 			if err != nil {
 				fatal("could not render OpenAPI spec", err)

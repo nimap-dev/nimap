@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/nimap-dev/nimap/internal/db/gen"
+	"github.com/nimap-dev/nimap/internal/media"
 )
 
 // NewAPI creates the huma API on router and registers every operation.
@@ -15,7 +16,7 @@ import (
 // pool and sessions may be nil when the API is built only to emit the OpenAPI
 // document (see the `openapi` command): handlers are registered but never
 // invoked during specification generation.
-func NewAPI(router chi.Router, version string, pool *pgxpool.Pool, sessions *scs.SessionManager) huma.API {
+func NewAPI(router chi.Router, version string, pool *pgxpool.Pool, sessions *scs.SessionManager, store *media.Store) huma.API {
 	huma.DefaultArrayNullable = false
 
 	q := gen.New(pool)
@@ -26,5 +27,6 @@ func NewAPI(router chi.Router, version string, pool *pgxpool.Pool, sessions *scs
 	RegisterBuildings(api, q)
 	RegisterLocations(api, q)
 	RegisterAdmin(api, q)
+	RegisterAssets(api, q, pool, store)
 	return api
 }

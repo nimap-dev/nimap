@@ -15,6 +15,53 @@ components:
           description: Postal code, in whatever shape the country writes it
           type: string
       type: object
+    AssetResponse:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/AssetResponse.json
+          format: uri
+          readOnly: true
+          type: string
+        byteSize:
+          format: int64
+          type: integer
+        contentType:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        height:
+          format: int32
+          type: integer
+        id:
+          type: string
+        originalFilename:
+          type: string
+        title:
+          type: string
+        type:
+          enum:
+            - image
+            - video
+            - audio
+            - document
+            - other
+          type: string
+        width:
+          format: int32
+          type: integer
+      required:
+        - id
+        - title
+        - originalFilename
+        - contentType
+        - type
+        - byteSize
+        - createdAt
+      type: object
     BuildingResponse:
       additionalProperties: false
       properties:
@@ -798,6 +845,84 @@ paths:
       summary: Changes the role of the account with the provided id
       tags:
         - admin
+  /api/assets:
+    post:
+      operationId: upload-asset
+      parameters:
+        - in: header
+          name: Content-Disposition
+          required: true
+          schema:
+            type: string
+        - explode: false
+          in: query
+          name: title
+          schema:
+            type: string
+        - explode: false
+          in: query
+          name: resourceType
+          schema:
+            enum:
+              - location
+              - building
+            type: string
+        - explode: false
+          in: query
+          name: resourceId
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              contentMediaType: application/octet-stream
+              format: binary
+              type: string
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetResponse"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Uploads a file, optionally attaching it to a location or a building
+      tags:
+        - assets
+  /api/assets/{id}/content:
+    get:
+      operationId: get-asset-content
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/octet-stream:
+              schema:
+                contentMediaType: application/octet-stream
+                format: binary
+                type: string
+          description: The file
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns the bytes of the asset with the provided id
+      tags:
+        - assets
   /api/auth/account:
     put:
       operationId: update-account
