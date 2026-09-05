@@ -24,8 +24,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AssetAttachmentResponse,
   AssetResponse,
   ErrorModel,
+  ListAssetsParams,
   UploadAssetParams
 } from '../model';
 
@@ -54,6 +56,139 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export type listAssetsResponse200 = {
+  data: AssetAttachmentResponse[]
+  status: 200
+}
+
+export type listAssetsResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 200>
+}
+
+export type listAssetsResponseSuccess = (listAssetsResponse200) & {
+  headers: Headers;
+};
+export type listAssetsResponseError = (listAssetsResponseDefault) & {
+  headers: Headers;
+};
+
+export type listAssetsResponse = (listAssetsResponseSuccess | listAssetsResponseError)
+
+export const getListAssetsUrl = (params: ListAssetsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/assets?${stringifiedParams}` : `/api/assets`
+}
+
+/**
+ * @summary Lists the files attached to a location or a building
+ */
+export const listAssets = async (params: ListAssetsParams, options?: RequestInit): Promise<listAssetsResponse> => {
+
+  const res = await fetch(getListAssetsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listAssetsResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listAssetsResponse
+}
+
+
+
+
+
+export const getListAssetsQueryKey = (params?: ListAssetsParams,) => {
+    return [
+    `/api/assets`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAssetsQueryOptions = <TData = Awaited<ReturnType<typeof listAssets>>, TError = ErrorModel>(params: ListAssetsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssets>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAssetsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAssets>>> = ({ signal }) => listAssets(params, { signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAssets>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAssetsQueryResult = NonNullable<Awaited<ReturnType<typeof listAssets>>>
+export type ListAssetsQueryError = ErrorModel
+
+
+export function useListAssets<TData = Awaited<ReturnType<typeof listAssets>>, TError = ErrorModel>(
+ params: ListAssetsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssets>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAssets>>,
+          TError,
+          Awaited<ReturnType<typeof listAssets>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAssets<TData = Awaited<ReturnType<typeof listAssets>>, TError = ErrorModel>(
+ params: ListAssetsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssets>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAssets>>,
+          TError,
+          Awaited<ReturnType<typeof listAssets>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAssets<TData = Awaited<ReturnType<typeof listAssets>>, TError = ErrorModel>(
+ params: ListAssetsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssets>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Lists the files attached to a location or a building
+ */
+
+export function useListAssets<TData = Awaited<ReturnType<typeof listAssets>>, TError = ErrorModel>(
+ params: ListAssetsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAssets>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAssetsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
 
 export type uploadAssetResponse201 = {
   data: AssetResponse
@@ -284,3 +419,100 @@ export function useGetAssetContent<TData = Awaited<ReturnType<typeof getAssetCon
 
 
 
+export type deleteAssetAttachmentResponse204 = {
+  data: void
+  status: 204
+}
+
+export type deleteAssetAttachmentResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 204>
+}
+
+export type deleteAssetAttachmentResponseSuccess = (deleteAssetAttachmentResponse204) & {
+  headers: Headers;
+};
+export type deleteAssetAttachmentResponseError = (deleteAssetAttachmentResponseDefault) & {
+  headers: Headers;
+};
+
+export type deleteAssetAttachmentResponse = (deleteAssetAttachmentResponseSuccess | deleteAssetAttachmentResponseError)
+
+export const getDeleteAssetAttachmentUrl = (id: string,) => {
+
+
+
+
+  return `/api/attachments/${id}`
+}
+
+/**
+ * The file goes too, unless something else still points at it.
+ * @summary Removes a file from the location or building it is attached to
+ */
+export const deleteAssetAttachment = async (id: string, options?: RequestInit): Promise<deleteAssetAttachmentResponse> => {
+
+  const res = await fetch(getDeleteAssetAttachmentUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: deleteAssetAttachmentResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as deleteAssetAttachmentResponse
+}
+
+
+
+
+
+export const getDeleteAssetAttachmentMutationOptions = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAssetAttachment>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAssetAttachment>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteAssetAttachment'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAssetAttachment>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAssetAttachment(id,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAssetAttachmentMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAssetAttachment>>>
+
+    export type DeleteAssetAttachmentMutationError = ErrorModel
+
+    /**
+ * @summary Removes a file from the location or building it is attached to
+ */
+export const useDeleteAssetAttachment = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAssetAttachment>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAssetAttachment>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteAssetAttachmentMutationOptions(options), queryClient);
+    }

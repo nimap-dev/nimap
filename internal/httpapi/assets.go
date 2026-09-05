@@ -55,6 +55,25 @@ type GetAssetContentInput struct {
 	ID uuid.UUID `path:"id"`
 }
 
+type ListAssetsInput struct {
+	ResourceType apitypes.ResourceType `query:"resourceType" required:"true"`
+	ResourceID   uuid.UUID             `query:"resourceId" required:"true"`
+}
+
+type DeleteAssetAttachmentInput struct {
+	ID uuid.UUID `path:"id"`
+}
+
+type AssetAttachmentResponse struct {
+	ID      uuid.UUID     `json:"id"`
+	Caption *string       `json:"caption,omitempty"`
+	Asset   AssetResponse `json:"asset"`
+}
+
+type ListAssetsOutput struct {
+	Body []AssetAttachmentResponse
+}
+
 // inlineTypes are the ones safe to let a browser render.
 var inlineTypes = map[string]bool{
 	"image/jpeg":      true,
@@ -310,6 +329,130 @@ func RegisterAssets(api huma.API, q *gen.Queries, pool *pgxpool.Pool, store *med
 			http.ServeContent(w, r, "", info.ModTime(), file)
 		}}, nil
 	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "list-assets",
+		Method:      http.MethodGet,
+		Path:        "/api/assets",
+		Summary:     "Lists the files attached to a location or a building",
+		Tags:        []string{"assets"},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.ReadRecords},
+	}, func(
+		ctx context.Context,
+		in *ListAssetsInput,
+	) (*ListAssetsOutput, error) {
+		body := []AssetAttachmentResponse{}
+
+		switch in.ResourceType {
+		case apitypes.ResourceTypeLocation:
+			rows, err := q.ListLocationAssets(ctx, &in.ResourceID)
+			if err != nil {
+				return nil, huma.Error500InternalServerError("asset list failed")
+			}
+
+			for _, row := range rows {
+				body = append(body, AssetAttachmentResponse{
+					ID:      row.ID,
+					Caption: row.Caption,
+					Asset: AssetResponse{
+						ID:               row.AssetID,
+						Title:            row.Title,
+						OriginalFilename: row.OriginalFilename,
+						ContentType:      row.ContentType,
+						Type:             apitypes.AssetType(row.Type),
+						ByteSize:         row.ByteSize,
+						Width:            row.Width,
+						Height:           row.Height,
+						CreatedAt:        row.CreatedAt,
+					},
+				})
+			}
+		case apitypes.ResourceTypeBuilding:
+			rows, err := q.ListBuildingAssets(ctx, &in.ResourceID)
+			if err != nil {
+				return nil, huma.Error500InternalServerError("asset list failed")
+			}
+
+			for _, row := range rows {
+				body = append(body, AssetAttachmentResponse{
+					ID:      row.ID,
+					Caption: row.Caption,
+					Asset: AssetResponse{
+						ID:               row.AssetID,
+						Title:            row.Title,
+						OriginalFilename: row.OriginalFilename,
+						ContentType:      row.ContentType,
+						Type:             apitypes.AssetType(row.Type),
+						ByteSize:         row.ByteSize,
+						Width:            row.Width,
+						Height:           row.Height,
+						CreatedAt:        row.CreatedAt,
+					},
+				})
+			}
+		}
+
+		return &ListAssetsOutput{Body: body}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "delete-asset-attachment",
+		Method:        http.MethodDelete,
+		Path:          "/api/attachments/{id}",
+		Summary:       "Removes a file from the location or building it is attached to",
+		Description:   "The file goes too, unless something else still points at it.",
+		Tags:          []string{"assets"},
+		DefaultStatus: http.StatusNoContent,
+		Metadata:      map[string]any{requirePermissionMetaKey: auth.WriteRecords},
+	}, func(
+		ctx context.Context,
+		in *DeleteAssetAttachmentInput,
+	) (*struct{}, error) {
+		assetID, err := q.DeleteAssetAttachment(ctx, in.ID)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, huma.Error404NotFound("attachment not found")
+			}
+
+			return nil, huma.Error500InternalServerError("attachment removal failed")
+		}
+
+		if err := deleteAssetIfUnreferenced(ctx, q, store, assetID); err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	})
+}
+
+// deleteAssetIfUnreferenced removes an asset nothing points at any more, and
+// leaves it where something still does.
+func deleteAssetIfUnreferenced(
+	ctx context.Context,
+	q *gen.Queries,
+	store *media.Store,
+	assetID uuid.UUID,
+) error {
+	storagePath, err := q.DeleteAsset(ctx, assetID)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+			return nil
+		}
+
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		}
+
+		return huma.Error500InternalServerError("attachment removal failed")
+	}
+
+	if err := store.Remove(storagePath); err != nil {
+		slog.ErrorContext(ctx, "asset file left behind",
+			"asset", assetID, "path", storagePath, "err", err)
+	}
+
+	return nil
 }
 
 // attachmentCheckError turns a rejected attachment into a readable 4xx, and

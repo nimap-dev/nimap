@@ -8,6 +8,32 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Lists the files attached to a location or a building
+ */
+export const ListAssetsQueryParams = zod.object({
+  "resourceType": zod.enum(['location', 'building']),
+  "resourceId": zod.string()
+})
+
+export const ListAssetsResponseItem = zod.object({
+  "asset": zod.object({
+  "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "byteSize": zod.int(),
+  "contentType": zod.string(),
+  "createdAt": zod.iso.datetime({"offset":true}),
+  "height": zod.int().optional(),
+  "id": zod.string(),
+  "originalFilename": zod.string(),
+  "title": zod.string(),
+  "type": zod.enum(['image', 'video', 'audio', 'document', 'other']),
+  "width": zod.int().optional()
+}),
+  "caption": zod.string().optional(),
+  "id": zod.string()
+})
+export const ListAssetsResponse = zod.array(ListAssetsResponseItem)
+
+/**
  * @summary Uploads a file, optionally attaching it to a location or a building
  */
 export const UploadAssetQueryParams = zod.object({
@@ -41,4 +67,14 @@ export const GetAssetContentParams = zod.object({
 })
 
 export const GetAssetContentResponse = zod.unknown()
+
+/**
+ * The file goes too, unless something else still points at it.
+ * @summary Removes a file from the location or building it is attached to
+ */
+export const DeleteAssetAttachmentParams = zod.object({
+  "id": zod.string()
+})
+
+export const DeleteAssetAttachmentResponse = zod.void()
 

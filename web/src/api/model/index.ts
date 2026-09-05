@@ -6,6 +6,7 @@
  */
 
 export * from './address.ts';
+export * from './assetAttachmentResponse.ts';
 export * from './assetResponse.ts';
 export * from './assetResponseType.ts';
 export * from './buildingResponse.ts';
@@ -18,6 +19,8 @@ export * from './createUserInputBody.ts';
 export * from './createUserInputBodyRole.ts';
 export * from './errorDetail.ts';
 export * from './errorModel.ts';
+export * from './listAssetsParams.ts';
+export * from './listAssetsResourceType.ts';
 export * from './listBuildingsParams.ts';
 export * from './listBuildingsStatusItem.ts';
 export * from './listLocationsParams.ts';

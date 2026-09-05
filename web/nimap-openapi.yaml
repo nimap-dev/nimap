@@ -15,6 +15,19 @@ components:
           description: Postal code, in whatever shape the country writes it
           type: string
       type: object
+    AssetAttachmentResponse:
+      additionalProperties: false
+      properties:
+        asset:
+          $ref: "#/components/schemas/AssetResponse"
+        caption:
+          type: string
+        id:
+          type: string
+      required:
+        - id
+        - asset
+      type: object
     AssetResponse:
       additionalProperties: false
       properties:
@@ -846,6 +859,42 @@ paths:
       tags:
         - admin
   /api/assets:
+    get:
+      operationId: list-assets
+      parameters:
+        - explode: false
+          in: query
+          name: resourceType
+          required: true
+          schema:
+            enum:
+              - location
+              - building
+            type: string
+        - explode: false
+          in: query
+          name: resourceId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/AssetAttachmentResponse"
+                type: array
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Lists the files attached to a location or a building
+      tags:
+        - assets
     post:
       operationId: upload-asset
       parameters:
@@ -921,6 +970,28 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Returns the bytes of the asset with the provided id
+      tags:
+        - assets
+  /api/attachments/{id}:
+    delete:
+      description: The file goes too, unless something else still points at it.
+      operationId: delete-asset-attachment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Removes a file from the location or building it is attached to
       tags:
         - assets
   /api/auth/account:
