@@ -131,3 +131,8 @@ RETURNING
 DELETE FROM asset_attachments
 WHERE id = sqlc.arg(id)
 RETURNING asset_id;
+
+-- name: ListAssetStoragePaths :many
+SELECT storage_path
+FROM assets
+ORDER BY storage_path;

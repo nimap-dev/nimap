@@ -176,6 +176,34 @@ func (s *Store) Remove(storagePath string) error {
 	return nil
 }
 
+// WalkBlobs visits every stored original, yielding the path in the form the
+// database column holds so a comparison against storage_path is a plain string
+// match.
+func (s *Store) WalkBlobs(fn func(storagePath string, info os.FileInfo) error) error {
+	root := filepath.Join(s.root, originalsDir)
+
+	return filepath.WalkDir(root, func(name string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			return nil
+		}
+
+		relative, err := filepath.Rel(root, name)
+		if err != nil {
+			return err
+		}
+
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+
+		return fn(filepath.ToSlash(relative), info)
+	})
+}
+
 // resolve turns a stored path into an absolute one under the root.
 func (s *Store) resolve(storagePath string, v Variant) (string, error) {
 	if storagePath == "" || path.IsAbs(storagePath) || filepath.IsAbs(storagePath) {

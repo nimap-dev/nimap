@@ -226,6 +226,32 @@ func (q *Queries) GetAsset(ctx context.Context, id uuid.UUID) (Asset, error) {
 	return i, err
 }
 
+const listAssetStoragePaths = `-- name: ListAssetStoragePaths :many
+SELECT storage_path
+FROM assets
+ORDER BY storage_path
+`
+
+func (q *Queries) ListAssetStoragePaths(ctx context.Context) ([]string, error) {
+	rows, err := q.db.Query(ctx, listAssetStoragePaths)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var storage_path string
+		if err := rows.Scan(&storage_path); err != nil {
+			return nil, err
+		}
+		items = append(items, storage_path)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listBuildingAssets = `-- name: ListBuildingAssets :many
 SELECT
   aa.id,

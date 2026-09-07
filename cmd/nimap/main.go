@@ -114,6 +114,7 @@ func main() {
 
 	registerNewUserCommand(cli)
 	registerMigrateCommand(cli)
+	registerMediaCommand(cli)
 	registerOpenAPICommand(cli)
 
 	cli.Run()

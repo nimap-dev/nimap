@@ -32,6 +32,7 @@ type Querier interface {
 	GetUserByUsername(ctx context.Context, lower string) (GetUserByUsernameRow, error)
 	GetUserPasswordHashByID(ctx context.Context, id uuid.UUID) (string, error)
 	GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error)
+	ListAssetStoragePaths(ctx context.Context) ([]string, error)
 	ListBuildingAssets(ctx context.Context, buildingID *uuid.UUID) ([]ListBuildingAssetsRow, error)
 	ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error)
 	ListLocationAssets(ctx context.Context, locationID *uuid.UUID) ([]ListLocationAssetsRow, error)
