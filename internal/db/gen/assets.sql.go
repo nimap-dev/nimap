@@ -439,6 +439,49 @@ func (q *Queries) ListLocationAssets(ctx context.Context, locationID *uuid.UUID)
 	return items, nil
 }
 
+const listUnreferencedAssets = `-- name: ListUnreferencedAssets :many
+SELECT a.id, a.storage_path, a.title, a.byte_size, a.created_at
+FROM assets a
+WHERE NOT EXISTS (
+  SELECT 1 FROM asset_attachments aa WHERE aa.asset_id = a.id
+)
+ORDER BY a.created_at
+`
+
+type ListUnreferencedAssetsRow struct {
+	ID          uuid.UUID
+	StoragePath string
+	Title       string
+	ByteSize    int64
+	CreatedAt   time.Time
+}
+
+func (q *Queries) ListUnreferencedAssets(ctx context.Context) ([]ListUnreferencedAssetsRow, error) {
+	rows, err := q.db.Query(ctx, listUnreferencedAssets)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListUnreferencedAssetsRow
+	for rows.Next() {
+		var i ListUnreferencedAssetsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.StoragePath,
+			&i.Title,
+			&i.ByteSize,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateAssetDimensions = `-- name: UpdateAssetDimensions :exec
 UPDATE assets
 SET width = $1,

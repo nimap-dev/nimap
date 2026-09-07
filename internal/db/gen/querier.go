@@ -38,6 +38,7 @@ type Querier interface {
 	ListImageAssets(ctx context.Context) ([]ListImageAssetsRow, error)
 	ListLocationAssets(ctx context.Context, locationID *uuid.UUID) ([]ListLocationAssetsRow, error)
 	ListLocations(ctx context.Context, statuses []string) ([]ListLocationsRow, error)
+	ListUnreferencedAssets(ctx context.Context) ([]ListUnreferencedAssetsRow, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	// Picks the location whose area a footprint overlaps the most, so a building
 	// drawn inside a campus lands in the campus rather than in whichever location

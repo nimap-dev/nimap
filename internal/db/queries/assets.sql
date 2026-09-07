@@ -149,3 +149,11 @@ SET width = sqlc.narg(width),
     height = sqlc.narg(height),
     updated_at = now()
 WHERE id = sqlc.arg(id);
+
+-- name: ListUnreferencedAssets :many
+SELECT a.id, a.storage_path, a.title, a.byte_size, a.created_at
+FROM assets a
+WHERE NOT EXISTS (
+  SELECT 1 FROM asset_attachments aa WHERE aa.asset_id = a.id
+)
+ORDER BY a.created_at;

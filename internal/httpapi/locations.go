@@ -16,6 +16,7 @@ import (
 	"github.com/nimap-dev/nimap/internal/auth"
 	"github.com/nimap-dev/nimap/internal/db/gen"
 	"github.com/nimap-dev/nimap/internal/httpapi/apitypes"
+	"github.com/nimap-dev/nimap/internal/text"
 )
 
 type CreateLocationRequest struct {
@@ -480,19 +481,12 @@ func RegisterLocations(api huma.API, q *gen.Queries) {
 				)
 			}
 
-			held := fmt.Sprintf(
-				"%d %s", children, plural(children, "location", "locations"),
-			)
+			held := text.Plural(children, "location", "locations")
 			switch {
 			case children > 0 && buildings > 0:
-				held += fmt.Sprintf(
-					" and %d %s",
-					buildings, plural(buildings, "building", "buildings"),
-				)
+				held += " and " + text.Plural(buildings, "building", "buildings")
 			case buildings > 0:
-				held = fmt.Sprintf(
-					"%d %s", buildings, plural(buildings, "building", "buildings"),
-				)
+				held = text.Plural(buildings, "building", "buildings")
 			}
 
 			return nil, huma.Error409Conflict(fmt.Sprintf(
