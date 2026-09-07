@@ -317,7 +317,10 @@ func RegisterAssets(api huma.API, q *gen.Queries, pool *pgxpool.Pool, store *med
 			}
 
 			w.Header().Set("X-Content-Type-Options", "nosniff")
-			w.Header().Set("Content-Security-Policy", "sandbox")
+
+			if asset.ContentType != "application/pdf" {
+				w.Header().Set("Content-Security-Policy", "sandbox")
+			}
 			w.Header().Set("Content-Disposition", mime.FormatMediaType(
 				disposition,
 				map[string]string{"filename": asset.OriginalFilename},

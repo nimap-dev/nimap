@@ -6,6 +6,7 @@ import {
   useUpdateBuildingStatus,
 } from '#/api/buildings/buildings'
 import type { BuildingResponseStatus } from '#/api/model'
+import { AssetList } from '#/components/asset-list'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import { Skeleton } from '#/components/ui/skeleton'
 import { useCan } from '#/lib/auth'
@@ -254,6 +255,8 @@ function ViewBuilding() {
             {formatRelativeDate(building.createdAt)}
           </Detail>
         </DetailList>
+
+        <AssetList resourceType="building" resourceId={buildingId} />
       </Panel>
       <AlertDialogContent size="sm">
         <AlertDialogHeader>

@@ -6,6 +6,7 @@ import {
   useUpdateLocationStatus,
 } from '#/api/locations/locations'
 import { Detail, DetailEmpty, DetailList } from '#/components/detail-list'
+import { AssetList } from '#/components/asset-list'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import { useCan } from '#/lib/auth'
 import { formatCoordinates } from '#/components/form/representative-point-field'
@@ -351,6 +352,8 @@ function ViewLocation() {
             </ul>
           </section>
         )}
+
+        <AssetList resourceType="location" resourceId={locationId} />
       </Panel>
 
       <AlertDialogContent size="sm">
