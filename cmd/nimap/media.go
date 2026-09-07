@@ -25,6 +25,7 @@ func registerMediaCommand(cli humacli.CLI) {
 	}
 
 	command.AddCommand(newMediaCheckCommand())
+	command.AddCommand(newMediaThumbnailsCommand())
 	cli.Root().AddCommand(command)
 }
 
@@ -242,4 +243,95 @@ func plural(count int, one string, many string) string {
 	}
 
 	return fmt.Sprintf("%d %s", count, many)
+}
+
+func newMediaThumbnailsCommand() *cobra.Command {
+	var all bool
+
+	cmd := &cobra.Command{
+		Use:   "thumbnails",
+		Short: "Generate the missing image variants",
+		Long: "Generate the missing image variants.\n\n" +
+			"By default only images that have no variant yet are processed, so\n" +
+			"this is safe to re-run. --all rebuilds every image, which is what\n" +
+			"to use after changing the sizes or the quality.\n\n" +
+			"One unreadable file does not stop the rest; the failures are listed\n" +
+			"at the end and the exit status is 1.",
+		Args: cobra.NoArgs,
+		Run: humacli.WithOptions(func(cmd *cobra.Command, _ []string, cfg *config.Config) {
+			if err := cfg.Validate(); err != nil {
+				fmt.Fprintf(os.Stderr, "configuration: %v\n", err)
+				os.Exit(1)
+			}
+
+			ctx := cmd.Context()
+
+			store, err := media.NewStore(cfg.MediaDir)
+			if err != nil {
+				fatal("media directory unusable", err)
+			}
+
+			pool, err := db.NewPool(ctx, cfg.DatabaseURL)
+			if err != nil {
+				fatal("database connection failed", err)
+			}
+			defer pool.Close()
+
+			queries := gen.New(pool)
+
+			images, err := queries.ListImageAssets(ctx)
+			if err != nil {
+				fatal("could not read the assets table", err)
+			}
+
+			done, skipped, failed := 0, 0, 0
+
+			for _, asset := range images {
+				if !all &&
+					store.HasVariant(asset.StoragePath, media.VariantThumb) &&
+					store.HasVariant(asset.StoragePath, media.VariantPreview) {
+					skipped++
+					continue
+				}
+
+				width, height, err := store.Thumbnail(asset.StoragePath)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "  %s: %v\n", asset.StoragePath, err)
+					failed++
+					continue
+				}
+
+				if asset.Width == nil {
+					w32, h32 := int32(width), int32(height)
+					if err := queries.UpdateAssetDimensions(ctx, gen.UpdateAssetDimensionsParams{
+						ID:     asset.ID,
+						Width:  &w32,
+						Height: &h32,
+					}); err != nil {
+						fmt.Fprintf(os.Stderr, "  %s: could not record the size: %v\n",
+							asset.StoragePath, err)
+						failed++
+						continue
+					}
+				}
+
+				done++
+				fmt.Printf("%s  %dx%d\n", asset.StoragePath, width, height)
+			}
+
+			fmt.Printf("\ngenerated %s, skipped %s, failed %s\n",
+				plural(done, "image", "images"),
+				plural(skipped, "image", "images"),
+				plural(failed, "image", "images"))
+
+			if failed > 0 {
+				os.Exit(1)
+			}
+		}),
+	}
+
+	cmd.Flags().BoolVar(&all, "all", false,
+		"rebuild every image, not only the ones with no variant yet")
+
+	return cmd
 }

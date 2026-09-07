@@ -136,3 +136,16 @@ RETURNING asset_id;
 SELECT storage_path
 FROM assets
 ORDER BY storage_path;
+
+-- name: ListImageAssets :many
+SELECT id, storage_path, width
+FROM assets
+WHERE type = 'image'
+ORDER BY storage_path;
+
+-- name: UpdateAssetDimensions :exec
+UPDATE assets
+SET width = sqlc.narg(width),
+    height = sqlc.narg(height),
+    updated_at = now()
+WHERE id = sqlc.arg(id);

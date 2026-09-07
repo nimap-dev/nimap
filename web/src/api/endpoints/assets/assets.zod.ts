@@ -66,6 +66,10 @@ export const GetAssetContentParams = zod.object({
   "id": zod.string()
 })
 
+export const GetAssetContentQueryParams = zod.object({
+  "variant": zod.enum(['original', 'thumb', 'preview']).optional()
+})
+
 export const GetAssetContentResponse = zod.unknown()
 
 /**

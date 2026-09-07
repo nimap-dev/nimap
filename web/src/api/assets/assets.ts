@@ -27,6 +27,7 @@ import type {
   AssetAttachmentResponse,
   AssetResponse,
   ErrorModel,
+  GetAssetContentParams,
   ListAssetsParams,
   UploadAssetParams
 } from '../model';
@@ -313,20 +314,29 @@ export type getAssetContentResponseError = (getAssetContentResponseDefault) & {
 
 export type getAssetContentResponse = (getAssetContentResponseSuccess | getAssetContentResponseError)
 
-export const getGetAssetContentUrl = (id: string,) => {
+export const getGetAssetContentUrl = (id: string,
+    params?: GetAssetContentParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/assets/${id}/content`
+  return stringifiedParams.length > 0 ? `/api/assets/${id}/content?${stringifiedParams}` : `/api/assets/${id}/content`
 }
 
 /**
  * @summary Returns the bytes of the asset with the provided id
  */
-export const getAssetContent = async (id: string, options?: RequestInit): Promise<getAssetContentResponse> => {
+export const getAssetContent = async (id: string,
+    params?: GetAssetContentParams, options?: RequestInit): Promise<getAssetContentResponse> => {
 
-  const res = await fetch(getGetAssetContentUrl(id),
+  const res = await fetch(getGetAssetContentUrl(id,params),
   {
     ...options,
     method: 'GET'
@@ -345,23 +355,25 @@ export const getAssetContent = async (id: string, options?: RequestInit): Promis
 
 
 
-export const getGetAssetContentQueryKey = (id: string,) => {
+export const getGetAssetContentQueryKey = (id: string,
+    params?: GetAssetContentParams,) => {
     return [
-    `/api/assets/${id}/content`
+    `/api/assets/${id}/content`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetAssetContentQueryOptions = <TData = Awaited<ReturnType<typeof getAssetContent>>, TError = ErrorModel>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetContent>>, TError, TData>>, fetch?: RequestInit}
+export const getGetAssetContentQueryOptions = <TData = Awaited<ReturnType<typeof getAssetContent>>, TError = ErrorModel>(id: string,
+    params?: GetAssetContentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetContent>>, TError, TData>>, fetch?: RequestInit}
 ) => {
 
 const {query: queryOptions, fetch: fetchOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetAssetContentQueryKey(id);
+  const queryKey =  queryOptions?.queryKey ?? getGetAssetContentQueryKey(id,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAssetContent>>> = ({ signal }) => getAssetContent(id, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAssetContent>>> = ({ signal }) => getAssetContent(id,params, { signal, ...fetchOptions });
 
 
 
@@ -375,7 +387,8 @@ export type GetAssetContentQueryError = ErrorModel
 
 
 export function useGetAssetContent<TData = Awaited<ReturnType<typeof getAssetContent>>, TError = ErrorModel>(
- id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetContent>>, TError, TData>> & Pick<
+ id: string,
+    params: undefined |  GetAssetContentParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetContent>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAssetContent>>,
           TError,
@@ -385,7 +398,8 @@ export function useGetAssetContent<TData = Awaited<ReturnType<typeof getAssetCon
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAssetContent<TData = Awaited<ReturnType<typeof getAssetContent>>, TError = ErrorModel>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetContent>>, TError, TData>> & Pick<
+ id: string,
+    params?: GetAssetContentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetContent>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAssetContent>>,
           TError,
@@ -395,7 +409,8 @@ export function useGetAssetContent<TData = Awaited<ReturnType<typeof getAssetCon
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAssetContent<TData = Awaited<ReturnType<typeof getAssetContent>>, TError = ErrorModel>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetContent>>, TError, TData>>, fetch?: RequestInit}
+ id: string,
+    params?: GetAssetContentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetContent>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -403,11 +418,12 @@ export function useGetAssetContent<TData = Awaited<ReturnType<typeof getAssetCon
  */
 
 export function useGetAssetContent<TData = Awaited<ReturnType<typeof getAssetContent>>, TError = ErrorModel>(
- id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetContent>>, TError, TData>>, fetch?: RequestInit}
+ id: string,
+    params?: GetAssetContentParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAssetContent>>, TError, TData>>, fetch?: RequestInit}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetAssetContentQueryOptions(id,options)
+  const queryOptions = getGetAssetContentQueryOptions(id,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -19,6 +19,8 @@ export * from './createUserInputBody.ts';
 export * from './createUserInputBodyRole.ts';
 export * from './errorDetail.ts';
 export * from './errorModel.ts';
+export * from './getAssetContentParams.ts';
+export * from './getAssetContentVariant.ts';
 export * from './listAssetsParams.ts';
 export * from './listAssetsResourceType.ts';
 export * from './listBuildingsParams.ts';

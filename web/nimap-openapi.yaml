@@ -954,6 +954,15 @@ paths:
           required: true
           schema:
             type: string
+        - explode: false
+          in: query
+          name: variant
+          schema:
+            enum:
+              - original
+              - thumb
+              - preview
+            type: string
       responses:
         "200":
           content:

@@ -372,7 +372,7 @@ function AssetPreview({
   if (asset.type === 'image') {
     return (
       <img
-        src={url}
+        src={getGetAssetContentUrl(asset.id, { variant: 'preview' })}
         alt={asset.title}
         className="max-h-full max-w-full object-contain"
       />
@@ -423,7 +423,7 @@ function AssetThumbnail({
   if (asset.type === 'image' && !broken) {
     return (
       <img
-        src={getGetAssetContentUrl(asset.id)}
+        src={getGetAssetContentUrl(asset.id, { variant: 'thumb' })}
         alt={asset.title}
         onError={() => setBroken(true)}
         className="h-full w-full object-cover"

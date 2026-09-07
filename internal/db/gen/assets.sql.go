@@ -329,6 +329,39 @@ func (q *Queries) ListBuildingAssets(ctx context.Context, buildingID *uuid.UUID)
 	return items, nil
 }
 
+const listImageAssets = `-- name: ListImageAssets :many
+SELECT id, storage_path, width
+FROM assets
+WHERE type = 'image'
+ORDER BY storage_path
+`
+
+type ListImageAssetsRow struct {
+	ID          uuid.UUID
+	StoragePath string
+	Width       *int32
+}
+
+func (q *Queries) ListImageAssets(ctx context.Context) ([]ListImageAssetsRow, error) {
+	rows, err := q.db.Query(ctx, listImageAssets)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListImageAssetsRow
+	for rows.Next() {
+		var i ListImageAssetsRow
+		if err := rows.Scan(&i.ID, &i.StoragePath, &i.Width); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listLocationAssets = `-- name: ListLocationAssets :many
 SELECT
   aa.id,
@@ -404,4 +437,23 @@ func (q *Queries) ListLocationAssets(ctx context.Context, locationID *uuid.UUID)
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateAssetDimensions = `-- name: UpdateAssetDimensions :exec
+UPDATE assets
+SET width = $1,
+    height = $2,
+    updated_at = now()
+WHERE id = $3
+`
+
+type UpdateAssetDimensionsParams struct {
+	Width  *int32
+	Height *int32
+	ID     uuid.UUID
+}
+
+func (q *Queries) UpdateAssetDimensions(ctx context.Context, arg UpdateAssetDimensionsParams) error {
+	_, err := q.db.Exec(ctx, updateAssetDimensions, arg.Width, arg.Height, arg.ID)
+	return err
 }

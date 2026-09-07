@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log/slog"
 	"mime"
 	"net/http"
@@ -52,7 +53,8 @@ type UploadAssetOutput struct {
 }
 
 type GetAssetContentInput struct {
-	ID uuid.UUID `path:"id"`
+	ID      uuid.UUID             `path:"id"`
+	Variant apitypes.AssetVariant `query:"variant"`
 }
 
 type ListAssetsInput struct {
@@ -79,6 +81,7 @@ var inlineTypes = map[string]bool{
 	"image/jpeg":      true,
 	"image/png":       true,
 	"image/gif":       true,
+	"image/webp":      true,
 	"application/pdf": true,
 	"video/mp4":       true,
 	"video/webm":      true,
@@ -97,6 +100,7 @@ var uploadPolicy = map[string]uploadRule{
 	"image/jpeg":      {apitypes.AssetTypeImage, ".jpg", []string{".jpg", ".jpeg"}, 25 * 1024 * 1024},
 	"image/png":       {apitypes.AssetTypeImage, ".png", []string{".png"}, 25 * 1024 * 1024},
 	"image/gif":       {apitypes.AssetTypeImage, ".gif", []string{".gif"}, 25 * 1024 * 1024},
+	"image/webp":      {apitypes.AssetTypeImage, ".webp", []string{".webp"}, 25 * 1024 * 1024},
 	"application/pdf": {apitypes.AssetTypeDocument, ".pdf", []string{".pdf"}, 100 * 1024 * 1024},
 	"video/mp4":       {apitypes.AssetTypeVideo, ".mp4", []string{".mp4", ".m4v"}, 100 * 1024 * 1024},
 	"video/webm":      {apitypes.AssetTypeVideo, ".webm", []string{".webm"}, 100 * 1024 * 1024},
@@ -195,6 +199,22 @@ func RegisterAssets(api huma.API, q *gen.Queries, pool *pgxpool.Pool, store *med
 				store.Remove(filePath)
 			}
 		}()
+
+		var width, height *int32
+		if rule.assetType == apitypes.AssetTypeImage {
+			w, h, err := store.Thumbnail(filePath)
+			if err != nil {
+				if errors.Is(err, media.ErrNotAnImage) || errors.Is(err, media.ErrImageTooLarge) {
+					return nil, huma.Error422UnprocessableEntity("that image could not be read")
+				}
+
+				return nil, huma.Error500InternalServerError("asset upload failed")
+			}
+
+			w32, h32 := int32(w), int32(h)
+			width, height = &w32, &h32
+		}
+
 		tx, err := pool.Begin(ctx)
 		if err != nil {
 			return nil, huma.Error500InternalServerError("asset upload failed")
@@ -216,6 +236,8 @@ func RegisterAssets(api huma.API, q *gen.Queries, pool *pgxpool.Pool, store *med
 			Checksum:         checksum,
 			Title:            title,
 			Type:             gen.AssetType(rule.assetType),
+			Width:            width,
+			Height:           height,
 		})
 		if err != nil {
 			return nil, huma.Error500InternalServerError("asset upload failed")
@@ -295,7 +317,23 @@ func RegisterAssets(api huma.API, q *gen.Queries, pool *pgxpool.Pool, store *med
 			return nil, huma.Error500InternalServerError("asset read failed")
 		}
 
-		file, info, err := store.Open(asset.StoragePath, media.VariantOriginal)
+		variant := media.VariantOriginal
+		if asset.Type == gen.AssetTypeImage {
+			switch in.Variant {
+			case apitypes.AssetVariantOriginal:
+				variant = media.VariantOriginal
+			case apitypes.AssetVariantThumb:
+				variant = media.VariantThumb
+			case apitypes.AssetVariantPreview:
+				variant = media.VariantPreview
+			}
+		}
+
+		file, info, err := store.Open(asset.StoragePath, variant)
+		if err != nil && variant.IsDerived() && errors.Is(err, fs.ErrNotExist) {
+			variant = media.VariantOriginal
+			file, info, err = store.Open(asset.StoragePath, variant)
+		}
 		if err != nil {
 			slog.ErrorContext(ctx, "asset file missing",
 				"asset", asset.ID, "path", asset.StoragePath, "err", err)
@@ -308,17 +346,22 @@ func RegisterAssets(api huma.API, q *gen.Queries, pool *pgxpool.Pool, store *med
 
 			r, w := humachi.Unwrap(hctx)
 
+			contentType := asset.ContentType
+			if derived, ok := variant.ContentType(); ok {
+				contentType = derived
+			}
+
 			disposition := "attachment"
-			if inlineTypes[asset.ContentType] {
+			if inlineTypes[contentType] {
 				disposition = "inline"
-				w.Header().Set("Content-Type", asset.ContentType)
+				w.Header().Set("Content-Type", contentType)
 			} else {
 				w.Header().Set("Content-Type", "application/octet-stream")
 			}
 
 			w.Header().Set("X-Content-Type-Options", "nosniff")
 
-			if asset.ContentType != "application/pdf" {
+			if contentType != "application/pdf" {
 				w.Header().Set("Content-Security-Policy", "sandbox")
 			}
 			w.Header().Set("Content-Disposition", mime.FormatMediaType(
@@ -326,7 +369,8 @@ func RegisterAssets(api huma.API, q *gen.Queries, pool *pgxpool.Pool, store *med
 				map[string]string{"filename": asset.OriginalFilename},
 			))
 
-			w.Header().Set("ETag", `"`+hex.EncodeToString(asset.Checksum)+`"`)
+			w.Header().Set("ETag",
+				fmt.Sprintf(`"%s-%s"`, hex.EncodeToString(asset.Checksum), variant))
 			w.Header().Set("Cache-Control", "private, max-age=31536000, immutable")
 
 			http.ServeContent(w, r, "", info.ModTime(), file)

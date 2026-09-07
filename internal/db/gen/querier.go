@@ -35,6 +35,7 @@ type Querier interface {
 	ListAssetStoragePaths(ctx context.Context) ([]string, error)
 	ListBuildingAssets(ctx context.Context, buildingID *uuid.UUID) ([]ListBuildingAssetsRow, error)
 	ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error)
+	ListImageAssets(ctx context.Context) ([]ListImageAssetsRow, error)
 	ListLocationAssets(ctx context.Context, locationID *uuid.UUID) ([]ListLocationAssetsRow, error)
 	ListLocations(ctx context.Context, statuses []string) ([]ListLocationsRow, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
@@ -45,6 +46,7 @@ type Querier interface {
 	// front, where the GIST index can use it, instead of leaving it to
 	// ST_Intersects returning NULL.
 	SuggestLocationForFootprint(ctx context.Context, footprint string) (SuggestLocationForFootprintRow, error)
+	UpdateAssetDimensions(ctx context.Context, arg UpdateAssetDimensionsParams) error
 	UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) (UpdateBuildingRow, error)
 	UpdateBuildingStatus(ctx context.Context, arg UpdateBuildingStatusParams) (UpdateBuildingStatusRow, error)
 	// Leaves the status alone: taking a location out of service is its own
