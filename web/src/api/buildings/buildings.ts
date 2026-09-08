@@ -120,7 +120,7 @@ export const getListBuildingsUrl = (params?: ListBuildingsParams,) => {
 }
 
 /**
- * @summary Returns all buildings
+ * @summary Returns all buildings, optionally narrowed to a single location
  */
 export const listBuildings = async (params?: ListBuildingsParams, options?: RequestInit): Promise<listBuildingsResponse> => {
 
@@ -198,7 +198,7 @@ export function useListBuildings<TData = Awaited<ReturnType<typeof listBuildings
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Returns all buildings
+ * @summary Returns all buildings, optionally narrowed to a single location
  */
 
 export function useListBuildings<TData = Awaited<ReturnType<typeof listBuildings>>, TError = ErrorModel>(

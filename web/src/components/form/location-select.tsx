@@ -14,26 +14,27 @@ import {
 } from '#/lib/location-tree'
 import { useMemo } from 'react'
 
-/** The value the select carries for "this one is not inside anything". */
 const TOP_LEVEL = ''
 
-/** One step of nesting, matching the indent the locations table uses. */
 const INDENT_REM = 1.25
 
-export function LocationParentSelect({
+export function LocationSelect({
   id,
   value,
   onChange,
+  label = 'Inside',
+  emptyLabel = 'Not inside anything',
   /**
    * The location being edited. It and everything nested inside it drop out of
-   * the options: the server refuses those anyway, and a list that offers moves
-   * it will reject is worse than one that doesn't.
+   * the options.
    */
   excludeSubtreeOf,
 }: {
   id: string
   value: string | undefined
-  onChange: (parentId: string | undefined) => void
+  onChange: (locationId: string | undefined) => void
+  label?: string
+  emptyLabel?: string
   excludeSubtreeOf?: string
 }) {
   const { data } = useAllLocations()
@@ -52,8 +53,6 @@ export function LocationParentSelect({
   const excluded = new Set<string>()
   if (excludeSubtreeOf) {
     excluded.add(excludeSubtreeOf)
-    // The rows arrive parents-first, so one pass is enough to carry the
-    // exclusion all the way down a branch.
     for (const row of rows) {
       const { id: rowId, parentId } = row.location
       if (parentId && excluded.has(parentId)) excluded.add(rowId)
@@ -62,14 +61,14 @@ export function LocationParentSelect({
 
   const options = rows.filter((row) => !excluded.has(row.location.id))
 
-  const labels: Record<string, string> = { [TOP_LEVEL]: 'Not inside anything' }
+  const labels: Record<string, string> = { [TOP_LEVEL]: emptyLabel }
   for (const row of options) labels[row.location.id] = row.location.name
 
   if (value && !(value in labels)) labels[value] = ''
 
   return (
     <Field>
-      <FieldLabel htmlFor={id}>Inside</FieldLabel>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <Select
         items={labels}
         value={value ?? TOP_LEVEL}
@@ -82,7 +81,7 @@ export function LocationParentSelect({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={TOP_LEVEL}>
-            <span className="text-muted-foreground">Not inside anything</span>
+            <span className="text-muted-foreground">{emptyLabel}</span>
           </SelectItem>
           {options.map((row) => (
             <SelectItem key={row.location.id} value={row.location.id}>

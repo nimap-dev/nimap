@@ -209,8 +209,17 @@ SELECT
   updated_at
 FROM buildings
 WHERE status::text = ANY($1::text[])
+  AND (
+    $2::uuid IS NULL
+    OR location_id = $2::uuid
+  )
 ORDER BY created_at DESC
 `
+
+type ListBuildingsParams struct {
+	Statuses   []string
+	LocationID *uuid.UUID
+}
 
 type ListBuildingsRow struct {
 	ID                  uuid.UUID
@@ -228,8 +237,8 @@ type ListBuildingsRow struct {
 	UpdatedAt           time.Time
 }
 
-func (q *Queries) ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error) {
-	rows, err := q.db.Query(ctx, listBuildings, statuses)
+func (q *Queries) ListBuildings(ctx context.Context, arg ListBuildingsParams) ([]ListBuildingsRow, error) {
+	rows, err := q.db.Query(ctx, listBuildings, arg.Statuses, arg.LocationID)
 	if err != nil {
 		return nil, err
 	}

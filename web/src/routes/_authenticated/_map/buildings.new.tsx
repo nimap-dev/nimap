@@ -8,6 +8,7 @@ import type { MultiPolygon } from '#/api/model'
 import { AddressFields } from '#/components/form/address-fields'
 import { FootprintField } from '#/components/form/footprint-field'
 import { FormActions } from '#/components/form/form-actions'
+import { LocationSelect } from '#/components/form/location-select'
 import { StatusField } from '#/components/form/status-field'
 import { TextField } from '#/components/form/text-field'
 import { FieldGroup } from '#/components/ui/field'
@@ -44,6 +45,7 @@ function NewBuilding() {
   const form = useForm({
     defaultValues: {
       name: '',
+      locationId: undefined as string | undefined,
       address: emptyAddress,
       notes: '',
       status: CreateBuildingRequestStatus.active as CreateBuildingRequestStatus,
@@ -55,6 +57,7 @@ function NewBuilding() {
       const res = await createBuilding.mutateAsync({
         data: {
           name: value.name,
+          locationId: value.locationId,
           address: addressToRequest(value.address),
           footprint: value.footprint,
           notes: value.notes.trim() || undefined,
@@ -116,6 +119,19 @@ function NewBuilding() {
                 label="Name"
                 placeholder="Prague 1"
                 autoFocus
+              />
+            )}
+          />
+
+          <form.Field
+            name="locationId"
+            children={(field) => (
+              <LocationSelect
+                id="new-building-location"
+                value={field.state.value}
+                onChange={field.handleChange}
+                label="Location"
+                emptyLabel="Not placed yet"
               />
             )}
           />

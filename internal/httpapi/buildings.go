@@ -57,7 +57,8 @@ type GetBuildingInput struct {
 }
 
 type ListBuildingsInput struct {
-	Status []apitypes.LifecycleStatus `query:"status" doc:"Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup."`
+	Status     []apitypes.LifecycleStatus `query:"status" doc:"Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup."`
+	LocationID uuid.UUID                  `query:"locationId" doc:"Only return buildings sitting in this location. Omit it to list buildings across every location."`
 }
 
 type DeleteBuildingInput struct {
@@ -146,7 +147,7 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 		OperationID: "list-buildings",
 		Method:      http.MethodGet,
 		Path:        "/api/buildings",
-		Summary:     "Returns all buildings",
+		Summary:     "Returns all buildings, optionally narrowed to a single location",
 		Tags:        []string{"buildings"},
 		Metadata:    map[string]any{requirePermissionMetaKey: auth.ReadRecords},
 	}, func(
@@ -158,7 +159,15 @@ func RegisterBuildings(api huma.API, q *gen.Queries) {
 			statuses = apitypes.ActiveLifecycleStatuses
 		}
 
-		buildings, err := q.ListBuildings(ctx, apitypes.LifecycleStatusStrings(statuses))
+		var locationID *uuid.UUID
+		if in.LocationID != uuid.Nil {
+			locationID = &in.LocationID
+		}
+
+		buildings, err := q.ListBuildings(ctx, gen.ListBuildingsParams{
+			Statuses:   apitypes.LifecycleStatusStrings(statuses),
+			LocationID: locationID,
+		})
 		if err != nil {
 			return nil, huma.Error500InternalServerError(
 				"building list failed",

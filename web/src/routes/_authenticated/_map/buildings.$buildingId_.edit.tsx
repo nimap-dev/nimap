@@ -9,6 +9,7 @@ import type { BuildingResponse } from '#/api/model'
 import { AddressFields } from '#/components/form/address-fields'
 import { FootprintField } from '#/components/form/footprint-field'
 import { FormActions } from '#/components/form/form-actions'
+import { LocationSelect } from '#/components/form/location-select'
 import { TextField } from '#/components/form/text-field'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import { Button } from '#/components/ui/button'
@@ -82,6 +83,7 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
   const form = useForm({
     defaultValues: {
       name: building.name,
+      locationId: building.locationId,
       address: addressToValue(building.address),
       notes: building.notes ?? '',
       footprint: building.footprint,
@@ -91,6 +93,7 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
         id: building.id,
         data: {
           name: value.name,
+          locationId: value.locationId,
           address: addressToRequest(value.address),
           footprint: value.footprint,
           notes: value.notes.trim() || undefined,
@@ -171,6 +174,19 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
             name="name"
             validators={{ onChange: UpdateBuildingBody.shape.name }}
             children={(field) => <TextField field={field} label="Name" />}
+          />
+
+          <form.Field
+            name="locationId"
+            children={(field) => (
+              <LocationSelect
+                id="edit-building-location"
+                value={field.state.value}
+                onChange={field.handleChange}
+                label="Location"
+                emptyLabel="Not placed yet"
+              />
+            )}
           />
 
           <form.Field

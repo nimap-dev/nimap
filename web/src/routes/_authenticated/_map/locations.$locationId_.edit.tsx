@@ -8,7 +8,7 @@ import { UpdateLocationBody } from '#/api/endpoints/locations/locations.zod'
 import type { LocationResponse } from '#/api/model'
 import { AddressFields } from '#/components/form/address-fields'
 import { AreaField } from '#/components/form/area-field'
-import { LocationParentSelect } from '#/components/form/location-parent-select'
+import { LocationSelect } from '#/components/form/location-select'
 import { RepresentativePointField } from '#/components/form/representative-point-field'
 import { FormActions } from '#/components/form/form-actions'
 import { TextField } from '#/components/form/text-field'
@@ -196,7 +196,7 @@ function EditLocationForm({ location }: { location: LocationResponse }) {
           <form.Field
             name="parentId"
             children={(field) => (
-              <LocationParentSelect
+              <LocationSelect
                 id="edit-location-parent"
                 value={field.state.value}
                 onChange={field.handleChange}

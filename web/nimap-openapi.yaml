@@ -1126,6 +1126,13 @@ paths:
                 - archived
               type: string
             type: array
+        - description: Only return buildings sitting in this location. Omit it to list buildings across every location.
+          explode: false
+          in: query
+          name: locationId
+          schema:
+            description: Only return buildings sitting in this location. Omit it to list buildings across every location.
+            type: string
       responses:
         "200":
           content:
@@ -1141,7 +1148,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
-      summary: Returns all buildings
+      summary: Returns all buildings, optionally narrowed to a single location
       tags:
         - buildings
     post:

@@ -33,6 +33,10 @@ SELECT
   updated_at
 FROM buildings
 WHERE status::text = ANY(sqlc.arg(statuses)::text[])
+  AND (
+    sqlc.narg(location_id)::uuid IS NULL
+    OR location_id = sqlc.narg(location_id)::uuid
+  )
 ORDER BY created_at DESC;
 
 -- name: CreateBuilding :one

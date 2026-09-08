@@ -11,4 +11,8 @@ export type ListBuildingsParams = {
  * Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup.
  */
 status?: ListBuildingsStatusItem[];
+/**
+ * Only return buildings sitting in this location. Omit it to list buildings across every location.
+ */
+locationId?: string;
 };

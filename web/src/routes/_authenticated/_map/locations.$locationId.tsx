@@ -5,6 +5,7 @@ import {
   useGetLocation,
   useUpdateLocationStatus,
 } from '#/api/locations/locations'
+import { useListBuildings } from '#/api/buildings/buildings'
 import { Detail, DetailEmpty, DetailList } from '#/components/detail-list'
 import { AssetList } from '#/components/asset-list'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
@@ -72,6 +73,12 @@ function ViewLocation() {
   const { data: siblings } = useAllLocations()
   const all = siblings?.status === 200 ? siblings.data : []
   const parent = all.find((item) => item.id === location?.parentId)
+
+  const { data: buildingList } = useListBuildings({
+    locationId,
+    status: ALL_LIFECYCLE_STATUSES,
+  })
+  const buildings = buildingList?.status === 200 ? buildingList.data : []
 
   const inside = useMemo(
     () =>
@@ -344,6 +351,41 @@ function ViewLocation() {
                     </span>
                     <span className="shrink-0 text-xs text-muted-foreground">
                       {lifecycleStatusLabels[row.location.status]}
+                    </span>
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {buildings.length > 0 && (
+          <section className="grid gap-2">
+            <h3 className="text-sm font-medium">
+              Buildings
+              <span className="ml-1.5 text-muted-foreground">
+                {buildings.length}
+              </span>
+            </h3>
+            <ul className="grid gap-px overflow-hidden rounded-lg border">
+              {buildings.map((building) => (
+                <li key={building.id}>
+                  <Link
+                    to="/buildings/$buildingId"
+                    params={{ buildingId: building.id }}
+                    className="flex items-center gap-2 bg-background px-2.5 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <span className="min-w-0 flex-1 truncate">
+                      {building.name}
+                      {building.address?.street && (
+                        <span className="text-muted-foreground">
+                          {` · ${building.address.street}`}
+                        </span>
+                      )}
+                    </span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {lifecycleStatusLabels[building.status]}
                     </span>
                     <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
                   </Link>

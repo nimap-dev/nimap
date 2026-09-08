@@ -7,7 +7,7 @@ import { CreateLocationRequestStatus } from '#/api/model'
 import type { MultiPolygon, Point } from '#/api/model'
 import { AddressFields } from '#/components/form/address-fields'
 import { AreaField } from '#/components/form/area-field'
-import { LocationParentSelect } from '#/components/form/location-parent-select'
+import { LocationSelect } from '#/components/form/location-select'
 import { RepresentativePointField } from '#/components/form/representative-point-field'
 import { FormActions } from '#/components/form/form-actions'
 import { StatusField } from '#/components/form/status-field'
@@ -136,7 +136,7 @@ function NewLocation() {
           <form.Field
             name="parentId"
             children={(field) => (
-              <LocationParentSelect
+              <LocationSelect
                 id="new-location-parent"
                 value={field.state.value}
                 onChange={field.handleChange}

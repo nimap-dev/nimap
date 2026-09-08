@@ -34,7 +34,7 @@ type Querier interface {
 	GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error)
 	ListAssetStoragePaths(ctx context.Context) ([]string, error)
 	ListBuildingAssets(ctx context.Context, buildingID *uuid.UUID) ([]ListBuildingAssetsRow, error)
-	ListBuildings(ctx context.Context, statuses []string) ([]ListBuildingsRow, error)
+	ListBuildings(ctx context.Context, arg ListBuildingsParams) ([]ListBuildingsRow, error)
 	ListImageAssets(ctx context.Context) ([]ListImageAssetsRow, error)
 	ListLocationAssets(ctx context.Context, locationID *uuid.UUID) ([]ListLocationAssetsRow, error)
 	ListLocations(ctx context.Context, statuses []string) ([]ListLocationsRow, error)

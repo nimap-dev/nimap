@@ -8,10 +8,11 @@ import * as zod from 'zod';
 
 
 /**
- * @summary Returns all buildings
+ * @summary Returns all buildings, optionally narrowed to a single location
  */
 export const ListBuildingsQueryParams = zod.object({
-  "status": zod.array(zod.enum(['planned', 'active', 'decommissioned', 'archived'])).optional().describe('Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup.')
+  "status": zod.array(zod.enum(['planned', 'active', 'decommissioned', 'archived'])).optional().describe('Lifecycle statuses to include. Defaults to planned and active, which keeps decommissioned and archived buildings off the map and out of the default lists without hiding them from a direct lookup.'),
+  "locationId": zod.string().optional().describe('Only return buildings sitting in this location. Omit it to list buildings across every location.')
 })
 
 export const listBuildingsResponseAddressCountryRegExp = new RegExp('^[A-Za-z]{2}$');
