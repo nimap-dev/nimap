@@ -132,6 +132,7 @@ function NewBuilding() {
                 onChange={field.handleChange}
                 label="Location"
                 emptyLabel="Not placed yet"
+                suggestFor={polygon}
               />
             )}
           />

@@ -140,6 +140,7 @@ function NewLocation() {
                 id="new-location-parent"
                 value={field.state.value}
                 onChange={field.handleChange}
+                suggestFor={polygon}
               />
             )}
           />

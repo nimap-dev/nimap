@@ -1,3 +1,6 @@
+import { suggestLocation } from '#/api/locations/locations'
+import type { MultiPolygon } from '#/api/model'
+import { Button } from '#/components/ui/button'
 import { Field, FieldLabel } from '#/components/ui/field'
 import {
   Select,
@@ -12,11 +15,26 @@ import {
   flattenLocationTree,
   useAllLocations,
 } from '#/lib/location-tree'
-import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const TOP_LEVEL = ''
 
 const INDENT_REM = 1.25
+
+function useSuggestedLocation(area: MultiPolygon | undefined) {
+  const { data } = useQuery({
+    queryKey: ['suggestLocation', area],
+    queryFn: async () => {
+      const res = await suggestLocation({ area: area! })
+
+      return res.status === 200 ? res.data : null
+    },
+    enabled: Boolean(area),
+  })
+
+  return data ?? undefined
+}
 
 export function LocationSelect({
   id,
@@ -29,6 +47,11 @@ export function LocationSelect({
    * the options.
    */
   excludeSubtreeOf,
+  /**
+   * The shape being drawn, if there is one. The location it overlaps the most
+   * fills the field in, until someone picks for themselves.
+   */
+  suggestFor,
 }: {
   id: string
   value: string | undefined
@@ -36,9 +59,22 @@ export function LocationSelect({
   label?: string
   emptyLabel?: string
   excludeSubtreeOf?: string
+  suggestFor?: MultiPolygon
 }) {
   const { data } = useAllLocations()
   const all = data?.status === 200 ? data.data : undefined
+
+  const suggestion = useSuggestedLocation(suggestFor)
+  const [picked, setPicked] = useState(false)
+  const filledIn = useRef<string>(undefined)
+
+  useEffect(() => {
+    if (picked || !suggestion || suggestion.id === value) return
+    if (value && value !== filledIn.current) return
+
+    filledIn.current = suggestion.id
+    onChange(suggestion.id)
+  }, [picked, suggestion, value, onChange])
 
   const rows = useMemo(() => {
     const current = all?.find((location) => location.id === value)
@@ -72,9 +108,10 @@ export function LocationSelect({
       <Select
         items={labels}
         value={value ?? TOP_LEVEL}
-        onValueChange={(next) =>
+        onValueChange={(next) => {
+          setPicked(true)
           onChange(next === TOP_LEVEL ? undefined : (next as string))
-        }
+        }}
       >
         <SelectTrigger id={id} className="w-full">
           <SelectValue />
@@ -94,6 +131,30 @@ export function LocationSelect({
           ))}
         </SelectContent>
       </Select>
+
+      {suggestion &&
+        (suggestion.id === value ? (
+          <p className="text-sm text-muted-foreground">
+            From the shape drawn on the map
+          </p>
+        ) : (
+          <div className="flex items-center justify-between gap-2 text-sm">
+            <span className="min-w-0 flex-1 truncate text-muted-foreground">
+              The shape sits in {suggestion.name}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setPicked(true)
+                onChange(suggestion.id)
+              }}
+            >
+              Use
+            </Button>
+          </div>
+        ))}
     </Field>
   )
 }

@@ -170,5 +170,7 @@ WHERE area IS NOT NULL
 ORDER BY
   ST_Area(
     ST_Intersection(area, ST_GeomFromGeoJSON(sqlc.arg(footprint)::text))
-  ) DESC
+  ) DESC,
+  ST_Area(area) ASC,
+  id
 LIMIT 1;
