@@ -64,7 +64,7 @@ type rawIO struct {
 func NewAuthMiddleware(api huma.API, sm *scs.SessionManager, q *gen.Queries) func(huma.Context, func(huma.Context)) {
 	return func(ctx huma.Context, next func(huma.Context)) {
 		op := ctx.Operation()
-		permission, needsPermission := requiredPermission(op)
+		permission, needsPermission := requiresPermission(op)
 
 		user, ok := resolveUser(ctx.Context(), sm, q)
 		if ok {
@@ -144,7 +144,7 @@ func requiresAuth(op *huma.Operation) bool {
 	return required
 }
 
-func requiredPermission(op *huma.Operation) (auth.Permission, bool) {
+func requiresPermission(op *huma.Operation) (auth.Permission, bool) {
 	if op == nil {
 		return "", false
 	}
