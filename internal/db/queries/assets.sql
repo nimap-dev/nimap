@@ -101,6 +101,28 @@ JOIN assets a ON a.id = aa.asset_id
 WHERE aa.building_id = sqlc.arg(building_id)
 ORDER BY aa.position, aa.created_at;
 
+-- name: ListDeviceModelAssets :many
+SELECT
+  aa.id,
+  aa.position,
+  aa.caption,
+  a.id AS asset_id,
+  a.storage_path,
+  a.title,
+  a.original_filename,
+  a.content_type,
+  a.type,
+  a.byte_size,
+  a.checksum,
+  a.width,
+  a.height,
+  a.created_at,
+  a.updated_at
+FROM asset_attachments aa
+JOIN assets a ON a.id = aa.asset_id
+WHERE aa.device_model_id = sqlc.arg(device_model_id)
+ORDER BY aa.position, aa.created_at;
+
 -- name: CreateLocationAssetAttachment :one
 INSERT INTO asset_attachments (asset_id, location_id)
 VALUES (sqlc.arg(asset_id), sqlc.arg(location_id))
@@ -112,7 +134,8 @@ RETURNING
   position,
   caption,
   created_at,
-  updated_at;
+  updated_at,
+  device_model_id;
 
 -- name: CreateBuildingAssetAttachment :one
 INSERT INTO asset_attachments (asset_id, building_id)
@@ -125,7 +148,22 @@ RETURNING
   position,
   caption,
   created_at,
-  updated_at;
+  updated_at,
+  device_model_id;
+
+-- name: CreateDeviceModelAssetAttachment :one
+INSERT INTO asset_attachments (asset_id, device_model_id)
+VALUES (sqlc.arg(asset_id), sqlc.arg(device_model_id))
+RETURNING
+  id,
+  asset_id,
+  location_id,
+  building_id,
+  position,
+  caption,
+  created_at,
+  updated_at,
+  device_model_id;
 
 -- name: DeleteAssetAttachment :one
 DELETE FROM asset_attachments

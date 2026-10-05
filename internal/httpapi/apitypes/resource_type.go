@@ -6,13 +6,15 @@ import "github.com/danielgtaylor/huma/v2"
 type ResourceType string
 
 const (
-	ResourceTypeLocation ResourceType = "location"
-	ResourceTypeBuilding ResourceType = "building"
+	ResourceTypeLocation    ResourceType = "location"
+	ResourceTypeBuilding    ResourceType = "building"
+	ResourceTypeDeviceModel ResourceType = "device_model"
 )
 
 var ResourceTypes = []ResourceType{
 	ResourceTypeLocation,
 	ResourceTypeBuilding,
+	ResourceTypeDeviceModel,
 }
 
 func (ResourceType) Schema(r huma.Registry) *huma.Schema {

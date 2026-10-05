@@ -101,6 +101,54 @@ func (ns NullLifecycleStatus) Value() (driver.Value, error) {
 	return string(ns.LifecycleStatus), nil
 }
 
+type MountingType string
+
+const (
+	MountingTypeRack     MountingType = "rack"
+	MountingTypeWall     MountingType = "wall"
+	MountingTypeDesktop  MountingType = "desktop"
+	MountingTypeDinRail  MountingType = "din_rail"
+	MountingTypeCeiling  MountingType = "ceiling"
+	MountingTypePole     MountingType = "pole"
+	MountingTypeEmbedded MountingType = "embedded"
+	MountingTypeOther    MountingType = "other"
+)
+
+func (e *MountingType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MountingType(s)
+	case string:
+		*e = MountingType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MountingType: %T", src)
+	}
+	return nil
+}
+
+type NullMountingType struct {
+	MountingType MountingType
+	Valid        bool // Valid is true if MountingType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMountingType) Scan(value interface{}) error {
+	if value == nil {
+		ns.MountingType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MountingType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMountingType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MountingType), nil
+}
+
 type Asset struct {
 	ID               uuid.UUID
 	StoragePath      string
@@ -117,14 +165,15 @@ type Asset struct {
 }
 
 type AssetAttachment struct {
-	ID         uuid.UUID
-	AssetID    uuid.UUID
-	LocationID *uuid.UUID
-	BuildingID *uuid.UUID
-	Position   int32
-	Caption    *string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID            uuid.UUID
+	AssetID       uuid.UUID
+	LocationID    *uuid.UUID
+	BuildingID    *uuid.UUID
+	Position      int32
+	Caption       *string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	DeviceModelID *uuid.UUID
 }
 
 type AuthRole struct {
@@ -164,6 +213,37 @@ type Building struct {
 	LocationID          *uuid.UUID
 }
 
+type DeviceModel struct {
+	ID             uuid.UUID
+	DeviceTypeID   uuid.UUID
+	ManufacturerID uuid.UUID
+	Name           string
+	PartNumber     *string
+	WidthMm        *int32
+	HeightMm       *int32
+	DepthMm        *int32
+	RackUnits      *int16
+	Mounting       NullMountingType
+	PowerWattsMax  *int32
+	PoeIn          bool
+	PoeOut         bool
+	Notes          *string
+	Status         LifecycleStatus
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+type DeviceType struct {
+	ID        uuid.UUID
+	Code      string
+	Name      string
+	Icon      string
+	Color     string
+	SortOrder int16
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type Location struct {
 	ID                  uuid.UUID
 	ParentID            *uuid.UUID
@@ -178,4 +258,13 @@ type Location struct {
 	Notes               *string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
+}
+
+type Manufacturer struct {
+	ID        uuid.UUID
+	Name      string
+	Website   *string
+	Notes     *string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

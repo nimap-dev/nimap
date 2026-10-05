@@ -11,7 +11,7 @@ import * as zod from 'zod';
  * @summary Lists the files attached to a location or a building
  */
 export const ListAssetsQueryParams = zod.object({
-  "resourceType": zod.enum(['location', 'building']),
+  "resourceType": zod.enum(['location', 'building', 'device_model']),
   "resourceId": zod.string()
 })
 
@@ -38,7 +38,7 @@ export const ListAssetsResponse = zod.array(ListAssetsResponseItem)
  */
 export const UploadAssetQueryParams = zod.object({
   "title": zod.string().optional(),
-  "resourceType": zod.enum(['location', 'building']).optional(),
+  "resourceType": zod.enum(['location', 'building', 'device_model']).optional(),
   "resourceId": zod.string().optional()
 })
 

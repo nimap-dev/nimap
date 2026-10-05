@@ -155,6 +155,78 @@ components:
         - footprint
         - status
       type: object
+    CreateDeviceModelRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/CreateDeviceModelRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        depthMm:
+          format: int32
+          minimum: 1
+          type: integer
+        deviceTypeId:
+          type: string
+        heightMm:
+          format: int32
+          minimum: 1
+          type: integer
+        manufacturerId:
+          type: string
+        mounting:
+          enum:
+            - rack
+            - wall
+            - desktop
+            - din_rail
+            - ceiling
+            - pole
+            - embedded
+            - other
+          type: string
+        name:
+          minLength: 1
+          type: string
+        notes:
+          type: string
+        partNumber:
+          type: string
+        poeIn:
+          description: Can be powered over Ethernet
+          type: boolean
+        poeOut:
+          description: Can power other devices over Ethernet
+          type: boolean
+        powerWattsMax:
+          description: Maximum power draw in watts
+          format: int32
+          minimum: 1
+          type: integer
+        rackUnits:
+          format: int32
+          minimum: 1
+          type: integer
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
+        widthMm:
+          format: int32
+          minimum: 1
+          type: integer
+      required:
+        - deviceTypeId
+        - manufacturerId
+        - name
+        - status
+      type: object
     CreateLocationRequest:
       additionalProperties: false
       properties:
@@ -227,6 +299,110 @@ components:
         - email
         - password
         - role
+      type: object
+    DeviceModelResponse:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/DeviceModelResponse.json
+          format: uri
+          readOnly: true
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        depthMm:
+          format: int32
+          type: integer
+        deviceType:
+          $ref: "#/components/schemas/DeviceTypeResponse"
+        heightMm:
+          format: int32
+          type: integer
+        id:
+          type: string
+        manufacturer:
+          $ref: "#/components/schemas/ManufacturerResponse"
+        mounting:
+          enum:
+            - rack
+            - wall
+            - desktop
+            - din_rail
+            - ceiling
+            - pole
+            - embedded
+            - other
+          type: string
+        name:
+          type: string
+        notes:
+          type: string
+        partNumber:
+          type: string
+        poeIn:
+          description: Can be powered over Ethernet
+          type: boolean
+        poeOut:
+          description: Can power other devices over Ethernet
+          type: boolean
+        powerWattsMax:
+          description: Maximum power draw in watts
+          format: int32
+          type: integer
+        rackUnits:
+          format: int32
+          type: integer
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+        widthMm:
+          format: int32
+          type: integer
+      required:
+        - id
+        - deviceType
+        - manufacturer
+        - name
+        - poeIn
+        - poeOut
+        - status
+        - createdAt
+        - updatedAt
+      type: object
+    DeviceTypeResponse:
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+        color:
+          type: string
+        icon:
+          description: A lucide icon name
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        sortOrder:
+          format: int32
+          type: integer
+      required:
+        - id
+        - code
+        - name
+        - icon
+        - color
+        - sortOrder
       type: object
     ErrorDetail:
       additionalProperties: false
@@ -355,6 +531,56 @@ components:
       required:
         - username
         - password
+      type: object
+    ManufacturerRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ManufacturerRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        name:
+          minLength: 1
+          type: string
+        notes:
+          type: string
+        website:
+          type: string
+      required:
+        - name
+      type: object
+    ManufacturerResponse:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/ManufacturerResponse.json
+          format: uri
+          readOnly: true
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        notes:
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+        website:
+          type: string
+      required:
+        - id
+        - name
+        - createdAt
+        - updatedAt
       type: object
     MultiPolygon:
       additionalProperties: false
@@ -513,6 +739,90 @@ components:
           description: A URL to the JSON Schema for this object.
           examples:
             - https://example.com/schemas/UpdateBuildingStatusRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
+      required:
+        - status
+      type: object
+    UpdateDeviceModelRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateDeviceModelRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        depthMm:
+          format: int32
+          minimum: 1
+          type: integer
+        deviceTypeId:
+          type: string
+        heightMm:
+          format: int32
+          minimum: 1
+          type: integer
+        manufacturerId:
+          type: string
+        mounting:
+          enum:
+            - rack
+            - wall
+            - desktop
+            - din_rail
+            - ceiling
+            - pole
+            - embedded
+            - other
+          type: string
+        name:
+          minLength: 1
+          type: string
+        notes:
+          type: string
+        partNumber:
+          type: string
+        poeIn:
+          description: Can be powered over Ethernet
+          type: boolean
+        poeOut:
+          description: Can power other devices over Ethernet
+          type: boolean
+        powerWattsMax:
+          description: Maximum power draw in watts
+          format: int32
+          minimum: 1
+          type: integer
+        rackUnits:
+          format: int32
+          minimum: 1
+          type: integer
+        widthMm:
+          format: int32
+          minimum: 1
+          type: integer
+      required:
+        - deviceTypeId
+        - manufacturerId
+        - name
+      type: object
+    UpdateDeviceModelStatusRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateDeviceModelStatusRequest.json
           format: uri
           readOnly: true
           type: string
@@ -870,6 +1180,7 @@ paths:
             enum:
               - location
               - building
+              - device_model
             type: string
         - explode: false
           in: query
@@ -915,6 +1226,7 @@ paths:
             enum:
               - location
               - building
+              - device_model
             type: string
         - explode: false
           in: query
@@ -1281,6 +1593,207 @@ paths:
       summary: Updates the building status of the building with provided id
       tags:
         - buildings
+  /api/device-models:
+    get:
+      operationId: list-device-models
+      parameters:
+        - description: Lifecycle statuses to include. Defaults to planned and active, which keeps models that are no longer available/used out of the default lists without hiding them from a direct lookup.
+          explode: false
+          in: query
+          name: status
+          schema:
+            description: Lifecycle statuses to include. Defaults to planned and active, which keeps models that are no longer available/used out of the default lists without hiding them from a direct lookup.
+            items:
+              enum:
+                - planned
+                - active
+                - decommissioned
+                - archived
+              type: string
+            type: array
+        - description: Only return models of this device type. Omit it to list models of every type.
+          explode: false
+          in: query
+          name: deviceTypeId
+          schema:
+            description: Only return models of this device type. Omit it to list models of every type.
+            type: string
+        - description: Only return models made by this manufacturer. Omit it to list models of every manufacturer.
+          explode: false
+          in: query
+          name: manufacturerId
+          schema:
+            description: Only return models made by this manufacturer. Omit it to list models of every manufacturer.
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/DeviceModelResponse"
+                type: array
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns all device models, optionally narrowed to a device type or a manufacturer
+      tags:
+        - device-models
+    post:
+      operationId: create-device-model
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeviceModelRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceModelResponse"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Creates a device model
+      tags:
+        - device-models
+  /api/device-models/{id}:
+    delete:
+      operationId: delete-device-model
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Deletes the device model with the provided id
+      tags:
+        - device-models
+    get:
+      operationId: get-device-model
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceModelResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns the device model with the provided id
+      tags:
+        - device-models
+    put:
+      operationId: update-device-model
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDeviceModelRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceModelResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Updates the device model with the provided id
+      tags:
+        - device-models
+  /api/device-models/{id}/status:
+    patch:
+      operationId: update-device-model-status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDeviceModelStatusRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceModelResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Updates the status of the device model with the provided id
+      tags:
+        - device-models
+  /api/device-types:
+    get:
+      operationId: list-device-types
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/DeviceTypeResponse"
+                type: array
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns all device types.
+      tags:
+        - device-types
   /api/locations:
     get:
       operationId: list-locations
@@ -1472,4 +1985,125 @@ paths:
       summary: Updates the location status of the location with provided id
       tags:
         - locations
+  /api/manufacturers:
+    get:
+      operationId: list-manufacturers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/ManufacturerResponse"
+                type: array
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns all manufacturers
+      tags:
+        - manufacturers
+    post:
+      operationId: create-manufacturer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManufacturerRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManufacturerResponse"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Creates a manufacturer
+      tags:
+        - manufacturers
+  /api/manufacturers/{id}:
+    delete:
+      description: Refused while any device model is made by the manufacturer.
+      operationId: delete-manufacturer
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Deletes the manufacturer with the provided id
+      tags:
+        - manufacturers
+    get:
+      operationId: get-manufacturer
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManufacturerResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns the manufacturer with the provided id
+      tags:
+        - manufacturers
+    put:
+      operationId: update-manufacturer
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ManufacturerRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ManufacturerResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Updates the manufacturer with the provided id
+      tags:
+        - manufacturers
 

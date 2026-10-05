@@ -2,7 +2,10 @@
 // the command line.
 package text
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Plural writes a count together with the noun that goes with it, so a message
 // can say "1 location" rather than the parenthesised "(s)".
@@ -12,4 +15,19 @@ func Plural[T ~int | ~int64](count T, one string, many string) string {
 	}
 
 	return fmt.Sprintf("%d %s", count, many)
+}
+
+// TrimmedOrNil trims an optional text field and treats a blank one as absent,
+// so an empty form input never reaches a not-blank CHECK constraint.
+func TrimmedOrNil(value *string) *string {
+	if value == nil {
+		return nil
+	}
+
+	trimmed := strings.TrimSpace(*value)
+	if trimmed == "" {
+		return nil
+	}
+
+	return &trimmed
 }

@@ -103,7 +103,8 @@ RETURNING
   position,
   caption,
   created_at,
-  updated_at
+  updated_at,
+  device_model_id
 `
 
 type CreateBuildingAssetAttachmentParams struct {
@@ -123,6 +124,44 @@ func (q *Queries) CreateBuildingAssetAttachment(ctx context.Context, arg CreateB
 		&i.Caption,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeviceModelID,
+	)
+	return i, err
+}
+
+const createDeviceModelAssetAttachment = `-- name: CreateDeviceModelAssetAttachment :one
+INSERT INTO asset_attachments (asset_id, device_model_id)
+VALUES ($1, $2)
+RETURNING
+  id,
+  asset_id,
+  location_id,
+  building_id,
+  position,
+  caption,
+  created_at,
+  updated_at,
+  device_model_id
+`
+
+type CreateDeviceModelAssetAttachmentParams struct {
+	AssetID       uuid.UUID
+	DeviceModelID *uuid.UUID
+}
+
+func (q *Queries) CreateDeviceModelAssetAttachment(ctx context.Context, arg CreateDeviceModelAssetAttachmentParams) (AssetAttachment, error) {
+	row := q.db.QueryRow(ctx, createDeviceModelAssetAttachment, arg.AssetID, arg.DeviceModelID)
+	var i AssetAttachment
+	err := row.Scan(
+		&i.ID,
+		&i.AssetID,
+		&i.LocationID,
+		&i.BuildingID,
+		&i.Position,
+		&i.Caption,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeviceModelID,
 	)
 	return i, err
 }
@@ -138,7 +177,8 @@ RETURNING
   position,
   caption,
   created_at,
-  updated_at
+  updated_at,
+  device_model_id
 `
 
 type CreateLocationAssetAttachmentParams struct {
@@ -158,6 +198,7 @@ func (q *Queries) CreateLocationAssetAttachment(ctx context.Context, arg CreateL
 		&i.Caption,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeviceModelID,
 	)
 	return i, err
 }
@@ -302,6 +343,83 @@ func (q *Queries) ListBuildingAssets(ctx context.Context, buildingID *uuid.UUID)
 	var items []ListBuildingAssetsRow
 	for rows.Next() {
 		var i ListBuildingAssetsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Position,
+			&i.Caption,
+			&i.AssetID,
+			&i.StoragePath,
+			&i.Title,
+			&i.OriginalFilename,
+			&i.ContentType,
+			&i.Type,
+			&i.ByteSize,
+			&i.Checksum,
+			&i.Width,
+			&i.Height,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listDeviceModelAssets = `-- name: ListDeviceModelAssets :many
+SELECT
+  aa.id,
+  aa.position,
+  aa.caption,
+  a.id AS asset_id,
+  a.storage_path,
+  a.title,
+  a.original_filename,
+  a.content_type,
+  a.type,
+  a.byte_size,
+  a.checksum,
+  a.width,
+  a.height,
+  a.created_at,
+  a.updated_at
+FROM asset_attachments aa
+JOIN assets a ON a.id = aa.asset_id
+WHERE aa.device_model_id = $1
+ORDER BY aa.position, aa.created_at
+`
+
+type ListDeviceModelAssetsRow struct {
+	ID               uuid.UUID
+	Position         int32
+	Caption          *string
+	AssetID          uuid.UUID
+	StoragePath      string
+	Title            string
+	OriginalFilename string
+	ContentType      string
+	Type             AssetType
+	ByteSize         int64
+	Checksum         []byte
+	Width            *int32
+	Height           *int32
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
+func (q *Queries) ListDeviceModelAssets(ctx context.Context, deviceModelID *uuid.UUID) ([]ListDeviceModelAssetsRow, error) {
+	rows, err := q.db.Query(ctx, listDeviceModelAssets, deviceModelID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListDeviceModelAssetsRow
+	for rows.Next() {
+		var i ListDeviceModelAssetsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Position,

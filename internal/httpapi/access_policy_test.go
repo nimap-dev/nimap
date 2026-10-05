@@ -52,6 +52,24 @@ var wantPolicy = map[string]policy{
 	"update-user-role":    {permission: auth.ManageUsers},
 	"reset-user-password": {permission: auth.ManageUsers},
 	"delete-user":         {permission: auth.ManageUsers},
+
+	// device types
+	"list-device-types": {permission: auth.ReadRecords},
+
+	// device models
+	"get-device-model":           {permission: auth.ReadRecords},
+	"list-device-models":         {permission: auth.ReadRecords},
+	"create-device-model":        {permission: auth.WriteRecords},
+	"update-device-model":        {permission: auth.WriteRecords},
+	"update-device-model-status": {permission: auth.WriteRecords},
+	"delete-device-model":        {permission: auth.WriteRecords},
+
+	// manufacturers
+	"get-manufacturer":    {permission: auth.ReadRecords},
+	"list-manufacturers":  {permission: auth.ReadRecords},
+	"create-manufacturer": {permission: auth.WriteRecords},
+	"update-manufacturer": {permission: auth.WriteRecords},
+	"delete-manufacturer": {permission: auth.WriteRecords},
 }
 
 func TestEveryOperationIsGuarded(t *testing.T) {

@@ -11,4 +11,5 @@ export type ListAssetsResourceType = typeof ListAssetsResourceType[keyof typeof 
 export const ListAssetsResourceType = {
   location: 'location',
   building: 'building',
+  device_model: 'device_model',
 } as const;

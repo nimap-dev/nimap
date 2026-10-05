@@ -11,4 +11,5 @@ export type UploadAssetResourceType = typeof UploadAssetResourceType[keyof typeo
 export const UploadAssetResourceType = {
   location: 'location',
   building: 'building',
+  device_model: 'device_model',
 } as const;

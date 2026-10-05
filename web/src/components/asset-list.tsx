@@ -27,6 +27,7 @@ import {
 } from '#/components/ui/dialog'
 import { toast } from '#/components/ui/toast'
 import { useCan } from '#/lib/auth'
+import { disposition } from '#/lib/upload'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   ChevronLeft,
@@ -453,13 +454,4 @@ function AssetTypeIcon({
     type === 'video' ? VideoIcon : type === 'document' ? FileTextIcon : FileIcon
 
   return <Icon className={className} />
-}
-
-function disposition(name: string) {
-  const encoded = encodeURIComponent(name).replace(
-    /['()*!]/g,
-    (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
-  )
-
-  return `attachment; filename*=UTF-8''${encoded}`
 }

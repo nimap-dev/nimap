@@ -1,6 +1,10 @@
 package apitypes
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/nimap-dev/nimap/internal/text"
+)
 
 // Address is the postal address of a building or a location. Every part stands
 // on its own.
@@ -17,9 +21,9 @@ func (a *Address) Normalized() Address {
 	}
 
 	return Address{
-		Street:  trimmedOrNil(a.Street),
-		City:    trimmedOrNil(a.City),
-		Zip:     trimmedOrNil(a.Zip),
+		Street:  text.TrimmedOrNil(a.Street),
+		City:    text.TrimmedOrNil(a.City),
+		Zip:     text.TrimmedOrNil(a.Zip),
 		Country: upperOrNil(a.Country),
 	}
 }
@@ -37,21 +41,8 @@ func (a Address) OrNil() *Address {
 	return &a
 }
 
-func trimmedOrNil(value *string) *string {
-	if value == nil {
-		return nil
-	}
-
-	trimmed := strings.TrimSpace(*value)
-	if trimmed == "" {
-		return nil
-	}
-
-	return &trimmed
-}
-
 func upperOrNil(value *string) *string {
-	trimmed := trimmedOrNil(value)
+	trimmed := text.TrimmedOrNil(value)
 	if trimmed == nil {
 		return nil
 	}
