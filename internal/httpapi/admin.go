@@ -54,7 +54,7 @@ type ListUsersOutput struct {
 	Body []User
 }
 
-// RegisterAdmin mounts the account-administration operations on the huma API.s
+// RegisterAdmin mounts the account-administration operations on the huma API.
 func RegisterAdmin(api huma.API, q *gen.Queries) {
 	huma.Register(api, huma.Operation{
 		OperationID: "list-users",
@@ -75,7 +75,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 				ID:          user.ID,
 				Username:    user.Username,
 				Email:       user.Email,
-				Role:        user.Role,
+				Role:        apitypes.Role(user.Role),
 				Permissions: permissionStrings(user.RoleID),
 				CreatedAt:   user.CreatedAt,
 				UpdatedAt:   user.UpdatedAt,
@@ -105,7 +105,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			ID:          user.ID,
 			Username:    user.Username,
 			Email:       user.Email,
-			Role:        user.Role,
+			Role:        apitypes.Role(user.Role),
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
@@ -150,7 +150,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			ID:          user.ID,
 			Username:    user.Username,
 			Email:       user.Email,
-			Role:        role,
+			Role:        apitypes.Role(role),
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
@@ -190,7 +190,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			ID:          user.ID,
 			Username:    user.Username,
 			Email:       user.Email,
-			Role:        user.Role,
+			Role:        apitypes.Role(user.Role),
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
@@ -240,7 +240,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			ID:          user.ID,
 			Username:    user.Username,
 			Email:       user.Email,
-			Role:        user.Role,
+			Role:        apitypes.Role(user.Role),
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,

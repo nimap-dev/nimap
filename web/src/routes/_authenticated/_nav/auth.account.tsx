@@ -65,12 +65,12 @@ function AccountMeta({ user }: { user: User }) {
     <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
       <span className="font-mono select-all">{user.id}</span>
       <span aria-hidden="true">·</span>
-      <span title={formatAbsoluteDate(user.created_at)}>
-        created {formatRelativeDate(user.created_at)}
+      <span title={formatAbsoluteDate(user.createdAt)}>
+        created {formatRelativeDate(user.createdAt)}
       </span>
       <span aria-hidden="true">·</span>
-      <span title={formatAbsoluteDate(user.updated_at)}>
-        updated {formatRelativeDate(user.updated_at)}
+      <span title={formatAbsoluteDate(user.createdAt)}>
+        updated {formatRelativeDate(user.createdAt)}
       </span>
     </p>
   )
@@ -197,7 +197,7 @@ function PasswordForm() {
 
   const form = useForm({
     defaultValues: {
-      oldPassword: '',
+      currentPassword: '',
       newPassword: '',
       confirmPassword: '',
     },
@@ -205,7 +205,7 @@ function PasswordForm() {
     onSubmit: async ({ value }) => {
       const res = await updatePassword.mutateAsync({
         data: {
-          oldPassword: value.oldPassword,
+          currentPassword: value.currentPassword,
           newPassword: value.newPassword,
         },
       })
@@ -242,7 +242,7 @@ function PasswordForm() {
         >
           <FieldGroup>
             <form.Field
-              name="oldPassword"
+              name="currentPassword"
               children={(field) => (
                 <TextField
                   field={field}

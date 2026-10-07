@@ -12,12 +12,12 @@ import * as zod from 'zod';
  */
 export const ListUsersResponseItem = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
-  "created_at": zod.iso.datetime({"offset":true}),
+  "createdAt": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "id": zod.string(),
   "permissions": zod.array(zod.string()),
-  "role": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true}),
+  "role": zod.enum(['viewer', 'editor', 'admin']),
+  "updatedAt": zod.iso.datetime({"offset":true}),
   "username": zod.string()
 })
 export const ListUsersResponse = zod.array(ListUsersResponseItem)
@@ -40,12 +40,12 @@ export const CreateUserBody = zod.object({
 
 export const CreateUserResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
-  "created_at": zod.iso.datetime({"offset":true}),
+  "createdAt": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "id": zod.string(),
   "permissions": zod.array(zod.string()),
-  "role": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true}),
+  "role": zod.enum(['viewer', 'editor', 'admin']),
+  "updatedAt": zod.iso.datetime({"offset":true}),
   "username": zod.string()
 })
 
@@ -67,12 +67,12 @@ export const GetUserParams = zod.object({
 
 export const GetUserResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
-  "created_at": zod.iso.datetime({"offset":true}),
+  "createdAt": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "id": zod.string(),
   "permissions": zod.array(zod.string()),
-  "role": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true}),
+  "role": zod.enum(['viewer', 'editor', 'admin']),
+  "updatedAt": zod.iso.datetime({"offset":true}),
   "username": zod.string()
 })
 
@@ -94,12 +94,12 @@ export const UpdateUserBody = zod.object({
 
 export const UpdateUserResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
-  "created_at": zod.iso.datetime({"offset":true}),
+  "createdAt": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "id": zod.string(),
   "permissions": zod.array(zod.string()),
-  "role": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true}),
+  "role": zod.enum(['viewer', 'editor', 'admin']),
+  "updatedAt": zod.iso.datetime({"offset":true}),
   "username": zod.string()
 })
 
@@ -133,12 +133,12 @@ export const UpdateUserRoleBody = zod.object({
 
 export const UpdateUserRoleResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
-  "created_at": zod.iso.datetime({"offset":true}),
+  "createdAt": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "id": zod.string(),
   "permissions": zod.array(zod.string()),
-  "role": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true}),
+  "role": zod.enum(['viewer', 'editor', 'admin']),
+  "updatedAt": zod.iso.datetime({"offset":true}),
   "username": zod.string()
 })
 

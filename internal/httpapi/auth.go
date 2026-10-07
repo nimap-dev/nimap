@@ -15,6 +15,7 @@ import (
 
 	"github.com/nimap-dev/nimap/internal/auth"
 	"github.com/nimap-dev/nimap/internal/db/gen"
+	"github.com/nimap-dev/nimap/internal/httpapi/apitypes"
 )
 
 // sessionUserIDKey is the scs session key holding the logged-in user's UUID.
@@ -22,13 +23,13 @@ const sessionUserIDKey = "user_id"
 
 // User is the API representation of an account.
 type User struct {
-	ID          uuid.UUID `json:"id"`
-	Username    string    `json:"username"`
-	Email       string    `json:"email"`
-	Role        string    `json:"role"`
-	Permissions []string  `json:"permissions"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          uuid.UUID     `json:"id"`
+	Username    string        `json:"username"`
+	Email       string        `json:"email"`
+	Role        apitypes.Role `json:"role"`
+	Permissions []string      `json:"permissions"`
+	CreatedAt   time.Time     `json:"createdAt"`
+	UpdatedAt   time.Time     `json:"updatedAt"`
 }
 
 // permissionStrings renders a role's grants for the wire.
@@ -54,8 +55,8 @@ type LoginInput struct {
 // UpdatePasswordInput is the request body for PATCH /api/auth/account/password.
 type UpdatePasswordInput struct {
 	Body struct {
-		OldPassword string `json:"oldPassword" minLength:"1" doc:"Current account password"`
-		NewPassword string `json:"newPassword" minLength:"8" doc:"New account password"`
+		CurrentPassword string `json:"currentPassword" minLength:"1" doc:"Current account password"`
+		NewPassword     string `json:"newPassword" minLength:"8" doc:"New account password"`
 	}
 }
 
@@ -117,7 +118,7 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 			ID:          user.ID,
 			Username:    user.Username,
 			Email:       user.Email,
-			Role:        user.Role,
+			Role:        apitypes.Role(user.Role),
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
@@ -148,7 +149,7 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 			ID:          user.ID,
 			Username:    user.Username,
 			Email:       user.Email,
-			Role:        user.Role,
+			Role:        apitypes.Role(user.Role),
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
@@ -184,7 +185,7 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 		// for operations marked requireAuth.
 		id, _ := UserIDFromContext(ctx)
 
-		if err := verifyCurrentPassword(ctx, q, id, in.Body.OldPassword); err != nil {
+		if err := verifyCurrentPassword(ctx, q, id, in.Body.CurrentPassword); err != nil {
 			return nil, err
 		}
 
@@ -250,7 +251,7 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 			ID:          user.ID,
 			Username:    user.Username,
 			Email:       user.Email,
-			Role:        user.Role,
+			Role:        apitypes.Role(user.Role),
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,

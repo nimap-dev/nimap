@@ -23,26 +23,26 @@ export const UpdateAccountBody = zod.object({
 
 export const UpdateAccountResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
-  "created_at": zod.iso.datetime({"offset":true}),
+  "createdAt": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "id": zod.string(),
   "permissions": zod.array(zod.string()),
-  "role": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true}),
+  "role": zod.enum(['viewer', 'editor', 'admin']),
+  "updatedAt": zod.iso.datetime({"offset":true}),
   "username": zod.string()
 })
 
 /**
  * @summary Change the current user's password
  */
+
 export const updatePasswordBodyNewPasswordMin = 8;
 
 
 
-
 export const UpdatePasswordBody = zod.object({
-  "newPassword": zod.string().min(updatePasswordBodyNewPasswordMin).describe('New account password'),
-  "oldPassword": zod.string().min(1).describe('Current account password')
+  "currentPassword": zod.string().min(1).describe('Current account password'),
+  "newPassword": zod.string().min(updatePasswordBodyNewPasswordMin).describe('New account password')
 })
 
 export const UpdatePasswordResponse = zod.void()
@@ -62,12 +62,12 @@ export const LoginBody = zod.object({
 
 export const LoginResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
-  "created_at": zod.iso.datetime({"offset":true}),
+  "createdAt": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "id": zod.string(),
   "permissions": zod.array(zod.string()),
-  "role": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true}),
+  "role": zod.enum(['viewer', 'editor', 'admin']),
+  "updatedAt": zod.iso.datetime({"offset":true}),
   "username": zod.string()
 })
 
@@ -81,12 +81,12 @@ export const LogoutResponse = zod.void()
  */
 export const GetCurrentUserResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
-  "created_at": zod.iso.datetime({"offset":true}),
+  "createdAt": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
   "id": zod.string(),
   "permissions": zod.array(zod.string()),
-  "role": zod.string(),
-  "updated_at": zod.iso.datetime({"offset":true}),
+  "role": zod.enum(['viewer', 'editor', 'admin']),
+  "updatedAt": zod.iso.datetime({"offset":true}),
   "username": zod.string()
 })
 

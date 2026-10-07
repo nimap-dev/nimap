@@ -66,3 +66,4 @@ export * from './updateUserRoleInputBodyRole.ts';
 export * from './uploadAssetParams.ts';
 export * from './uploadAssetResourceType.ts';
 export * from './user.ts';
+export * from './userRole.ts';

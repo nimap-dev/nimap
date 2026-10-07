@@ -894,16 +894,16 @@ components:
           format: uri
           readOnly: true
           type: string
+        currentPassword:
+          description: Current account password
+          minLength: 1
+          type: string
         newPassword:
           description: New account password
           minLength: 8
           type: string
-        oldPassword:
-          description: Current account password
-          minLength: 1
-          type: string
       required:
-        - oldPassword
+        - currentPassword
         - newPassword
       type: object
     UpdateUserInputBody:
@@ -958,7 +958,7 @@ components:
           format: uri
           readOnly: true
           type: string
-        created_at:
+        createdAt:
           format: date-time
           type: string
         email:
@@ -970,8 +970,12 @@ components:
             type: string
           type: array
         role:
+          enum:
+            - viewer
+            - editor
+            - admin
           type: string
-        updated_at:
+        updatedAt:
           format: date-time
           type: string
         username:
@@ -982,8 +986,8 @@ components:
         - email
         - role
         - permissions
-        - created_at
-        - updated_at
+        - createdAt
+        - updatedAt
       type: object
 info:
   title: nimap API

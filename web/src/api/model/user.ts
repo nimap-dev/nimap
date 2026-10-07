@@ -4,15 +4,16 @@
  * nimap API
  * OpenAPI spec version: dev
  */
+import type { UserRole } from './userRole.ts';
 
 export interface User {
   /** A URL to the JSON Schema for this object. */
   readonly $schema?: string;
-  created_at: string;
+  createdAt: string;
   email: string;
   id: string;
   permissions: string[];
-  role: string;
-  updated_at: string;
+  role: UserRole;
+  updatedAt: string;
   username: string;
 }

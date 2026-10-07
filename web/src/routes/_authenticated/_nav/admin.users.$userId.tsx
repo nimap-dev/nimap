@@ -163,12 +163,12 @@ function ManageUserDetail({ user }: { user: User }) {
           <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
             <span className="font-mono select-all">{user.id}</span>
             <span aria-hidden="true">·</span>
-            <span title={formatAbsoluteDate(user.created_at)}>
-              created {formatRelativeDate(user.created_at)}
+            <span title={formatAbsoluteDate(user.createdAt)}>
+              created {formatRelativeDate(user.createdAt)}
             </span>
             <span aria-hidden="true">·</span>
-            <span title={formatAbsoluteDate(user.updated_at)}>
-              updated {formatRelativeDate(user.updated_at)}
+            <span title={formatAbsoluteDate(user.updatedAt)}>
+              updated {formatRelativeDate(user.updatedAt)}
             </span>
           </p>
         </div>

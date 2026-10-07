@@ -58,7 +58,7 @@ export const columns = columnHelper.columns([
     meta: { width: '8rem' },
     cell: ({ getValue }) => <RoleBadge role={asRole(getValue())} />,
   }),
-  columnHelper.accessor('updated_at', {
+  columnHelper.accessor('updatedAt', {
     header: ({ column }) => (
       <DataTableColumnHeader column={column}>Updated</DataTableColumnHeader>
     ),
