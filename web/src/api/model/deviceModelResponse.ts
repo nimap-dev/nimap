@@ -5,6 +5,8 @@
  * OpenAPI spec version: dev
  */
 import type { DeviceModelResponseMounting } from './deviceModelResponseMounting.ts';
+import type { DeviceModelResponsePoeInStandard } from './deviceModelResponsePoeInStandard.ts';
+import type { DeviceModelResponsePoeOutStandard } from './deviceModelResponsePoeOutStandard.ts';
 import type { DeviceModelResponseStatus } from './deviceModelResponseStatus.ts';
 import type { DeviceTypeResponse } from './deviceTypeResponse.ts';
 import type { ManufacturerResponse } from './manufacturerResponse.ts';
@@ -22,14 +24,24 @@ export interface DeviceModelResponse {
   name: string;
   notes?: string;
   partNumber?: string;
+  /** Total power the model can supply over PoE, in watts; only with poeOut */
+  poeBudgetWatts?: number;
   /** Can be powered over Ethernet */
   poeIn: boolean;
+  /** The PoE standard the model needs when powered over Ethernet; only with poeIn */
+  poeInStandard?: DeviceModelResponsePoeInStandard;
   /** Can power other devices over Ethernet */
   poeOut: boolean;
+  /** The highest PoE standard the model supplies; only with poeOut */
+  poeOutStandard?: DeviceModelResponsePoeOutStandard;
   /** Maximum power draw in watts */
   powerWattsMax?: number;
   rackUnits?: number;
   status: DeviceModelResponseStatus;
   updatedAt: string;
+  /** A hardware revision or variant sold under the same name, such as rev 2 */
+  variant?: string;
+  /** The model's page on the manufacturer's site */
+  website?: string;
   widthMm?: number;
 }

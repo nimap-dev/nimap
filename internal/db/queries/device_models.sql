@@ -25,7 +25,11 @@ WHERE dm.status::text = ANY(sqlc.arg(statuses)::text[])
     sqlc.narg(manufacturer_id)::uuid IS NULL
     OR dm.manufacturer_id = sqlc.narg(manufacturer_id)::uuid
   )
-ORDER BY lower(m.name), lower(dm.name);
+  AND (
+    sqlc.narg(mounting)::mounting_type IS NULL
+    OR dm.mounting = sqlc.narg(mounting)::mounting_type
+  )
+ORDER BY lower(m.name), lower(dm.name), lower(coalesce(dm.variant, ''));
 
 -- name: CreateDeviceModel :one
 INSERT INTO device_models (
@@ -33,6 +37,8 @@ INSERT INTO device_models (
   manufacturer_id,
   name,
   part_number,
+  website,
+  variant,
   width_mm,
   height_mm,
   depth_mm,
@@ -41,6 +47,9 @@ INSERT INTO device_models (
   power_watts_max,
   poe_in,
   poe_out,
+  poe_in_standard,
+  poe_out_standard,
+  poe_budget_watts,
   notes,
   status
 )
@@ -49,6 +58,8 @@ VALUES (
   sqlc.arg(manufacturer_id),
   sqlc.arg(name),
   sqlc.narg(part_number),
+  sqlc.narg(website),
+  sqlc.narg(variant),
   sqlc.narg(width_mm),
   sqlc.narg(height_mm),
   sqlc.narg(depth_mm),
@@ -57,6 +68,9 @@ VALUES (
   sqlc.narg(power_watts_max),
   sqlc.arg(poe_in),
   sqlc.arg(poe_out),
+  sqlc.narg(poe_in_standard),
+  sqlc.narg(poe_out_standard),
+  sqlc.narg(poe_budget_watts),
   sqlc.narg(notes),
   sqlc.arg(status)
 )
@@ -69,6 +83,8 @@ SET
   manufacturer_id = sqlc.arg(manufacturer_id),
   name = sqlc.arg(name),
   part_number = sqlc.narg(part_number),
+  website = sqlc.narg(website),
+  variant = sqlc.narg(variant),
   width_mm = sqlc.narg(width_mm),
   height_mm = sqlc.narg(height_mm),
   depth_mm = sqlc.narg(depth_mm),
@@ -77,6 +93,9 @@ SET
   power_watts_max = sqlc.narg(power_watts_max),
   poe_in = sqlc.arg(poe_in),
   poe_out = sqlc.arg(poe_out),
+  poe_in_standard = sqlc.narg(poe_in_standard),
+  poe_out_standard = sqlc.narg(poe_out_standard),
+  poe_budget_watts = sqlc.narg(poe_budget_watts),
   notes = sqlc.narg(notes),
   updated_at = now()
 WHERE id = sqlc.arg(id)

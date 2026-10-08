@@ -17,6 +17,8 @@ INSERT INTO device_models (
   manufacturer_id,
   name,
   part_number,
+  website,
+  variant,
   width_mm,
   height_mm,
   depth_mm,
@@ -25,6 +27,9 @@ INSERT INTO device_models (
   power_watts_max,
   poe_in,
   poe_out,
+  poe_in_standard,
+  poe_out_standard,
+  poe_budget_watts,
   notes,
   status
 )
@@ -42,7 +47,12 @@ VALUES (
   $11,
   $12,
   $13,
-  $14
+  $14,
+  $15,
+  $16,
+  $17,
+  $18,
+  $19
 )
 RETURNING id
 `
@@ -52,6 +62,8 @@ type CreateDeviceModelParams struct {
 	ManufacturerID uuid.UUID
 	Name           string
 	PartNumber     *string
+	Website        *string
+	Variant        *string
 	WidthMm        *int32
 	HeightMm       *int32
 	DepthMm        *int32
@@ -60,6 +72,9 @@ type CreateDeviceModelParams struct {
 	PowerWattsMax  *int32
 	PoeIn          bool
 	PoeOut         bool
+	PoeInStandard  NullPoeStandard
+	PoeOutStandard NullPoeStandard
+	PoeBudgetWatts *int32
 	Notes          *string
 	Status         LifecycleStatus
 }
@@ -70,6 +85,8 @@ func (q *Queries) CreateDeviceModel(ctx context.Context, arg CreateDeviceModelPa
 		arg.ManufacturerID,
 		arg.Name,
 		arg.PartNumber,
+		arg.Website,
+		arg.Variant,
 		arg.WidthMm,
 		arg.HeightMm,
 		arg.DepthMm,
@@ -78,6 +95,9 @@ func (q *Queries) CreateDeviceModel(ctx context.Context, arg CreateDeviceModelPa
 		arg.PowerWattsMax,
 		arg.PoeIn,
 		arg.PoeOut,
+		arg.PoeInStandard,
+		arg.PoeOutStandard,
+		arg.PoeBudgetWatts,
 		arg.Notes,
 		arg.Status,
 	)
@@ -101,7 +121,7 @@ func (q *Queries) DeleteDeviceModel(ctx context.Context, id uuid.UUID) (int64, e
 
 const getDeviceModel = `-- name: GetDeviceModel :one
 SELECT
-  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at,
+  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts,
   dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at,
   m.id, m.name, m.website, m.notes, m.created_at, m.updated_at
 FROM device_models dm
@@ -137,6 +157,11 @@ func (q *Queries) GetDeviceModel(ctx context.Context, id uuid.UUID) (GetDeviceMo
 		&i.DeviceModel.Status,
 		&i.DeviceModel.CreatedAt,
 		&i.DeviceModel.UpdatedAt,
+		&i.DeviceModel.Website,
+		&i.DeviceModel.Variant,
+		&i.DeviceModel.PoeInStandard,
+		&i.DeviceModel.PoeOutStandard,
+		&i.DeviceModel.PoeBudgetWatts,
 		&i.DeviceType.ID,
 		&i.DeviceType.Code,
 		&i.DeviceType.Name,
@@ -157,7 +182,7 @@ func (q *Queries) GetDeviceModel(ctx context.Context, id uuid.UUID) (GetDeviceMo
 
 const listDeviceModels = `-- name: ListDeviceModels :many
 SELECT
-  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at,
+  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts,
   dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at,
   m.id, m.name, m.website, m.notes, m.created_at, m.updated_at
 FROM device_models dm
@@ -172,13 +197,18 @@ WHERE dm.status::text = ANY($1::text[])
     $3::uuid IS NULL
     OR dm.manufacturer_id = $3::uuid
   )
-ORDER BY lower(m.name), lower(dm.name)
+  AND (
+    $4::mounting_type IS NULL
+    OR dm.mounting = $4::mounting_type
+  )
+ORDER BY lower(m.name), lower(dm.name), lower(coalesce(dm.variant, ''))
 `
 
 type ListDeviceModelsParams struct {
 	Statuses       []string
 	DeviceTypeID   *uuid.UUID
 	ManufacturerID *uuid.UUID
+	Mounting       NullMountingType
 }
 
 type ListDeviceModelsRow struct {
@@ -188,7 +218,12 @@ type ListDeviceModelsRow struct {
 }
 
 func (q *Queries) ListDeviceModels(ctx context.Context, arg ListDeviceModelsParams) ([]ListDeviceModelsRow, error) {
-	rows, err := q.db.Query(ctx, listDeviceModels, arg.Statuses, arg.DeviceTypeID, arg.ManufacturerID)
+	rows, err := q.db.Query(ctx, listDeviceModels,
+		arg.Statuses,
+		arg.DeviceTypeID,
+		arg.ManufacturerID,
+		arg.Mounting,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -214,6 +249,11 @@ func (q *Queries) ListDeviceModels(ctx context.Context, arg ListDeviceModelsPara
 			&i.DeviceModel.Status,
 			&i.DeviceModel.CreatedAt,
 			&i.DeviceModel.UpdatedAt,
+			&i.DeviceModel.Website,
+			&i.DeviceModel.Variant,
+			&i.DeviceModel.PoeInStandard,
+			&i.DeviceModel.PoeOutStandard,
+			&i.DeviceModel.PoeBudgetWatts,
 			&i.DeviceType.ID,
 			&i.DeviceType.Code,
 			&i.DeviceType.Name,
@@ -246,17 +286,22 @@ SET
   manufacturer_id = $2,
   name = $3,
   part_number = $4,
-  width_mm = $5,
-  height_mm = $6,
-  depth_mm = $7,
-  rack_units = $8,
-  mounting = $9,
-  power_watts_max = $10,
-  poe_in = $11,
-  poe_out = $12,
-  notes = $13,
+  website = $5,
+  variant = $6,
+  width_mm = $7,
+  height_mm = $8,
+  depth_mm = $9,
+  rack_units = $10,
+  mounting = $11,
+  power_watts_max = $12,
+  poe_in = $13,
+  poe_out = $14,
+  poe_in_standard = $15,
+  poe_out_standard = $16,
+  poe_budget_watts = $17,
+  notes = $18,
   updated_at = now()
-WHERE id = $14
+WHERE id = $19
 RETURNING id
 `
 
@@ -265,6 +310,8 @@ type UpdateDeviceModelParams struct {
 	ManufacturerID uuid.UUID
 	Name           string
 	PartNumber     *string
+	Website        *string
+	Variant        *string
 	WidthMm        *int32
 	HeightMm       *int32
 	DepthMm        *int32
@@ -273,6 +320,9 @@ type UpdateDeviceModelParams struct {
 	PowerWattsMax  *int32
 	PoeIn          bool
 	PoeOut         bool
+	PoeInStandard  NullPoeStandard
+	PoeOutStandard NullPoeStandard
+	PoeBudgetWatts *int32
 	Notes          *string
 	ID             uuid.UUID
 }
@@ -283,6 +333,8 @@ func (q *Queries) UpdateDeviceModel(ctx context.Context, arg UpdateDeviceModelPa
 		arg.ManufacturerID,
 		arg.Name,
 		arg.PartNumber,
+		arg.Website,
+		arg.Variant,
 		arg.WidthMm,
 		arg.HeightMm,
 		arg.DepthMm,
@@ -291,6 +343,9 @@ func (q *Queries) UpdateDeviceModel(ctx context.Context, arg UpdateDeviceModelPa
 		arg.PowerWattsMax,
 		arg.PoeIn,
 		arg.PoeOut,
+		arg.PoeInStandard,
+		arg.PoeOutStandard,
+		arg.PoeBudgetWatts,
 		arg.Notes,
 		arg.ID,
 	)

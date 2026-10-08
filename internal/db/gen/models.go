@@ -149,6 +149,50 @@ func (ns NullMountingType) Value() (driver.Value, error) {
 	return string(ns.MountingType), nil
 }
 
+type PoeStandard string
+
+const (
+	PoeStandardAf      PoeStandard = "af"
+	PoeStandardAt      PoeStandard = "at"
+	PoeStandardBt      PoeStandard = "bt"
+	PoeStandardPassive PoeStandard = "passive"
+)
+
+func (e *PoeStandard) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PoeStandard(s)
+	case string:
+		*e = PoeStandard(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PoeStandard: %T", src)
+	}
+	return nil
+}
+
+type NullPoeStandard struct {
+	PoeStandard PoeStandard
+	Valid       bool // Valid is true if PoeStandard is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPoeStandard) Scan(value interface{}) error {
+	if value == nil {
+		ns.PoeStandard, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PoeStandard.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPoeStandard) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PoeStandard), nil
+}
+
 type Asset struct {
 	ID               uuid.UUID
 	StoragePath      string
@@ -231,6 +275,11 @@ type DeviceModel struct {
 	Status         LifecycleStatus
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+	Website        *string
+	Variant        *string
+	PoeInStandard  NullPoeStandard
+	PoeOutStandard NullPoeStandard
+	PoeBudgetWatts *int32
 }
 
 type DeviceType struct {

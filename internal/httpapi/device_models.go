@@ -17,23 +17,28 @@ import (
 )
 
 type DeviceModelResponse struct {
-	ID            uuid.UUID                `json:"id"`
-	DeviceType    DeviceTypeResponse       `json:"deviceType"`
-	Manufacturer  ManufacturerResponse     `json:"manufacturer"`
-	Name          string                   `json:"name"`
-	PartNumber    *string                  `json:"partNumber,omitempty"`
-	WidthMm       *int32                   `json:"widthMm,omitempty"`
-	HeightMm      *int32                   `json:"heightMm,omitempty"`
-	DepthMm       *int32                   `json:"depthMm,omitempty"`
-	RackUnits     *int16                   `json:"rackUnits,omitempty"`
-	Mounting      *apitypes.MountingType   `json:"mounting,omitempty"`
-	PowerWattsMax *int32                   `json:"powerWattsMax,omitempty" doc:"Maximum power draw in watts"`
-	PoeIn         bool                     `json:"poeIn" doc:"Can be powered over Ethernet"`
-	PoeOut        bool                     `json:"poeOut" doc:"Can power other devices over Ethernet"`
-	Notes         *string                  `json:"notes,omitempty"`
-	Status        apitypes.LifecycleStatus `json:"status"`
-	CreatedAt     time.Time                `json:"createdAt"`
-	UpdatedAt     time.Time                `json:"updatedAt"`
+	ID             uuid.UUID                `json:"id"`
+	DeviceType     DeviceTypeResponse       `json:"deviceType"`
+	Manufacturer   ManufacturerResponse     `json:"manufacturer"`
+	Name           string                   `json:"name"`
+	PartNumber     *string                  `json:"partNumber,omitempty"`
+	Website        *string                  `json:"website,omitempty" doc:"The model's page on the manufacturer's site"`
+	Variant        *string                  `json:"variant,omitempty" doc:"A hardware revision or variant sold under the same name, such as rev 2"`
+	WidthMm        *int32                   `json:"widthMm,omitempty"`
+	HeightMm       *int32                   `json:"heightMm,omitempty"`
+	DepthMm        *int32                   `json:"depthMm,omitempty"`
+	RackUnits      *int16                   `json:"rackUnits,omitempty"`
+	Mounting       *apitypes.MountingType   `json:"mounting,omitempty"`
+	PowerWattsMax  *int32                   `json:"powerWattsMax,omitempty" doc:"Maximum power draw in watts"`
+	PoeIn          bool                     `json:"poeIn" doc:"Can be powered over Ethernet"`
+	PoeOut         bool                     `json:"poeOut" doc:"Can power other devices over Ethernet"`
+	PoeInStandard  *apitypes.PoeStandard    `json:"poeInStandard,omitempty" doc:"The PoE standard the model needs when powered over Ethernet; only with poeIn"`
+	PoeOutStandard *apitypes.PoeStandard    `json:"poeOutStandard,omitempty" doc:"The highest PoE standard the model supplies; only with poeOut"`
+	PoeBudgetWatts *int32                   `json:"poeBudgetWatts,omitempty" doc:"Total power the model can supply over PoE, in watts; only with poeOut"`
+	Notes          *string                  `json:"notes,omitempty"`
+	Status         apitypes.LifecycleStatus `json:"status"`
+	CreatedAt      time.Time                `json:"createdAt"`
+	UpdatedAt      time.Time                `json:"updatedAt"`
 }
 
 type GetDeviceModelInput struct {
@@ -44,6 +49,7 @@ type ListDeviceModelsInput struct {
 	Status         []apitypes.LifecycleStatus `query:"status" doc:"Lifecycle statuses to include. Defaults to planned and active, which keeps models that are no longer available/used out of the default lists without hiding them from a direct lookup."`
 	DeviceTypeID   uuid.UUID                  `query:"deviceTypeId" doc:"Only return models of this device type. Omit it to list models of every type."`
 	ManufacturerID uuid.UUID                  `query:"manufacturerId" doc:"Only return models made by this manufacturer. Omit it to list models of every manufacturer."`
+	Mounting       apitypes.MountingType      `query:"mounting" doc:"Only return models mounted this way. Omit it to list models however they are mounted."`
 }
 
 type CreateDeviceModelRequest struct {
@@ -51,6 +57,8 @@ type CreateDeviceModelRequest struct {
 	ManufacturerID uuid.UUID                `json:"manufacturerId"`
 	Name           string                   `json:"name" minLength:"1"`
 	PartNumber     *string                  `json:"partNumber,omitempty"`
+	Website        *string                  `json:"website,omitempty" doc:"The model's page on the manufacturer's site"`
+	Variant        *string                  `json:"variant,omitempty" doc:"A hardware revision or variant sold under the same name, such as rev 2"`
 	WidthMm        *int32                   `json:"widthMm,omitempty" minimum:"1"`
 	HeightMm       *int32                   `json:"heightMm,omitempty" minimum:"1"`
 	DepthMm        *int32                   `json:"depthMm,omitempty" minimum:"1"`
@@ -59,6 +67,9 @@ type CreateDeviceModelRequest struct {
 	PowerWattsMax  *int32                   `json:"powerWattsMax,omitempty" minimum:"1" doc:"Maximum power draw in watts"`
 	PoeIn          bool                     `json:"poeIn,omitempty" doc:"Can be powered over Ethernet"`
 	PoeOut         bool                     `json:"poeOut,omitempty" doc:"Can power other devices over Ethernet"`
+	PoeInStandard  *apitypes.PoeStandard    `json:"poeInStandard,omitempty" doc:"The PoE standard the model needs when powered over Ethernet; only with poeIn"`
+	PoeOutStandard *apitypes.PoeStandard    `json:"poeOutStandard,omitempty" doc:"The highest PoE standard the model supplies; only with poeOut"`
+	PoeBudgetWatts *int32                   `json:"poeBudgetWatts,omitempty" minimum:"1" doc:"Total power the model can supply over PoE, in watts; only with poeOut"`
 	Notes          *string                  `json:"notes,omitempty"`
 	Status         apitypes.LifecycleStatus `json:"status"`
 }
@@ -72,6 +83,8 @@ type UpdateDeviceModelRequest struct {
 	ManufacturerID uuid.UUID              `json:"manufacturerId"`
 	Name           string                 `json:"name" minLength:"1"`
 	PartNumber     *string                `json:"partNumber,omitempty"`
+	Website        *string                `json:"website,omitempty" doc:"The model's page on the manufacturer's site"`
+	Variant        *string                `json:"variant,omitempty" doc:"A hardware revision or variant sold under the same name, such as rev 2"`
 	WidthMm        *int32                 `json:"widthMm,omitempty" minimum:"1"`
 	HeightMm       *int32                 `json:"heightMm,omitempty" minimum:"1"`
 	DepthMm        *int32                 `json:"depthMm,omitempty" minimum:"1"`
@@ -80,6 +93,9 @@ type UpdateDeviceModelRequest struct {
 	PowerWattsMax  *int32                 `json:"powerWattsMax,omitempty" minimum:"1" doc:"Maximum power draw in watts"`
 	PoeIn          bool                   `json:"poeIn,omitempty" doc:"Can be powered over Ethernet"`
 	PoeOut         bool                   `json:"poeOut,omitempty" doc:"Can power other devices over Ethernet"`
+	PoeInStandard  *apitypes.PoeStandard  `json:"poeInStandard,omitempty" doc:"The PoE standard the model needs when powered over Ethernet; only with poeIn"`
+	PoeOutStandard *apitypes.PoeStandard  `json:"poeOutStandard,omitempty" doc:"The highest PoE standard the model supplies; only with poeOut"`
+	PoeBudgetWatts *int32                 `json:"poeBudgetWatts,omitempty" minimum:"1" doc:"Total power the model can supply over PoE, in watts; only with poeOut"`
 	Notes          *string                `json:"notes,omitempty"`
 }
 
@@ -173,6 +189,7 @@ func RegisterDeviceModels(api huma.API, q *gen.Queries) {
 			Statuses:       apitypes.LifecycleStatusStrings(statuses),
 			DeviceTypeID:   deviceTypeID,
 			ManufacturerID: manufacturerID,
+			Mounting:       mountingFilter(in.Mounting),
 		})
 		if err != nil {
 			return nil, huma.Error500InternalServerError(
@@ -246,6 +263,8 @@ func RegisterDeviceModels(api huma.API, q *gen.Queries) {
 			ManufacturerID: in.Body.ManufacturerID,
 			Name:           in.Body.Name,
 			PartNumber:     in.Body.PartNumber,
+			Website:        in.Body.Website,
+			Variant:        in.Body.Variant,
 			WidthMm:        in.Body.WidthMm,
 			HeightMm:       in.Body.HeightMm,
 			DepthMm:        in.Body.DepthMm,
@@ -254,6 +273,9 @@ func RegisterDeviceModels(api huma.API, q *gen.Queries) {
 			PowerWattsMax:  in.Body.PowerWattsMax,
 			PoeIn:          in.Body.PoeIn,
 			PoeOut:         in.Body.PoeOut,
+			PoeInStandard:  poeStandardParam(in.Body.PoeInStandard),
+			PoeOutStandard: poeStandardParam(in.Body.PoeOutStandard),
+			PoeBudgetWatts: in.Body.PoeBudgetWatts,
 			Notes:          in.Body.Notes,
 			Status:         gen.LifecycleStatus(in.Body.Status),
 		})
@@ -294,6 +316,8 @@ func RegisterDeviceModels(api huma.API, q *gen.Queries) {
 			ManufacturerID: in.Body.ManufacturerID,
 			Name:           in.Body.Name,
 			PartNumber:     in.Body.PartNumber,
+			Website:        in.Body.Website,
+			Variant:        in.Body.Variant,
 			WidthMm:        in.Body.WidthMm,
 			HeightMm:       in.Body.HeightMm,
 			DepthMm:        in.Body.DepthMm,
@@ -302,6 +326,9 @@ func RegisterDeviceModels(api huma.API, q *gen.Queries) {
 			PowerWattsMax:  in.Body.PowerWattsMax,
 			PoeIn:          in.Body.PoeIn,
 			PoeOut:         in.Body.PoeOut,
+			PoeInStandard:  poeStandardParam(in.Body.PoeInStandard),
+			PoeOutStandard: poeStandardParam(in.Body.PoeOutStandard),
+			PoeBudgetWatts: in.Body.PoeBudgetWatts,
 			Notes:          in.Body.Notes,
 		})
 		if err != nil {
@@ -374,7 +401,7 @@ func deviceModelCheckError(err error) error {
 		}
 	case "23505":
 		return huma.Error409Conflict(
-			"this manufacturer already has a model with that name",
+			"this manufacturer already has a model with that name and variant",
 		)
 	case "23514":
 		switch pgErr.ConstraintName {
@@ -382,6 +409,20 @@ func deviceModelCheckError(err error) error {
 			return huma.Error422UnprocessableEntity("name cannot be blank")
 		case "device_model_part_number_not_blank":
 			return huma.Error422UnprocessableEntity("part number cannot be blank")
+		case "device_model_website_not_blank":
+			return huma.Error422UnprocessableEntity("website cannot be blank")
+		case "device_model_variant_not_blank":
+			return huma.Error422UnprocessableEntity("variant cannot be blank")
+		case "device_model_poe_in_details":
+			return huma.Error422UnprocessableEntity(
+				"a PoE input standard needs poeIn",
+			)
+		case "device_model_poe_out_details":
+			return huma.Error422UnprocessableEntity(
+				"a PoE output standard or budget needs poeOut",
+			)
+		case "device_model_poe_budget_positive":
+			return huma.Error422UnprocessableEntity("PoE budget must be positive")
 		case "device_model_dimensions_positive":
 			return huma.Error422UnprocessableEntity("dimensions must be positive")
 		case "device_model_rack_units_positive":
@@ -393,6 +434,42 @@ func deviceModelCheckError(err error) error {
 		}
 	default:
 		return nil
+	}
+}
+
+// poeStandardParam turns an optional PoE standard from a request into the
+// nullable enum the generated queries take.
+func poeStandardParam(standard *apitypes.PoeStandard) gen.NullPoeStandard {
+	if standard == nil {
+		return gen.NullPoeStandard{}
+	}
+
+	return gen.NullPoeStandard{
+		PoeStandard: gen.PoeStandard(*standard),
+		Valid:       true,
+	}
+}
+
+func poeStandardResponse(standard gen.NullPoeStandard) *apitypes.PoeStandard {
+	if !standard.Valid {
+		return nil
+	}
+
+	value := apitypes.PoeStandard(standard.PoeStandard)
+
+	return &value
+}
+
+// mountingFilter turns the optional mounting query parameter, empty when it was
+// left out, into the nullable enum the list query takes.
+func mountingFilter(mounting apitypes.MountingType) gen.NullMountingType {
+	if mounting == "" {
+		return gen.NullMountingType{}
+	}
+
+	return gen.NullMountingType{
+		MountingType: gen.MountingType(mounting),
+		Valid:        true,
 	}
 }
 
@@ -437,22 +514,27 @@ func deviceModelResponse(
 	}
 
 	return DeviceModelResponse{
-		ID:            model.ID,
-		DeviceType:    deviceTypeResponse(deviceType),
-		Manufacturer:  manufacturerResponse(manufacturer),
-		Name:          model.Name,
-		PartNumber:    model.PartNumber,
-		WidthMm:       model.WidthMm,
-		HeightMm:      model.HeightMm,
-		DepthMm:       model.DepthMm,
-		RackUnits:     model.RackUnits,
-		Mounting:      mounting,
-		PowerWattsMax: model.PowerWattsMax,
-		PoeIn:         model.PoeIn,
-		PoeOut:        model.PoeOut,
-		Notes:         model.Notes,
-		Status:        apitypes.LifecycleStatus(model.Status),
-		CreatedAt:     model.CreatedAt,
-		UpdatedAt:     model.UpdatedAt,
+		ID:             model.ID,
+		DeviceType:     deviceTypeResponse(deviceType),
+		Manufacturer:   manufacturerResponse(manufacturer),
+		Name:           model.Name,
+		PartNumber:     model.PartNumber,
+		Website:        model.Website,
+		Variant:        model.Variant,
+		WidthMm:        model.WidthMm,
+		HeightMm:       model.HeightMm,
+		DepthMm:        model.DepthMm,
+		RackUnits:      model.RackUnits,
+		Mounting:       mounting,
+		PowerWattsMax:  model.PowerWattsMax,
+		PoeIn:          model.PoeIn,
+		PoeOut:         model.PoeOut,
+		PoeInStandard:  poeStandardResponse(model.PoeInStandard),
+		PoeOutStandard: poeStandardResponse(model.PoeOutStandard),
+		PoeBudgetWatts: model.PoeBudgetWatts,
+		Notes:          model.Notes,
+		Status:         apitypes.LifecycleStatus(model.Status),
+		CreatedAt:      model.CreatedAt,
+		UpdatedAt:      model.UpdatedAt,
 	}
 }

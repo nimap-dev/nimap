@@ -13,7 +13,8 @@ import * as zod from 'zod';
 export const ListDeviceModelsQueryParams = zod.object({
   "status": zod.array(zod.enum(['planned', 'active', 'decommissioned', 'archived'])).optional().describe('Lifecycle statuses to include. Defaults to planned and active, which keeps models that are no longer available\/used out of the default lists without hiding them from a direct lookup.'),
   "deviceTypeId": zod.string().optional().describe('Only return models of this device type. Omit it to list models of every type.'),
-  "manufacturerId": zod.string().optional().describe('Only return models made by this manufacturer. Omit it to list models of every manufacturer.')
+  "manufacturerId": zod.string().optional().describe('Only return models made by this manufacturer. Omit it to list models of every manufacturer.'),
+  "mounting": zod.enum(['rack', 'wall', 'desktop', 'din_rail', 'ceiling', 'pole', 'embedded', 'other']).optional().describe('Only return models mounted this way. Omit it to list models however they are mounted.')
 })
 
 export const ListDeviceModelsResponseItem = zod.object({
@@ -43,12 +44,17 @@ export const ListDeviceModelsResponseItem = zod.object({
   "name": zod.string(),
   "notes": zod.string().optional(),
   "partNumber": zod.string().optional(),
+  "poeBudgetWatts": zod.int().optional().describe('Total power the model can supply over PoE, in watts; only with poeOut'),
   "poeIn": zod.boolean().describe('Can be powered over Ethernet'),
+  "poeInStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The PoE standard the model needs when powered over Ethernet; only with poeIn'),
   "poeOut": zod.boolean().describe('Can power other devices over Ethernet'),
+  "poeOutStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The highest PoE standard the model supplies; only with poeOut'),
   "powerWattsMax": zod.int().optional().describe('Maximum power draw in watts'),
   "rackUnits": zod.int().optional(),
   "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
   "updatedAt": zod.iso.datetime({"offset":true}),
+  "variant": zod.string().optional().describe('A hardware revision or variant sold under the same name, such as rev 2'),
+  "website": zod.string().optional().describe('The model\'s page on the manufacturer\'s site'),
   "widthMm": zod.int().optional()
 })
 export const ListDeviceModelsResponse = zod.array(ListDeviceModelsResponseItem)
@@ -56,6 +62,7 @@ export const ListDeviceModelsResponse = zod.array(ListDeviceModelsResponseItem)
 /**
  * @summary Creates a device model
  */
+
 
 
 
@@ -73,11 +80,16 @@ export const CreateDeviceModelBody = zod.object({
   "name": zod.string().min(1),
   "notes": zod.string().optional(),
   "partNumber": zod.string().optional(),
+  "poeBudgetWatts": zod.int().min(1).optional().describe('Total power the model can supply over PoE, in watts; only with poeOut'),
   "poeIn": zod.boolean().optional().describe('Can be powered over Ethernet'),
+  "poeInStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The PoE standard the model needs when powered over Ethernet; only with poeIn'),
   "poeOut": zod.boolean().optional().describe('Can power other devices over Ethernet'),
+  "poeOutStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The highest PoE standard the model supplies; only with poeOut'),
   "powerWattsMax": zod.int().min(1).optional().describe('Maximum power draw in watts'),
   "rackUnits": zod.int().min(1).optional(),
   "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
+  "variant": zod.string().optional().describe('A hardware revision or variant sold under the same name, such as rev 2'),
+  "website": zod.string().optional().describe('The model\'s page on the manufacturer\'s site'),
   "widthMm": zod.int().min(1).optional()
 })
 
@@ -108,12 +120,17 @@ export const CreateDeviceModelResponse = zod.object({
   "name": zod.string(),
   "notes": zod.string().optional(),
   "partNumber": zod.string().optional(),
+  "poeBudgetWatts": zod.int().optional().describe('Total power the model can supply over PoE, in watts; only with poeOut'),
   "poeIn": zod.boolean().describe('Can be powered over Ethernet'),
+  "poeInStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The PoE standard the model needs when powered over Ethernet; only with poeIn'),
   "poeOut": zod.boolean().describe('Can power other devices over Ethernet'),
+  "poeOutStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The highest PoE standard the model supplies; only with poeOut'),
   "powerWattsMax": zod.int().optional().describe('Maximum power draw in watts'),
   "rackUnits": zod.int().optional(),
   "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
   "updatedAt": zod.iso.datetime({"offset":true}),
+  "variant": zod.string().optional().describe('A hardware revision or variant sold under the same name, such as rev 2'),
+  "website": zod.string().optional().describe('The model\'s page on the manufacturer\'s site'),
   "widthMm": zod.int().optional()
 })
 
@@ -160,12 +177,17 @@ export const GetDeviceModelResponse = zod.object({
   "name": zod.string(),
   "notes": zod.string().optional(),
   "partNumber": zod.string().optional(),
+  "poeBudgetWatts": zod.int().optional().describe('Total power the model can supply over PoE, in watts; only with poeOut'),
   "poeIn": zod.boolean().describe('Can be powered over Ethernet'),
+  "poeInStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The PoE standard the model needs when powered over Ethernet; only with poeIn'),
   "poeOut": zod.boolean().describe('Can power other devices over Ethernet'),
+  "poeOutStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The highest PoE standard the model supplies; only with poeOut'),
   "powerWattsMax": zod.int().optional().describe('Maximum power draw in watts'),
   "rackUnits": zod.int().optional(),
   "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
   "updatedAt": zod.iso.datetime({"offset":true}),
+  "variant": zod.string().optional().describe('A hardware revision or variant sold under the same name, such as rev 2'),
+  "website": zod.string().optional().describe('The model\'s page on the manufacturer\'s site'),
   "widthMm": zod.int().optional()
 })
 
@@ -184,6 +206,7 @@ export const UpdateDeviceModelParams = zod.object({
 
 
 
+
 export const UpdateDeviceModelBody = zod.object({
   "depthMm": zod.int().min(1).optional(),
   "deviceTypeId": zod.string(),
@@ -193,10 +216,15 @@ export const UpdateDeviceModelBody = zod.object({
   "name": zod.string().min(1),
   "notes": zod.string().optional(),
   "partNumber": zod.string().optional(),
+  "poeBudgetWatts": zod.int().min(1).optional().describe('Total power the model can supply over PoE, in watts; only with poeOut'),
   "poeIn": zod.boolean().optional().describe('Can be powered over Ethernet'),
+  "poeInStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The PoE standard the model needs when powered over Ethernet; only with poeIn'),
   "poeOut": zod.boolean().optional().describe('Can power other devices over Ethernet'),
+  "poeOutStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The highest PoE standard the model supplies; only with poeOut'),
   "powerWattsMax": zod.int().min(1).optional().describe('Maximum power draw in watts'),
   "rackUnits": zod.int().min(1).optional(),
+  "variant": zod.string().optional().describe('A hardware revision or variant sold under the same name, such as rev 2'),
+  "website": zod.string().optional().describe('The model\'s page on the manufacturer\'s site'),
   "widthMm": zod.int().min(1).optional()
 })
 
@@ -227,12 +255,17 @@ export const UpdateDeviceModelResponse = zod.object({
   "name": zod.string(),
   "notes": zod.string().optional(),
   "partNumber": zod.string().optional(),
+  "poeBudgetWatts": zod.int().optional().describe('Total power the model can supply over PoE, in watts; only with poeOut'),
   "poeIn": zod.boolean().describe('Can be powered over Ethernet'),
+  "poeInStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The PoE standard the model needs when powered over Ethernet; only with poeIn'),
   "poeOut": zod.boolean().describe('Can power other devices over Ethernet'),
+  "poeOutStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The highest PoE standard the model supplies; only with poeOut'),
   "powerWattsMax": zod.int().optional().describe('Maximum power draw in watts'),
   "rackUnits": zod.int().optional(),
   "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
   "updatedAt": zod.iso.datetime({"offset":true}),
+  "variant": zod.string().optional().describe('A hardware revision or variant sold under the same name, such as rev 2'),
+  "website": zod.string().optional().describe('The model\'s page on the manufacturer\'s site'),
   "widthMm": zod.int().optional()
 })
 
@@ -274,12 +307,17 @@ export const UpdateDeviceModelStatusResponse = zod.object({
   "name": zod.string(),
   "notes": zod.string().optional(),
   "partNumber": zod.string().optional(),
+  "poeBudgetWatts": zod.int().optional().describe('Total power the model can supply over PoE, in watts; only with poeOut'),
   "poeIn": zod.boolean().describe('Can be powered over Ethernet'),
+  "poeInStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The PoE standard the model needs when powered over Ethernet; only with poeIn'),
   "poeOut": zod.boolean().describe('Can power other devices over Ethernet'),
+  "poeOutStandard": zod.enum(['af', 'at', 'bt', 'passive']).optional().describe('The highest PoE standard the model supplies; only with poeOut'),
   "powerWattsMax": zod.int().optional().describe('Maximum power draw in watts'),
   "rackUnits": zod.int().optional(),
   "status": zod.enum(['planned', 'active', 'decommissioned', 'archived']),
   "updatedAt": zod.iso.datetime({"offset":true}),
+  "variant": zod.string().optional().describe('A hardware revision or variant sold under the same name, such as rev 2'),
+  "website": zod.string().optional().describe('The model\'s page on the manufacturer\'s site'),
   "widthMm": zod.int().optional()
 })
 

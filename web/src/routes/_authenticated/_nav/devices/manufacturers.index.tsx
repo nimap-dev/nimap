@@ -3,6 +3,7 @@ import type { ManufacturerResponse } from '#/api/model'
 import { DataTable } from '#/components/data-table/data-table'
 import { DataTableColumnHeader } from '#/components/data-table/data-table-column-header'
 import type { DataTableFeatures } from '#/components/data-table/data-table-features'
+import { MutedCell } from '#/components/data-table/muted-cell'
 import { TableSkeleton } from '#/components/data-table/table-skeleton'
 import { Panel } from '#/components/panel'
 import { Button } from '#/components/ui/button'
@@ -66,7 +67,7 @@ const columns = columnHelper.columns([
         )
       }
 
-      return <span className="text-muted-foreground">-</span>
+      return <MutedCell />
     },
   }),
   columnHelper.accessor('updatedAt', {

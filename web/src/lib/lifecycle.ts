@@ -26,6 +26,18 @@ export const ALL_LIFECYCLE_STATUSES: LifecycleStatus[] = [
   BuildingResponseStatus.archived,
 ]
 
+/**
+ * Whether a status filter is the default one, in any order. A list keeping its
+ * filter in the URL uses it to leave the default out, so the plain list keeps
+ * a plain address.
+ */
+export function isDefaultLifecycleStatuses(statuses: LifecycleStatus[]) {
+  return (
+    statuses.length === DEFAULT_LIFECYCLE_STATUSES.length &&
+    DEFAULT_LIFECYCLE_STATUSES.every((status) => statuses.includes(status))
+  )
+}
+
 // Orval mints a separate enum per schema, but every one of them carries the
 // same lifecycle values, so a single table of labels covers all of them.
 export const lifecycleStatusLabels: Record<BuildingResponseStatus, string> = {

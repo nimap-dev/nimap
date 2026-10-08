@@ -4,6 +4,7 @@
  * nimap API
  * OpenAPI spec version: dev
  */
+import type { ListDeviceModelsMounting } from './listDeviceModelsMounting.ts';
 import type { ListDeviceModelsStatusItem } from './listDeviceModelsStatusItem.ts';
 
 export type ListDeviceModelsParams = {
@@ -19,4 +20,8 @@ deviceTypeId?: string;
  * Only return models made by this manufacturer. Omit it to list models of every manufacturer.
  */
 manufacturerId?: string;
+/**
+ * Only return models mounted this way. Omit it to list models however they are mounted.
+ */
+mounting?: ListDeviceModelsMounting;
 };

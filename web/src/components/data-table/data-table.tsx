@@ -79,7 +79,7 @@ export function DataTable<TData extends RowData>({
   return (
     <div className={cn('flex flex-col gap-4', className)}>
       {(search || actions) && (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {search && (
             <Input
               type="search"
@@ -87,7 +87,7 @@ export function DataTable<TData extends RowData>({
               onChange={(event) => search.onChange(event.target.value)}
               placeholder={searchPlaceholder}
               aria-label={searchPlaceholder}
-              className="flex-1"
+              className="min-w-48 flex-1"
             />
           )}
           {actions}

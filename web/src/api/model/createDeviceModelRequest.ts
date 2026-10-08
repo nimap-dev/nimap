@@ -5,6 +5,8 @@
  * OpenAPI spec version: dev
  */
 import type { CreateDeviceModelRequestMounting } from './createDeviceModelRequestMounting.ts';
+import type { CreateDeviceModelRequestPoeInStandard } from './createDeviceModelRequestPoeInStandard.ts';
+import type { CreateDeviceModelRequestPoeOutStandard } from './createDeviceModelRequestPoeOutStandard.ts';
 import type { CreateDeviceModelRequestStatus } from './createDeviceModelRequestStatus.ts';
 
 export interface CreateDeviceModelRequest {
@@ -21,10 +23,19 @@ export interface CreateDeviceModelRequest {
   name: string;
   notes?: string;
   partNumber?: string;
+  /**
+     * Total power the model can supply over PoE, in watts; only with poeOut
+     * @minimum 1
+     */
+  poeBudgetWatts?: number;
   /** Can be powered over Ethernet */
   poeIn?: boolean;
+  /** The PoE standard the model needs when powered over Ethernet; only with poeIn */
+  poeInStandard?: CreateDeviceModelRequestPoeInStandard;
   /** Can power other devices over Ethernet */
   poeOut?: boolean;
+  /** The highest PoE standard the model supplies; only with poeOut */
+  poeOutStandard?: CreateDeviceModelRequestPoeOutStandard;
   /**
      * Maximum power draw in watts
      * @minimum 1
@@ -33,6 +44,10 @@ export interface CreateDeviceModelRequest {
   /** @minimum 1 */
   rackUnits?: number;
   status: CreateDeviceModelRequestStatus;
+  /** A hardware revision or variant sold under the same name, such as rev 2 */
+  variant?: string;
+  /** The model's page on the manufacturer's site */
+  website?: string;
   /** @minimum 1 */
   widthMm?: number;
 }

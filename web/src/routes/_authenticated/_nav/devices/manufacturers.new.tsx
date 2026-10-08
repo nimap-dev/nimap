@@ -10,7 +10,7 @@ import { Panel } from '#/components/panel'
 import { FieldGroup } from '#/components/ui/field'
 import { toast } from '#/components/ui/toast'
 import { can } from '#/lib/auth'
-import { manufacturerWebsiteSchema } from '#/lib/manufacturers'
+import { websiteSchema } from '#/lib/website'
 import { optional } from '#/lib/utils'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
@@ -114,7 +114,7 @@ function NewManufacturer() {
             />
             <form.Field
               name="website"
-              validators={{ onChange: manufacturerWebsiteSchema }}
+              validators={{ onChange: websiteSchema }}
               children={(field) => (
                 <TextField
                   field={field}

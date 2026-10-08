@@ -195,12 +195,33 @@ components:
           type: string
         partNumber:
           type: string
+        poeBudgetWatts:
+          description: Total power the model can supply over PoE, in watts; only with poeOut
+          format: int32
+          minimum: 1
+          type: integer
         poeIn:
           description: Can be powered over Ethernet
           type: boolean
+        poeInStandard:
+          description: The PoE standard the model needs when powered over Ethernet; only with poeIn
+          enum:
+            - af
+            - at
+            - bt
+            - passive
+          type: string
         poeOut:
           description: Can power other devices over Ethernet
           type: boolean
+        poeOutStandard:
+          description: The highest PoE standard the model supplies; only with poeOut
+          enum:
+            - af
+            - at
+            - bt
+            - passive
+          type: string
         powerWattsMax:
           description: Maximum power draw in watts
           format: int32
@@ -216,6 +237,12 @@ components:
             - active
             - decommissioned
             - archived
+          type: string
+        variant:
+          description: A hardware revision or variant sold under the same name, such as rev 2
+          type: string
+        website:
+          description: The model's page on the manufacturer's site
           type: string
         widthMm:
           format: int32
@@ -342,12 +369,32 @@ components:
           type: string
         partNumber:
           type: string
+        poeBudgetWatts:
+          description: Total power the model can supply over PoE, in watts; only with poeOut
+          format: int32
+          type: integer
         poeIn:
           description: Can be powered over Ethernet
           type: boolean
+        poeInStandard:
+          description: The PoE standard the model needs when powered over Ethernet; only with poeIn
+          enum:
+            - af
+            - at
+            - bt
+            - passive
+          type: string
         poeOut:
           description: Can power other devices over Ethernet
           type: boolean
+        poeOutStandard:
+          description: The highest PoE standard the model supplies; only with poeOut
+          enum:
+            - af
+            - at
+            - bt
+            - passive
+          type: string
         powerWattsMax:
           description: Maximum power draw in watts
           format: int32
@@ -364,6 +411,12 @@ components:
           type: string
         updatedAt:
           format: date-time
+          type: string
+        variant:
+          description: A hardware revision or variant sold under the same name, such as rev 2
+          type: string
+        website:
+          description: The model's page on the manufacturer's site
           type: string
         widthMm:
           format: int32
@@ -792,12 +845,33 @@ components:
           type: string
         partNumber:
           type: string
+        poeBudgetWatts:
+          description: Total power the model can supply over PoE, in watts; only with poeOut
+          format: int32
+          minimum: 1
+          type: integer
         poeIn:
           description: Can be powered over Ethernet
           type: boolean
+        poeInStandard:
+          description: The PoE standard the model needs when powered over Ethernet; only with poeIn
+          enum:
+            - af
+            - at
+            - bt
+            - passive
+          type: string
         poeOut:
           description: Can power other devices over Ethernet
           type: boolean
+        poeOutStandard:
+          description: The highest PoE standard the model supplies; only with poeOut
+          enum:
+            - af
+            - at
+            - bt
+            - passive
+          type: string
         powerWattsMax:
           description: Maximum power draw in watts
           format: int32
@@ -807,6 +881,12 @@ components:
           format: int32
           minimum: 1
           type: integer
+        variant:
+          description: A hardware revision or variant sold under the same name, such as rev 2
+          type: string
+        website:
+          description: The model's page on the manufacturer's site
+          type: string
         widthMm:
           format: int32
           minimum: 1
@@ -1628,6 +1708,22 @@ paths:
           name: manufacturerId
           schema:
             description: Only return models made by this manufacturer. Omit it to list models of every manufacturer.
+            type: string
+        - description: Only return models mounted this way. Omit it to list models however they are mounted.
+          explode: false
+          in: query
+          name: mounting
+          schema:
+            description: Only return models mounted this way. Omit it to list models however they are mounted.
+            enum:
+              - rack
+              - wall
+              - desktop
+              - din_rail
+              - ceiling
+              - pole
+              - embedded
+              - other
             type: string
       responses:
         "200":
