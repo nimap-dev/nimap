@@ -26,6 +26,7 @@ import {
 import { useEffect } from 'react'
 import { Panel } from '#/components/panel'
 import { can } from '#/lib/auth'
+import { optional } from '#/lib/utils'
 
 export const Route = createFileRoute('/_authenticated/_map/buildings/new')({
   beforeLoad: ({ context }) => {
@@ -60,7 +61,7 @@ function NewBuilding() {
           locationId: value.locationId,
           address: addressToRequest(value.address),
           footprint: value.footprint,
-          notes: value.notes.trim() || undefined,
+          notes: optional(value.notes),
           status: value.status,
         },
       })

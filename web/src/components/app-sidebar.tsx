@@ -1,7 +1,25 @@
 import * as React from 'react'
-import { Building2, Command, LandPlot, Map } from 'lucide-react'
+import {
+  Boxes,
+  Building2,
+  ChevronRight,
+  Command,
+  Factory,
+  LandPlot,
+  Map,
+  Router,
+  Server,
+} from 'lucide-react'
 
 import { NavUser } from '@/components/nav-user'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +30,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 import { Link } from '@tanstack/react-router'
@@ -21,25 +40,46 @@ const navMain = [
     title: 'Map',
     to: '/',
     icon: Map,
-    isActive: true,
   },
   {
     title: 'Locations',
     to: '/locations',
     icon: LandPlot,
-    isActive: true,
   },
   {
     title: 'Buildings',
     to: '/buildings',
     icon: Building2,
-    isActive: true,
+  },
+  {
+    title: 'Devices',
+    to: '/devices',
+    icon: Router,
+    children: [
+      {
+        title: 'Manufacturers',
+        to: '/devices/manufacturers',
+        icon: Factory,
+      },
+      {
+        title: 'Device models',
+        to: '/devices/models',
+        icon: Boxes,
+      },
+      {
+        title: 'Devices',
+        to: '/devices',
+        icon: Server,
+      },
+    ],
   },
 ]
 
 // A rail down the left on desktop, a bottom bar on mobile: same items, and the
 // logo drops out where the bar has no room for it.
 export function AppSidebarNav() {
+  const { isMobile } = useSidebar()
+
   return (
     <Sidebar
       collapsible="none"
@@ -69,17 +109,57 @@ export function AppSidebarNav() {
             <SidebarMenu className="flex-row gap-2 md:flex-col md:gap-0">
               {navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    tooltip={{
-                      children: item.title,
-                      hidden: false,
-                    }}
-                    className="size-10 justify-center p-0 md:h-8 md:w-full md:justify-start md:px-2"
-                    render={<Link to={item.to} />}
-                  >
-                    <item.icon />
-                    <span className="sr-only md:not-sr-only">{item.title}</span>
-                  </SidebarMenuButton>
+                  {item.children ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        openOnHover
+                        delay={50}
+                        closeDelay={150}
+                        render={
+                          <SidebarMenuButton className="size-10 justify-center p-0 data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground md:h-8 md:w-full md:justify-start md:px-2" />
+                        }
+                      >
+                        <item.icon />
+                        <span className="sr-only md:not-sr-only">
+                          {item.title}
+                        </span>
+                        <ChevronRight className="ml-auto hidden md:block" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        className="min-w-48"
+                        side={isMobile ? 'top' : 'right'}
+                        align={isMobile ? 'center' : 'start'}
+                        sideOffset={8}
+                      >
+                        <DropdownMenuGroup>
+                          <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
+                          {item.children.map((child) => (
+                            <DropdownMenuItem
+                              key={child.to}
+                              render={<Link to={child.to} />}
+                            >
+                              <child.icon />
+                              {child.title}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <SidebarMenuButton
+                      tooltip={{
+                        children: item.title,
+                        hidden: false,
+                      }}
+                      className="size-10 justify-center p-0 md:h-8 md:w-full md:justify-start md:px-2"
+                      render={<Link to={item.to} />}
+                    >
+                      <item.icon />
+                      <span className="sr-only md:not-sr-only">
+                        {item.title}
+                      </span>
+                    </SidebarMenuButton>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

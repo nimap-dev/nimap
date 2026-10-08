@@ -28,6 +28,7 @@ import {
 import { Crosshair } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { can } from '#/lib/auth'
+import { optional } from '#/lib/utils'
 
 export const Route = createFileRoute(
   '/_authenticated/_map/buildings/$buildingId_/edit',
@@ -96,7 +97,7 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
           locationId: value.locationId,
           address: addressToRequest(value.address),
           footprint: value.footprint,
-          notes: value.notes.trim() || undefined,
+          notes: optional(value.notes),
         },
       })
 

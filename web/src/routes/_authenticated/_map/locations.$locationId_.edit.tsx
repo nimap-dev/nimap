@@ -26,6 +26,7 @@ import {
 import { useEffect, useRef } from 'react'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import { can } from '#/lib/auth'
+import { optional } from '#/lib/utils'
 import { FieldGroup } from '#/components/ui/field'
 
 export const Route = createFileRoute(
@@ -107,7 +108,7 @@ function EditLocationForm({ location }: { location: LocationResponse }) {
           address: addressToRequest(value.address),
           area: value.area,
           representativePoint: value.representativePoint,
-          notes: value.notes.trim() || undefined,
+          notes: optional(value.notes),
         },
       })
 

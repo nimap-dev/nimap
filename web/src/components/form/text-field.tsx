@@ -7,7 +7,7 @@ import { Input } from '#/components/ui/input'
  * than imported: the field type is parameterised by the shape of the whole
  * form, which a component shared between five different forms cannot name.
  */
-type StringField = {
+export type StringField = {
   name: string
   state: {
     value: string
