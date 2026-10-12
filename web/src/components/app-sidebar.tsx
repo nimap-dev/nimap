@@ -11,6 +11,7 @@ import {
   Server,
 } from 'lucide-react'
 
+import { CommandPalette } from '@/components/command-palette'
 import { NavUser } from '@/components/nav-user'
 import {
   DropdownMenu,
@@ -79,6 +80,7 @@ const navMain = [
 // logo drops out where the bar has no room for it.
 export function AppSidebarNav() {
   const { isMobile } = useSidebar()
+  const [commandPaletteOpen, setCommandPaletteOpen] = React.useState(false)
 
   return (
     <Sidebar
@@ -91,7 +93,8 @@ export function AppSidebarNav() {
             <SidebarMenuButton
               size="lg"
               className="md:h-8 md:p-0"
-              render={<Link to="/" />}
+              tooltip={{ children: 'Command palette ⌘K', hidden: false }}
+              onClick={() => setCommandPaletteOpen(true)}
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 <Command className="size-4" />
@@ -102,6 +105,10 @@ export function AppSidebarNav() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <CommandPalette
+          open={commandPaletteOpen}
+          onOpenChange={setCommandPaletteOpen}
+        />
       </SidebarHeader>
       <SidebarContent className="flex-none md:flex-1">
         <SidebarGroup className="p-0 md:p-2">
