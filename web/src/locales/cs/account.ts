@@ -1,0 +1,52 @@
+export default {
+  title: 'Účet',
+  account: {
+    title: 'Účet',
+    description:
+      'Změňte své uživatelské jméno a e-mail. Potvrďte aktuálním heslem.',
+    username: 'Uživatelské jméno',
+    email: 'E-mail',
+    currentPassword: 'Aktuální heslo',
+    accountUpdated: 'Účet upraven',
+    accountNotUpdated: 'Účet se nepodařilo upravit',
+  },
+  preferences: {
+    title: 'Předvolby',
+    description: 'Zvolte vzhled rozhraní a způsob zobrazení data a času.',
+    language: 'Jazyk',
+    theme: 'Motiv',
+    timezone: 'Časové pásmo',
+    browserTimezone: 'Podle prohlížeče ({{zone}})',
+    dateFormat: 'Formát data',
+    timeFormat: 'Formát času',
+    save: 'Uložit předvolby',
+    updated: 'Předvolby uloženy',
+    notUpdated: 'Předvolby se nepodařilo uložit',
+    themes: {
+      system: 'Systém',
+      light: 'Světlý',
+      dark: 'Tmavý',
+    },
+    dateFormats: {
+      auto: 'Automaticky (podle jazyka)',
+    },
+    timeFormats: {
+      auto: 'Automaticky',
+      autoHint: 'Podle jazyka',
+      h24: '24hodinový',
+      h12: '12hodinový',
+    },
+  },
+  password: {
+    title: 'Heslo',
+    description: 'Zvolte nové heslo o délce alespoň 8 znaků.',
+    currentPassword: 'Aktuální heslo',
+    newPassword: 'Nové heslo',
+    confirmPassword: 'Potvrzení nového hesla',
+    submit: 'Změnit heslo',
+    submitting: 'Měním…',
+    changed: 'Heslo změněno',
+    couldNotChange: 'Heslo se nepodařilo změnit',
+    notChanged: 'Heslo nebylo změněno',
+  },
+}

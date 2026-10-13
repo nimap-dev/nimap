@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
 import { Button } from '#/components/ui/button'
+import { useTranslation } from 'react-i18next'
 
 /**
  * The submit-and-cancel pair every write form ends with. It takes the two flags
@@ -25,13 +26,15 @@ export function FormActions({
   /** A `<Link>` back to wherever abandoning the form should land. */
   cancel: ReactElement
 }) {
+  const { t } = useTranslation()
+
   return (
     <div className="flex items-center gap-2">
       <Button type="submit" form={formId} disabled={disabled || isSubmitting}>
         {isSubmitting ? submitting : submit}
       </Button>
       <Button variant="ghost" render={cancel} nativeButton={false}>
-        Cancel
+        {t('actions.cancel')}
       </Button>
     </div>
   )

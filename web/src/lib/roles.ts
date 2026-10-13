@@ -1,4 +1,5 @@
 import { CreateUserInputBodyRole } from '#/api/model'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Orval mints a separate enum type per schema, one for creating a user and one
@@ -8,17 +9,20 @@ import { CreateUserInputBodyRole } from '#/api/model'
  */
 export type Role = CreateUserInputBodyRole
 
-export const roleLabels: Record<CreateUserInputBodyRole, string> = {
-  [CreateUserInputBodyRole.viewer]: 'Viewer',
-  [CreateUserInputBodyRole.editor]: 'Editor',
-  [CreateUserInputBodyRole.admin]: 'Admin',
-}
-
 // Listed least privileged first, matching auth.RoleNames on the server, so the
 // options read the way the permissions stack up rather than alphabetically.
-export const roleOptions = Object.entries(roleLabels) as Array<
-  [CreateUserInputBodyRole, string]
->
+export const roles = Object.values(CreateUserInputBodyRole)
+
+/** Each role's name in the interface language. */
+export function useRoleLabels(): Record<Role, string> {
+  const { t } = useTranslation()
+
+  return {
+    viewer: t('roles.viewer'),
+    editor: t('roles.editor'),
+    admin: t('roles.admin'),
+  }
+}
 
 /**
  * The role of an account as it arrives on `User`, where it is a plain string:

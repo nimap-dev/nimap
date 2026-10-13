@@ -35,4 +35,26 @@ export default {
     title: 'Delete {{name}}?',
     description: 'This cannot be undone.',
   },
+  notFound: {
+    title: 'Not found',
+    description: "This doesn't exist, or you don't have access to it.",
+  },
+  table: {
+    search: 'Search…',
+    noResults: 'No results.',
+  },
+  /** The created/updated line under a record. */
+  meta: {
+    created: 'created {{when}}',
+    updated: 'updated {{when}}',
+  },
+  validation: {
+    passwordsMismatch: 'Passwords do not match',
+  },
+  roles: {
+    label: 'Role',
+    viewer: 'Viewer',
+    editor: 'Editor',
+    admin: 'Admin',
+  },
 }

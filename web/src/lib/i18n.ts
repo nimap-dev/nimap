@@ -39,6 +39,12 @@ void i18n.use(initReactI18next).init({
 
 /** Switches the strings, `<html lang>` and zod's validation messages. */
 export function applyLanguage(language: Language) {
+  if (
+    i18n.resolvedLanguage === language &&
+    document.documentElement.lang === language
+  )
+    return
+
   void i18n.changeLanguage(language)
   document.documentElement.lang = language
   zod.config(language === 'cs' ? zod.locales.cs() : zod.locales.en())

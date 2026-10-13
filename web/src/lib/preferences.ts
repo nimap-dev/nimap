@@ -5,6 +5,7 @@ import {
   PreferencesTimeFormat,
   PreferencesTimezone,
 } from '#/api/model'
+import type { TFunction } from 'i18next'
 import type { ChoiceFieldOption } from '#/components/form/choice-field'
 import type { SelectFieldOption } from '#/components/form/select-field'
 
@@ -20,8 +21,13 @@ export const languageOptions: Array<SelectFieldOption<Language>> = [
   { value: PreferencesLanguage.cs, label: 'Čeština' },
 ]
 
-export const dateFormatOptions: Array<SelectFieldOption<DateFormat>> = [
-  { value: PreferencesDateFormat.auto, label: 'Automatic (by language)' },
+export const dateFormatOptions = (
+  t: TFunction<'account'>,
+): Array<SelectFieldOption<DateFormat>> => [
+  {
+    value: PreferencesDateFormat.auto,
+    label: t('preferences.dateFormats.auto'),
+  },
   { value: PreferencesDateFormat.dmy_dot, label: '31.12.2026' },
   { value: PreferencesDateFormat.iso, label: '2026-12-31' },
   { value: PreferencesDateFormat.mdy_slash, label: '12/31/2026' },
@@ -29,21 +35,33 @@ export const dateFormatOptions: Array<SelectFieldOption<DateFormat>> = [
   { value: PreferencesDateFormat.mmm_d_y, label: 'Dec 31, 2026' },
 ]
 
-export const timeFormatOptions: Array<ChoiceFieldOption<TimeFormat>> = [
+export const timeFormatOptions = (
+  t: TFunction<'account'>,
+): Array<ChoiceFieldOption<TimeFormat>> => [
   {
     value: PreferencesTimeFormat.auto,
-    label: 'Automatic',
-    hint: 'By language',
+    label: t('preferences.timeFormats.auto'),
+    hint: t('preferences.timeFormats.autoHint'),
   },
-  { value: PreferencesTimeFormat.h24, label: '24-hour', hint: '14:30' },
-  { value: PreferencesTimeFormat.h12, label: '12-hour', hint: '2:30 PM' },
+  {
+    value: PreferencesTimeFormat.h24,
+    label: t('preferences.timeFormats.h24'),
+    hint: '14:30',
+  },
+  {
+    value: PreferencesTimeFormat.h12,
+    label: t('preferences.timeFormats.h12'),
+    hint: '2:30 PM',
+  },
 ]
 
-export const themeOptions: Array<ChoiceFieldOption<Theme>> = [
-  { value: PreferencesTheme.system, label: 'System' },
-  { value: PreferencesTheme.light, label: 'Light' },
-  { value: PreferencesTheme.dark, label: 'Dark' },
-]
+export const themeOptions = (
+  t: TFunction<'account'>,
+): Array<ChoiceFieldOption<Theme>> =>
+  Object.values(PreferencesTheme).map((theme) => ({
+    value: theme,
+    label: t(`preferences.themes.${theme}`),
+  }))
 
 /** The time zone the browser runs in, which an unset preference falls back to. */
 export const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone

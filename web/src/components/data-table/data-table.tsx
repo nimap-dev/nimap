@@ -22,6 +22,7 @@ import {
 import { features } from './data-table-features'
 import type { DataTableFeatures } from './data-table-features'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<DataTableFeatures, TData>[]
@@ -49,11 +50,12 @@ export function DataTable<TData extends RowData>({
   data,
   onRowClick,
   searchColumn,
-  searchPlaceholder = 'Search…',
+  searchPlaceholder,
   search: controlledSearch,
   actions,
   className,
 }: DataTableProps<TData>) {
+  const { t } = useTranslation()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const table = useTable({
@@ -85,8 +87,8 @@ export function DataTable<TData extends RowData>({
               type="search"
               value={search.value}
               onChange={(event) => search.onChange(event.target.value)}
-              placeholder={searchPlaceholder}
-              aria-label={searchPlaceholder}
+              placeholder={searchPlaceholder ?? t('table.search')}
+              aria-label={searchPlaceholder ?? t('table.search')}
               className="min-w-48 flex-1"
             />
           )}
@@ -159,7 +161,7 @@ export function DataTable<TData extends RowData>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  {t('table.noResults')}
                 </TableCell>
               </TableRow>
             )}

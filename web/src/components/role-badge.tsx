@@ -1,4 +1,4 @@
-import { roleLabels } from '#/lib/roles'
+import { useRoleLabels } from '#/lib/roles'
 import type { Role } from '#/lib/roles'
 import { cn } from '#/lib/utils'
 
@@ -16,6 +16,8 @@ export function RoleBadge({
   role: Role
   className?: string
 }) {
+  const roleLabels = useRoleLabels()
+
   return (
     <span
       className={cn(

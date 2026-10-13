@@ -52,6 +52,8 @@ import type {
   TimeFormat,
   Timezone,
 } from '#/lib/preferences'
+import { useTranslation } from 'react-i18next'
+import i18n from '#/lib/i18n'
 
 export const Route = createFileRoute('/_authenticated/_nav/auth/account')({
   component: Account,
@@ -59,12 +61,13 @@ export const Route = createFileRoute('/_authenticated/_nav/auth/account')({
 
 function Account() {
   const { user, isLoading } = useAuth()
+  const { t } = useTranslation('account')
 
   return (
     <Panel
       title={
         <span className="flex items-center gap-2">
-          Account
+          {t('title')}
           {user && <RoleBadge role={asRole(user.role)} />}
         </span>
       }
@@ -88,16 +91,18 @@ function Account() {
 }
 
 function AccountMeta({ user }: { user: User }) {
+  const { t } = useTranslation()
+
   return (
     <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
       <span className="font-mono select-all">{user.id}</span>
       <span aria-hidden="true">·</span>
       <span title={formatAbsoluteDate(user.createdAt)}>
-        created {formatRelativeDate(user.createdAt)}
+        {t('meta.created', { when: formatRelativeDate(user.createdAt) })}
       </span>
       <span aria-hidden="true">·</span>
       <span title={formatAbsoluteDate(user.updatedAt)}>
-        updated {formatRelativeDate(user.updatedAt)}
+        {t('meta.updated', { when: formatRelativeDate(user.updatedAt) })}
       </span>
     </p>
   )
@@ -106,6 +111,7 @@ function AccountMeta({ user }: { user: User }) {
 function AccountForm({ user }: { user: User }) {
   const updateAccount = useUpdateAccount()
   const queryClient = useQueryClient()
+  const { t } = useTranslation(['account', 'common'])
 
   const form = useForm({
     defaultValues: {
@@ -120,8 +126,8 @@ function AccountForm({ user }: { user: User }) {
       if (res.status !== 200) {
         toast.add({
           type: 'error',
-          title: 'Could not save',
-          description: res.data.detail ?? 'Your account was not updated',
+          title: t('common:errors.couldNotSave'),
+          description: res.data.detail ?? t('account.accountNotUpdated'),
         })
         return
       }
@@ -134,17 +140,15 @@ function AccountForm({ user }: { user: User }) {
         email: res.data.email,
         currentPassword: '',
       })
-      toast.add({ type: 'success', description: 'Account updated' })
+      toast.add({ type: 'success', description: t('account.accountUpdated') })
     },
   })
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Account</CardTitle>
-        <CardDescription>
-          Change your username and email. Confirm with your current password.
-        </CardDescription>
+        <CardTitle>{t('account.title')}</CardTitle>
+        <CardDescription>{t('account.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -160,7 +164,7 @@ function AccountForm({ user }: { user: User }) {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Username"
+                  label={t('account.username')}
                   autoComplete="username"
                 />
               )}
@@ -170,7 +174,7 @@ function AccountForm({ user }: { user: User }) {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Email"
+                  label={t('account.email')}
                   type="email"
                   autoComplete="email"
                 />
@@ -181,7 +185,7 @@ function AccountForm({ user }: { user: User }) {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Current password"
+                  label={t('account.currentPassword')}
                   type="password"
                   autoComplete="current-password"
                 />
@@ -199,7 +203,9 @@ function AccountForm({ user }: { user: User }) {
               form="account-form"
               disabled={!canSubmit || isSubmitting}
             >
-              {isSubmitting ? 'Saving…' : 'Save changes'}
+              {isSubmitting
+                ? t('common:actions.saving')
+                : t('common:actions.saveChanges')}
             </Button>
           )}
         />
@@ -221,11 +227,6 @@ const themeIcons: Record<Theme, ReactNode> = {
   light: <SunIcon />,
   dark: <MoonIcon />,
 }
-
-const themeChoices = themeOptions.map((option) => ({
-  ...option,
-  icon: themeIcons[option.value],
-}))
 
 /** The generated body, with "" standing for a time zone left to the browser. */
 const PreferencesFormBody = UpdateAccountPreferencesBody.extend({
@@ -260,6 +261,7 @@ function PreferencesForm({
 }) {
   const updatePreferences = useUpdateAccountPreferences()
   const queryClient = useQueryClient()
+  const { t } = useTranslation(['account', 'common'])
 
   const form = useForm({
     defaultValues,
@@ -275,13 +277,16 @@ function PreferencesForm({
       if (res.status !== 200) {
         toast.add({
           type: 'error',
-          title: 'Could not save',
-          description: res.data.detail ?? 'Your preferences were not updated',
+          title: t('common:errors.couldNotSave'),
+          description: res.data.detail ?? t('preferences.notUpdated'),
         })
         return
       }
 
       queryClient.setQueryData(getGetAccountPreferencesQueryKey(), res)
+      void queryClient.invalidateQueries({
+        queryKey: currentUserQueryOptions.queryKey,
+      })
 
       form.reset({
         language: res.data.language,
@@ -290,17 +295,15 @@ function PreferencesForm({
         timeFormat: res.data.timeFormat,
         theme: res.data.theme,
       })
-      toast.add({ type: 'success', description: 'Preferences updated' })
+      toast.add({ type: 'success', description: t('preferences.updated') })
     },
   })
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Preferences</CardTitle>
-        <CardDescription>
-          Choose how the interface looks and how dates and times are shown.
-        </CardDescription>
+        <CardTitle>{t('preferences.title')}</CardTitle>
+        <CardDescription>{t('preferences.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -316,7 +319,7 @@ function PreferencesForm({
               children={(field) => (
                 <SelectField
                   field={field}
-                  label="Language"
+                  label={t('preferences.language')}
                   options={languageOptions}
                 />
               )}
@@ -326,8 +329,11 @@ function PreferencesForm({
               children={(field) => (
                 <ChoiceField
                   field={field}
-                  label="Theme"
-                  options={themeChoices}
+                  label={t('preferences.theme')}
+                  options={themeOptions(t).map((option) => ({
+                    ...option,
+                    icon: themeIcons[option.value],
+                  }))}
                 />
               )}
             />
@@ -336,8 +342,10 @@ function PreferencesForm({
               children={(field) => (
                 <SelectField
                   field={field}
-                  label="Time zone"
-                  emptyLabel={`Browser default (${browserTimezone.replaceAll('_', ' ')})`}
+                  label={t('preferences.timezone')}
+                  emptyLabel={t('preferences.browserTimezone', {
+                    zone: browserTimezone.replaceAll('_', ' '),
+                  })}
                   allowEmpty
                   options={timezoneOptions}
                 />
@@ -348,8 +356,8 @@ function PreferencesForm({
               children={(field) => (
                 <SelectField
                   field={field}
-                  label="Date format"
-                  options={dateFormatOptions}
+                  label={t('preferences.dateFormat')}
+                  options={dateFormatOptions(t)}
                 />
               )}
             />
@@ -358,8 +366,8 @@ function PreferencesForm({
               children={(field) => (
                 <ChoiceField
                   field={field}
-                  label="Time format"
-                  options={timeFormatOptions}
+                  label={t('preferences.timeFormat')}
+                  options={timeFormatOptions(t)}
                 />
               )}
             />
@@ -375,7 +383,9 @@ function PreferencesForm({
               form="preferences-form"
               disabled={!canSubmit || isSubmitting}
             >
-              {isSubmitting ? 'Saving…' : 'Save preferences'}
+              {isSubmitting
+                ? t('common:actions.saving')
+                : t('preferences.save')}
             </Button>
           )}
         />
@@ -409,12 +419,13 @@ function PreferencesSkeleton() {
 const PasswordFormBody = UpdatePasswordBody.extend({
   confirmPassword: zod.string(),
 }).refine((value) => value.newPassword === value.confirmPassword, {
-  message: 'Passwords do not match',
+  error: () => i18n.t('common:validation.passwordsMismatch'),
   path: ['confirmPassword'],
 })
 
 function PasswordForm() {
   const updatePassword = useUpdatePassword()
+  const { t } = useTranslation('account')
 
   const form = useForm({
     defaultValues: {
@@ -434,24 +445,22 @@ function PasswordForm() {
       if (res.status !== 204) {
         toast.add({
           type: 'error',
-          title: 'Could not change password',
-          description: res.data.detail ?? 'Your password was not changed',
+          title: t('password.couldNotChange'),
+          description: res.data.detail ?? t('password.notChanged'),
         })
         return
       }
 
       form.reset()
-      toast.add({ type: 'success', description: 'Password changed' })
+      toast.add({ type: 'success', description: t('password.changed') })
     },
   })
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Password</CardTitle>
-        <CardDescription>
-          Choose a new password of at least 8 characters.
-        </CardDescription>
+        <CardTitle>{t('password.title')}</CardTitle>
+        <CardDescription>{t('password.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -467,7 +476,7 @@ function PasswordForm() {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Current password"
+                  label={t('password.currentPassword')}
                   type="password"
                   autoComplete="current-password"
                 />
@@ -478,7 +487,7 @@ function PasswordForm() {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="New password"
+                  label={t('password.newPassword')}
                   type="password"
                   autoComplete="new-password"
                 />
@@ -489,7 +498,7 @@ function PasswordForm() {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Confirm new password"
+                  label={t('password.confirmPassword')}
                   type="password"
                   autoComplete="new-password"
                 />
@@ -507,7 +516,7 @@ function PasswordForm() {
               form="password-form"
               disabled={!canSubmit || isSubmitting}
             >
-              {isSubmitting ? 'Changing…' : 'Change password'}
+              {isSubmitting ? t('password.submitting') : t('password.submit')}
             </Button>
           )}
         />

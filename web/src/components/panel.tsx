@@ -2,6 +2,7 @@ import { Button } from '#/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
 import { Skeleton } from '#/components/ui/skeleton'
+import { useTranslation } from 'react-i18next'
 
 /**
  * The frame every page in the side panel and the nav pane shares: a fixed
@@ -25,6 +26,8 @@ export function Panel({
   action?: ReactNode
   children: ReactNode
 }) {
+  const { t } = useTranslation()
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex h-12 items-center gap-1 border-b p-2">
@@ -32,7 +35,7 @@ export function Panel({
           <Button
             variant="ghost"
             size="icon"
-            aria-label={backLabel ?? 'Back'}
+            aria-label={backLabel ?? t('actions.back')}
             render={back}
             nativeButton={false}
           >
@@ -73,20 +76,31 @@ export function PanelPending({
   )
 }
 
-// What it shows when the record is not there.
+/**
+ * What it shows when the record is not there. `description` says so in the
+ * interface language; `noun` is the English sentence of the pages not yet
+ * translated, and goes once they all pass a description.
+ */
 export function PanelNotFound({
   noun,
+  description,
   back,
   backLabel,
 }: {
-  noun: string
+  noun?: string
+  description?: string
   back: ReactElement
   backLabel: string
 }) {
+  const { t } = useTranslation()
+
   return (
-    <Panel title="Not found" back={back} backLabel={backLabel}>
+    <Panel title={t('notFound.title')} back={back} backLabel={backLabel}>
       <p className="text-sm text-muted-foreground">
-        This {noun} doesn't exist, or you don't have access to it.
+        {description ??
+          (noun
+            ? `This ${noun} doesn't exist, or you don't have access to it.`
+            : t('notFound.description'))}
       </p>
       <Button variant="outline" size="sm" render={back} nativeButton={false}>
         {backLabel}

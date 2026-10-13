@@ -48,7 +48,7 @@ import {
 import { toast } from '#/components/ui/toast'
 import { useAuth } from '#/lib/auth'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
-import { asRole, roleLabels, roleOptions } from '#/lib/roles'
+import { asRole, roles, useRoleLabels } from '#/lib/roles'
 import type { Role } from '#/lib/roles'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
@@ -56,6 +56,8 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import * as zod from 'zod'
+import { useTranslation } from 'react-i18next'
+import i18n from '#/lib/i18n'
 
 export const Route = createFileRoute(
   '/_authenticated/_nav/admin/users/$userId',
@@ -64,12 +66,13 @@ export const Route = createFileRoute(
 function ManageUser() {
   const { userId } = Route.useParams()
   const { data, isPending } = useGetUser(userId)
+  const { t } = useTranslation('admin')
 
   if (isPending) {
     return (
       <PanelPending
         back={<Link to="/admin/users" />}
-        backLabel="Back to users"
+        backLabel={t('users.back')}
       />
     )
   }
@@ -79,9 +82,9 @@ function ManageUser() {
   if (!user) {
     return (
       <PanelNotFound
-        noun="user"
+        description={t('users.notFound')}
         back={<Link to="/admin/users" />}
-        backLabel="Back to users"
+        backLabel={t('users.back')}
       />
     )
   }
@@ -95,6 +98,8 @@ function ManageUserDetail({ user }: { user: User }) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const { t } = useTranslation(['admin', 'common'])
+  const roleLabels = useRoleLabels()
 
   const isSelf = actor?.id === user.id
 
@@ -105,16 +110,18 @@ function ManageUserDetail({ user }: { user: User }) {
       if (res.status !== 204) {
         toast.add({
           type: 'error',
-          title: 'Could not delete',
-          description: res.data.detail ?? `${user.username} is still there`,
+          title: t('common:errors.couldNotDelete'),
+          description:
+            res.data.detail ??
+            t('delete.stillThere', { username: user.username }),
         })
         return
       }
     } catch {
       toast.add({
         type: 'error',
-        title: 'Could not delete',
-        description: 'The request failed, check your connection and retry',
+        title: t('common:errors.couldNotDelete'),
+        description: t('delete.requestFailed'),
       })
       return
     }
@@ -122,7 +129,10 @@ function ManageUserDetail({ user }: { user: User }) {
     setConfirmingDelete(false)
     queryClient.removeQueries({ queryKey: getGetUserQueryKey(user.id) })
     await queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() })
-    toast.add({ type: 'success', description: `${user.username} was deleted` })
+    toast.add({
+      type: 'success',
+      description: t('delete.deleted', { username: user.username }),
+    })
     navigate({ to: '/admin/users', replace: true })
   }
 
@@ -136,11 +146,11 @@ function ManageUserDetail({ user }: { user: User }) {
           </span>
         }
         back={<Link to="/admin/users" />}
-        backLabel="Back to users"
+        backLabel={t('users.back')}
         action={
           !isSelf && (
             <AlertDialogTrigger
-              aria-label="Delete user"
+              aria-label={t('delete.label')}
               render={<Button variant="ghost" size="icon" />}
               className="text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
@@ -164,11 +174,15 @@ function ManageUserDetail({ user }: { user: User }) {
             <span className="font-mono select-all">{user.id}</span>
             <span aria-hidden="true">·</span>
             <span title={formatAbsoluteDate(user.createdAt)}>
-              created {formatRelativeDate(user.createdAt)}
+              {t('common:meta.created', {
+                when: formatRelativeDate(user.createdAt),
+              })}
             </span>
             <span aria-hidden="true">·</span>
             <span title={formatAbsoluteDate(user.updatedAt)}>
-              updated {formatRelativeDate(user.updatedAt)}
+              {t('common:meta.updated', {
+                when: formatRelativeDate(user.updatedAt),
+              })}
             </span>
           </p>
         </div>
@@ -179,25 +193,25 @@ function ManageUserDetail({ user }: { user: User }) {
           <AlertDialogMedia>
             <Trash2 />
           </AlertDialogMedia>
-          <AlertDialogTitle>Delete {user.username}?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {t('delete.title', { username: user.username })}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            The account is removed outright, and whoever was using it is signed
-            out on their next request. If you only want to take their access
-            away, set their role to Viewer instead: they keep the account and
-            you keep the option of giving the access back. You can't undo this
-            from here.
+            {t('delete.description', { viewer: roleLabels.viewer })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel variant="outline" disabled={deleteUser.isPending}>
-            Cancel
+            {t('common:actions.cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={deleteUser.isPending}
             onClick={handleDelete}
           >
-            {deleteUser.isPending ? 'Deleting…' : 'Delete user'}
+            {deleteUser.isPending
+              ? t('common:actions.deleting')
+              : t('delete.submit')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -207,16 +221,13 @@ function ManageUserDetail({ user }: { user: User }) {
 
 // What the page shows an admin looking at their own row.
 function OwnAccountNotice() {
+  const { t } = useTranslation('admin')
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>This is your account</CardTitle>
-        <CardDescription>
-          Your own username, email, password and role are not editable here.
-          Account settings asks for your current password before it changes
-          anything, and an admin who could demote themselves could lock everyone
-          out.
-        </CardDescription>
+        <CardTitle>{t('self.title')}</CardTitle>
+        <CardDescription>{t('self.description')}</CardDescription>
       </CardHeader>
       <CardFooter>
         <Button
@@ -224,7 +235,7 @@ function OwnAccountNotice() {
           render={<Link to="/auth/account" />}
           nativeButton={false}
         >
-          Go to account settings
+          {t('self.goToAccount')}
         </Button>
       </CardFooter>
     </Card>
@@ -234,6 +245,7 @@ function OwnAccountNotice() {
 function UserAccountForm({ user }: { user: User }) {
   const updateUser = useUpdateUser()
   const queryClient = useQueryClient()
+  const { t } = useTranslation(['admin', 'common'])
 
   const form = useForm({
     defaultValues: { username: user.username, email: user.email },
@@ -244,8 +256,8 @@ function UserAccountForm({ user }: { user: User }) {
       if (res.status !== 200) {
         toast.add({
           type: 'error',
-          title: 'Could not save',
-          description: res.data.detail ?? 'The account was not updated',
+          title: t('common:errors.couldNotSave'),
+          description: res.data.detail ?? t('account.notUpdated'),
         })
         return
       }
@@ -256,17 +268,15 @@ function UserAccountForm({ user }: { user: User }) {
           queryKey: getGetUserQueryKey(user.id),
         }),
       ])
-      toast.add({ type: 'success', description: 'Account updated' })
+      toast.add({ type: 'success', description: t('account.updated') })
     },
   })
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Account</CardTitle>
-        <CardDescription>
-          Change this user's username and email.
-        </CardDescription>
+        <CardTitle>{t('account.title')}</CardTitle>
+        <CardDescription>{t('account.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -280,7 +290,11 @@ function UserAccountForm({ user }: { user: User }) {
             <form.Field
               name="username"
               children={(field) => (
-                <TextField field={field} label="Username" autoComplete="off" />
+                <TextField
+                  field={field}
+                  label={t('fields.username')}
+                  autoComplete="off"
+                />
               )}
             />
             <form.Field
@@ -288,7 +302,7 @@ function UserAccountForm({ user }: { user: User }) {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Email"
+                  label={t('fields.email')}
                   type="email"
                   autoComplete="off"
                 />
@@ -306,7 +320,9 @@ function UserAccountForm({ user }: { user: User }) {
               form="user-account-form"
               disabled={!canSubmit || isSubmitting}
             >
-              {isSubmitting ? 'Saving…' : 'Save changes'}
+              {isSubmitting
+                ? t('common:actions.saving')
+                : t('common:actions.saveChanges')}
             </Button>
           )}
         />
@@ -318,6 +334,8 @@ function UserAccountForm({ user }: { user: User }) {
 function UserRoleCard({ user }: { user: User }) {
   const updateRole = useUpdateUserRole()
   const queryClient = useQueryClient()
+  const { t } = useTranslation(['admin', 'common'])
+  const roleLabels = useRoleLabels()
 
   async function handleRoleChange(role: Role) {
     const res = await updateRole.mutateAsync({
@@ -328,8 +346,9 @@ function UserRoleCard({ user }: { user: User }) {
     if (res.status !== 200) {
       toast.add({
         type: 'error',
-        title: 'Could not change role',
-        description: res.data.detail ?? `${user.username} is unchanged`,
+        title: t('role.couldNotChange'),
+        description:
+          res.data.detail ?? t('role.unchanged', { username: user.username }),
       })
       return
     }
@@ -340,34 +359,35 @@ function UserRoleCard({ user }: { user: User }) {
     ])
     toast.add({
       type: 'success',
-      description: `${user.username} is now ${roleLabels[role].toLowerCase()}`,
+      description: t('role.changed', {
+        username: user.username,
+        role: roleLabels[role].toLowerCase(),
+      }),
     })
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Role</CardTitle>
-        <CardDescription>
-          Takes effect on this user's next request. They stay signed in.
-        </CardDescription>
+        <CardTitle>{t('common:roles.label')}</CardTitle>
+        <CardDescription>{t('role.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <DetailList>
-          <Detail label="Role" align="center">
+          <Detail label={t('common:roles.label')} align="center">
             <Select
               items={roleLabels}
               value={asRole(user.role)}
               onValueChange={(value) => handleRoleChange(value as Role)}
               disabled={updateRole.isPending}
             >
-              <SelectTrigger size="sm" aria-label="User role">
+              <SelectTrigger size="sm" aria-label={t('role.selectLabel')}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {roleOptions.map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
+                {roles.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {roleLabels[role]}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -387,12 +407,13 @@ function UserRoleCard({ user }: { user: User }) {
 const PasswordFormBody = ResetUserPasswordBody.extend({
   confirmPassword: zod.string(),
 }).refine((value) => value.newPassword === value.confirmPassword, {
-  message: 'Passwords do not match',
+  error: () => i18n.t('common:validation.passwordsMismatch'),
   path: ['confirmPassword'],
 })
 
 function UserPasswordForm({ user }: { user: User }) {
   const resetPassword = useResetUserPassword()
+  const { t } = useTranslation('admin')
 
   const form = useForm({
     defaultValues: { newPassword: '', confirmPassword: '' },
@@ -406,8 +427,8 @@ function UserPasswordForm({ user }: { user: User }) {
       if (res.status !== 204) {
         toast.add({
           type: 'error',
-          title: 'Could not reset password',
-          description: res.data.detail ?? 'The password was not changed',
+          title: t('password.couldNotReset'),
+          description: res.data.detail ?? t('password.notChanged'),
         })
         return
       }
@@ -415,7 +436,7 @@ function UserPasswordForm({ user }: { user: User }) {
       form.reset()
       toast.add({
         type: 'success',
-        description: `${user.username} has a new password`,
+        description: t('password.reset', { username: user.username }),
       })
     },
   })
@@ -423,11 +444,8 @@ function UserPasswordForm({ user }: { user: User }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Password</CardTitle>
-        <CardDescription>
-          Set a new password of at least 8 characters, then pass it on. Their
-          existing sessions keep working until they expire.
-        </CardDescription>
+        <CardTitle>{t('password.title')}</CardTitle>
+        <CardDescription>{t('password.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -443,7 +461,7 @@ function UserPasswordForm({ user }: { user: User }) {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="New password"
+                  label={t('fields.newPassword')}
                   type="password"
                   autoComplete="new-password"
                 />
@@ -454,7 +472,7 @@ function UserPasswordForm({ user }: { user: User }) {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Confirm new password"
+                  label={t('fields.confirmPassword')}
                   type="password"
                   autoComplete="new-password"
                 />
@@ -472,7 +490,7 @@ function UserPasswordForm({ user }: { user: User }) {
               form="user-password-form"
               disabled={!canSubmit || isSubmitting}
             >
-              {isSubmitting ? 'Resetting…' : 'Reset password'}
+              {isSubmitting ? t('password.submitting') : t('password.submit')}
             </Button>
           )}
         />

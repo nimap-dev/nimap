@@ -6,7 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '#/components/ui/select'
-import { roleLabels, roleOptions } from '#/lib/roles'
+import { roles, useRoleLabels } from '#/lib/roles'
+import { useTranslation } from 'react-i18next'
 import type { Role } from '#/lib/roles'
 
 type RoleFieldApi = {
@@ -17,9 +18,12 @@ type RoleFieldApi = {
 
 // The role picker as a form field.
 export function RoleField({ field }: { field: RoleFieldApi }) {
+  const { t } = useTranslation()
+  const roleLabels = useRoleLabels()
+
   return (
     <Field>
-      <FieldLabel htmlFor={field.name}>Role</FieldLabel>
+      <FieldLabel htmlFor={field.name}>{t('roles.label')}</FieldLabel>
       <Select
         items={roleLabels}
         value={field.state.value}
@@ -29,9 +33,9 @@ export function RoleField({ field }: { field: RoleFieldApi }) {
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {roleOptions.map(([value, label]) => (
-            <SelectItem key={value} value={value}>
-              {label}
+          {roles.map((role) => (
+            <SelectItem key={role} value={role}>
+              {roleLabels[role]}
             </SelectItem>
           ))}
         </SelectContent>

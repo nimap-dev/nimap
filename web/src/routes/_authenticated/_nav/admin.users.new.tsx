@@ -10,6 +10,7 @@ import type { Role } from '#/lib/roles'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute('/_authenticated/_nav/admin/users/new')({
   component: NewUser,
@@ -19,6 +20,7 @@ function NewUser() {
   const createUser = useCreateUser()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { t } = useTranslation('admin')
 
   const form = useForm({
     defaultValues: {
@@ -34,14 +36,14 @@ function NewUser() {
       if (res.status !== 201) {
         toast.add({
           type: 'error',
-          title: 'Could not create user',
-          description: res.data.detail ?? 'The account was not created',
+          title: t('newUser.couldNotCreate'),
+          description: res.data.detail ?? t('newUser.notCreated'),
         })
         return
       }
 
       await queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() })
-      toast.add({ type: 'success', description: 'User created' })
+      toast.add({ type: 'success', description: t('newUser.created') })
       navigate({
         to: '/admin/users/$userId',
         params: { userId: res.data.id },
@@ -52,9 +54,9 @@ function NewUser() {
 
   return (
     <Panel
-      title="New user"
+      title={t('newUser.title')}
       back={<Link to="/admin/users" />}
-      backLabel="Back to users"
+      backLabel={t('users.back')}
     >
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
         <form
@@ -68,7 +70,11 @@ function NewUser() {
             <form.Field
               name="username"
               children={(field) => (
-                <TextField field={field} label="Username" autoComplete="off" />
+                <TextField
+                  field={field}
+                  label={t('fields.username')}
+                  autoComplete="off"
+                />
               )}
             />
             <form.Field
@@ -76,7 +82,7 @@ function NewUser() {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Email"
+                  label={t('fields.email')}
                   type="email"
                   autoComplete="off"
                 />
@@ -87,7 +93,7 @@ function NewUser() {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Password"
+                  label={t('fields.password')}
                   type="password"
                   autoComplete="new-password"
                 />
@@ -105,8 +111,8 @@ function NewUser() {
           children={([canSubmit, isSubmitting]) => (
             <FormActions
               formId="new-user-form"
-              submit="Create user"
-              submitting="Creating…"
+              submit={t('newUser.submit')}
+              submitting={t('newUser.submitting')}
               isSubmitting={isSubmitting}
               disabled={!canSubmit}
               cancel={<Link to="/admin/users" />}

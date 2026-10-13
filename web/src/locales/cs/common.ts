@@ -37,4 +37,25 @@ export default {
     title: 'Smazat {{name}}?',
     description: 'Tuto akci nelze vrátit.',
   },
+  notFound: {
+    title: 'Nenalezeno',
+    description: 'Tento záznam neexistuje, nebo k němu nemáte přístup.',
+  },
+  table: {
+    search: 'Hledat…',
+    noResults: 'Žádné výsledky.',
+  },
+  meta: {
+    created: 'vytvořeno {{when}}',
+    updated: 'upraveno {{when}}',
+  },
+  validation: {
+    passwordsMismatch: 'Hesla se neshodují',
+  },
+  roles: {
+    label: 'Role',
+    viewer: 'Čtenář',
+    editor: 'Editor',
+    admin: 'Administrátor',
+  },
 }
