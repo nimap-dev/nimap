@@ -62,3 +62,19 @@ WHERE id = $1;
 SELECT count(*)
 FROM auth.users
 WHERE role_id = $1;
+
+-- name: GetUserPreferences :one
+SELECT language, timezone, date_format, time_format, theme
+FROM auth.users
+WHERE id = $1;
+
+-- name: UpdateUserPreferences :one
+UPDATE auth.users
+SET language = sqlc.arg(language),
+    timezone = sqlc.narg(timezone),
+    date_format = sqlc.arg(date_format),
+    time_format = sqlc.arg(time_format),
+    theme = sqlc.arg(theme),
+    updated_at = now()
+WHERE id = sqlc.arg(id)
+RETURNING language, timezone, date_format, time_format, theme;

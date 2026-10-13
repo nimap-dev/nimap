@@ -48,6 +48,38 @@ export const UpdatePasswordBody = zod.object({
 export const UpdatePasswordResponse = zod.void()
 
 /**
+ * @summary Return the current user's display preferences
+ */
+export const GetAccountPreferencesResponse = zod.object({
+  "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "dateFormat": zod.enum(['auto', 'dmy_dot', 'iso', 'mdy_slash', 'd_mmm_y', 'mmm_d_y']).describe('How calendar dates are written'),
+  "language": zod.enum(['en', 'cs']).describe('Interface language'),
+  "theme": zod.enum(['system', 'light', 'dark']).describe('Colour scheme of the interface'),
+  "timeFormat": zod.enum(['auto', 'h24', 'h12']).describe('Whether times use a 24-hour or a 12-hour clock'),
+  "timezone": zod.enum(['Etc/GMT+12', 'Pacific/Pago_Pago', 'Pacific/Honolulu', 'Pacific/Marquesas', 'America/Anchorage', 'America/Los_Angeles', 'America/Denver', 'America/Phoenix', 'America/Chicago', 'America/Mexico_City', 'America/New_York', 'America/Bogota', 'America/Halifax', 'America/Caracas', 'America/St_Johns', 'America/Sao_Paulo', 'America/Argentina/Buenos_Aires', 'America/Noronha', 'Atlantic/Azores', 'Atlantic/Cape_Verde', 'UTC', 'Europe/London', 'Europe/Lisbon', 'Africa/Abidjan', 'Europe/Prague', 'Europe/Berlin', 'Europe/Paris', 'Europe/Warsaw', 'Africa/Lagos', 'Europe/Athens', 'Europe/Kyiv', 'Europe/Helsinki', 'Africa/Cairo', 'Africa/Johannesburg', 'Europe/Istanbul', 'Europe/Moscow', 'Asia/Riyadh', 'Africa/Nairobi', 'Asia/Tehran', 'Asia/Dubai', 'Asia/Baku', 'Asia/Kabul', 'Asia/Karachi', 'Asia/Tashkent', 'Asia/Kolkata', 'Asia/Kathmandu', 'Asia/Dhaka', 'Asia/Almaty', 'Asia/Yangon', 'Asia/Bangkok', 'Asia/Jakarta', 'Asia/Shanghai', 'Asia/Singapore', 'Australia/Perth', 'Australia/Eucla', 'Asia/Tokyo', 'Asia/Seoul', 'Australia/Darwin', 'Australia/Adelaide', 'Australia/Brisbane', 'Australia/Sydney', 'Pacific/Port_Moresby', 'Australia/Lord_Howe', 'Pacific/Noumea', 'Pacific/Auckland', 'Pacific/Fiji', 'Pacific/Chatham', 'Pacific/Tongatapu', 'Pacific/Apia', 'Pacific/Kiritimati']).optional().describe('Time zone dates and times are shown in; absent follows the browser')
+})
+
+/**
+ * @summary Update the current user's display preferences
+ */
+export const UpdateAccountPreferencesBody = zod.object({
+  "dateFormat": zod.enum(['auto', 'dmy_dot', 'iso', 'mdy_slash', 'd_mmm_y', 'mmm_d_y']).describe('How calendar dates are written'),
+  "language": zod.enum(['en', 'cs']).describe('Interface language'),
+  "theme": zod.enum(['system', 'light', 'dark']).describe('Colour scheme of the interface'),
+  "timeFormat": zod.enum(['auto', 'h24', 'h12']).describe('Whether times use a 24-hour or a 12-hour clock'),
+  "timezone": zod.enum(['Etc/GMT+12', 'Pacific/Pago_Pago', 'Pacific/Honolulu', 'Pacific/Marquesas', 'America/Anchorage', 'America/Los_Angeles', 'America/Denver', 'America/Phoenix', 'America/Chicago', 'America/Mexico_City', 'America/New_York', 'America/Bogota', 'America/Halifax', 'America/Caracas', 'America/St_Johns', 'America/Sao_Paulo', 'America/Argentina/Buenos_Aires', 'America/Noronha', 'Atlantic/Azores', 'Atlantic/Cape_Verde', 'UTC', 'Europe/London', 'Europe/Lisbon', 'Africa/Abidjan', 'Europe/Prague', 'Europe/Berlin', 'Europe/Paris', 'Europe/Warsaw', 'Africa/Lagos', 'Europe/Athens', 'Europe/Kyiv', 'Europe/Helsinki', 'Africa/Cairo', 'Africa/Johannesburg', 'Europe/Istanbul', 'Europe/Moscow', 'Asia/Riyadh', 'Africa/Nairobi', 'Asia/Tehran', 'Asia/Dubai', 'Asia/Baku', 'Asia/Kabul', 'Asia/Karachi', 'Asia/Tashkent', 'Asia/Kolkata', 'Asia/Kathmandu', 'Asia/Dhaka', 'Asia/Almaty', 'Asia/Yangon', 'Asia/Bangkok', 'Asia/Jakarta', 'Asia/Shanghai', 'Asia/Singapore', 'Australia/Perth', 'Australia/Eucla', 'Asia/Tokyo', 'Asia/Seoul', 'Australia/Darwin', 'Australia/Adelaide', 'Australia/Brisbane', 'Australia/Sydney', 'Pacific/Port_Moresby', 'Australia/Lord_Howe', 'Pacific/Noumea', 'Pacific/Auckland', 'Pacific/Fiji', 'Pacific/Chatham', 'Pacific/Tongatapu', 'Pacific/Apia', 'Pacific/Kiritimati']).optional().describe('Time zone dates and times are shown in; absent follows the browser')
+})
+
+export const UpdateAccountPreferencesResponse = zod.object({
+  "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "dateFormat": zod.enum(['auto', 'dmy_dot', 'iso', 'mdy_slash', 'd_mmm_y', 'mmm_d_y']).describe('How calendar dates are written'),
+  "language": zod.enum(['en', 'cs']).describe('Interface language'),
+  "theme": zod.enum(['system', 'light', 'dark']).describe('Colour scheme of the interface'),
+  "timeFormat": zod.enum(['auto', 'h24', 'h12']).describe('Whether times use a 24-hour or a 12-hour clock'),
+  "timezone": zod.enum(['Etc/GMT+12', 'Pacific/Pago_Pago', 'Pacific/Honolulu', 'Pacific/Marquesas', 'America/Anchorage', 'America/Los_Angeles', 'America/Denver', 'America/Phoenix', 'America/Chicago', 'America/Mexico_City', 'America/New_York', 'America/Bogota', 'America/Halifax', 'America/Caracas', 'America/St_Johns', 'America/Sao_Paulo', 'America/Argentina/Buenos_Aires', 'America/Noronha', 'Atlantic/Azores', 'Atlantic/Cape_Verde', 'UTC', 'Europe/London', 'Europe/Lisbon', 'Africa/Abidjan', 'Europe/Prague', 'Europe/Berlin', 'Europe/Paris', 'Europe/Warsaw', 'Africa/Lagos', 'Europe/Athens', 'Europe/Kyiv', 'Europe/Helsinki', 'Africa/Cairo', 'Africa/Johannesburg', 'Europe/Istanbul', 'Europe/Moscow', 'Asia/Riyadh', 'Africa/Nairobi', 'Asia/Tehran', 'Asia/Dubai', 'Asia/Baku', 'Asia/Kabul', 'Asia/Karachi', 'Asia/Tashkent', 'Asia/Kolkata', 'Asia/Kathmandu', 'Asia/Dhaka', 'Asia/Almaty', 'Asia/Yangon', 'Asia/Bangkok', 'Asia/Jakarta', 'Asia/Shanghai', 'Asia/Singapore', 'Australia/Perth', 'Australia/Eucla', 'Asia/Tokyo', 'Asia/Seoul', 'Australia/Darwin', 'Australia/Adelaide', 'Australia/Brisbane', 'Australia/Sydney', 'Pacific/Port_Moresby', 'Australia/Lord_Howe', 'Pacific/Noumea', 'Pacific/Auckland', 'Pacific/Fiji', 'Pacific/Chatham', 'Pacific/Tongatapu', 'Pacific/Apia', 'Pacific/Kiritimati']).optional().describe('Time zone dates and times are shown in; absent follows the browser')
+})
+
+/**
  * @summary Log in with username and password
  */
 

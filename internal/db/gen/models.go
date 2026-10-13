@@ -57,6 +57,409 @@ func (ns NullAssetType) Value() (driver.Value, error) {
 	return string(ns.AssetType), nil
 }
 
+func AllAssetTypeValues() []AssetType {
+	return []AssetType{
+		AssetTypeImage,
+		AssetTypeVideo,
+		AssetTypeAudio,
+		AssetTypeDocument,
+		AssetTypeOther,
+	}
+}
+
+type AuthDateFormat string
+
+const (
+	AuthDateFormatAuto     AuthDateFormat = "auto"
+	AuthDateFormatDmyDot   AuthDateFormat = "dmy_dot"
+	AuthDateFormatIso      AuthDateFormat = "iso"
+	AuthDateFormatMdySlash AuthDateFormat = "mdy_slash"
+	AuthDateFormatDMmmY    AuthDateFormat = "d_mmm_y"
+	AuthDateFormatMmmDY    AuthDateFormat = "mmm_d_y"
+)
+
+func (e *AuthDateFormat) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuthDateFormat(s)
+	case string:
+		*e = AuthDateFormat(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuthDateFormat: %T", src)
+	}
+	return nil
+}
+
+type NullAuthDateFormat struct {
+	AuthDateFormat AuthDateFormat
+	Valid          bool // Valid is true if AuthDateFormat is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuthDateFormat) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuthDateFormat, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuthDateFormat.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuthDateFormat) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AuthDateFormat), nil
+}
+
+func AllAuthDateFormatValues() []AuthDateFormat {
+	return []AuthDateFormat{
+		AuthDateFormatAuto,
+		AuthDateFormatDmyDot,
+		AuthDateFormatIso,
+		AuthDateFormatMdySlash,
+		AuthDateFormatDMmmY,
+		AuthDateFormatMmmDY,
+	}
+}
+
+type AuthLanguage string
+
+const (
+	AuthLanguageEn AuthLanguage = "en"
+	AuthLanguageCs AuthLanguage = "cs"
+)
+
+func (e *AuthLanguage) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuthLanguage(s)
+	case string:
+		*e = AuthLanguage(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuthLanguage: %T", src)
+	}
+	return nil
+}
+
+type NullAuthLanguage struct {
+	AuthLanguage AuthLanguage
+	Valid        bool // Valid is true if AuthLanguage is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuthLanguage) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuthLanguage, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuthLanguage.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuthLanguage) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AuthLanguage), nil
+}
+
+func AllAuthLanguageValues() []AuthLanguage {
+	return []AuthLanguage{
+		AuthLanguageEn,
+		AuthLanguageCs,
+	}
+}
+
+type AuthTheme string
+
+const (
+	AuthThemeSystem AuthTheme = "system"
+	AuthThemeLight  AuthTheme = "light"
+	AuthThemeDark   AuthTheme = "dark"
+)
+
+func (e *AuthTheme) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuthTheme(s)
+	case string:
+		*e = AuthTheme(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuthTheme: %T", src)
+	}
+	return nil
+}
+
+type NullAuthTheme struct {
+	AuthTheme AuthTheme
+	Valid     bool // Valid is true if AuthTheme is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuthTheme) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuthTheme, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuthTheme.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuthTheme) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AuthTheme), nil
+}
+
+func AllAuthThemeValues() []AuthTheme {
+	return []AuthTheme{
+		AuthThemeSystem,
+		AuthThemeLight,
+		AuthThemeDark,
+	}
+}
+
+type AuthTimeFormat string
+
+const (
+	AuthTimeFormatAuto AuthTimeFormat = "auto"
+	AuthTimeFormatH24  AuthTimeFormat = "h24"
+	AuthTimeFormatH12  AuthTimeFormat = "h12"
+)
+
+func (e *AuthTimeFormat) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuthTimeFormat(s)
+	case string:
+		*e = AuthTimeFormat(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuthTimeFormat: %T", src)
+	}
+	return nil
+}
+
+type NullAuthTimeFormat struct {
+	AuthTimeFormat AuthTimeFormat
+	Valid          bool // Valid is true if AuthTimeFormat is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuthTimeFormat) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuthTimeFormat, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuthTimeFormat.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuthTimeFormat) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AuthTimeFormat), nil
+}
+
+func AllAuthTimeFormatValues() []AuthTimeFormat {
+	return []AuthTimeFormat{
+		AuthTimeFormatAuto,
+		AuthTimeFormatH24,
+		AuthTimeFormatH12,
+	}
+}
+
+type AuthTimezone string
+
+const (
+	AuthTimezoneEtcGMT12                    AuthTimezone = "Etc/GMT+12"
+	AuthTimezonePacificPagoPago             AuthTimezone = "Pacific/Pago_Pago"
+	AuthTimezonePacificHonolulu             AuthTimezone = "Pacific/Honolulu"
+	AuthTimezonePacificMarquesas            AuthTimezone = "Pacific/Marquesas"
+	AuthTimezoneAmericaAnchorage            AuthTimezone = "America/Anchorage"
+	AuthTimezoneAmericaLosAngeles           AuthTimezone = "America/Los_Angeles"
+	AuthTimezoneAmericaDenver               AuthTimezone = "America/Denver"
+	AuthTimezoneAmericaPhoenix              AuthTimezone = "America/Phoenix"
+	AuthTimezoneAmericaChicago              AuthTimezone = "America/Chicago"
+	AuthTimezoneAmericaMexicoCity           AuthTimezone = "America/Mexico_City"
+	AuthTimezoneAmericaNewYork              AuthTimezone = "America/New_York"
+	AuthTimezoneAmericaBogota               AuthTimezone = "America/Bogota"
+	AuthTimezoneAmericaHalifax              AuthTimezone = "America/Halifax"
+	AuthTimezoneAmericaCaracas              AuthTimezone = "America/Caracas"
+	AuthTimezoneAmericaStJohns              AuthTimezone = "America/St_Johns"
+	AuthTimezoneAmericaSaoPaulo             AuthTimezone = "America/Sao_Paulo"
+	AuthTimezoneAmericaArgentinaBuenosAires AuthTimezone = "America/Argentina/Buenos_Aires"
+	AuthTimezoneAmericaNoronha              AuthTimezone = "America/Noronha"
+	AuthTimezoneAtlanticAzores              AuthTimezone = "Atlantic/Azores"
+	AuthTimezoneAtlanticCapeVerde           AuthTimezone = "Atlantic/Cape_Verde"
+	AuthTimezoneUTC                         AuthTimezone = "UTC"
+	AuthTimezoneEuropeLondon                AuthTimezone = "Europe/London"
+	AuthTimezoneEuropeLisbon                AuthTimezone = "Europe/Lisbon"
+	AuthTimezoneAfricaAbidjan               AuthTimezone = "Africa/Abidjan"
+	AuthTimezoneEuropePrague                AuthTimezone = "Europe/Prague"
+	AuthTimezoneEuropeBerlin                AuthTimezone = "Europe/Berlin"
+	AuthTimezoneEuropeParis                 AuthTimezone = "Europe/Paris"
+	AuthTimezoneEuropeWarsaw                AuthTimezone = "Europe/Warsaw"
+	AuthTimezoneAfricaLagos                 AuthTimezone = "Africa/Lagos"
+	AuthTimezoneEuropeAthens                AuthTimezone = "Europe/Athens"
+	AuthTimezoneEuropeKyiv                  AuthTimezone = "Europe/Kyiv"
+	AuthTimezoneEuropeHelsinki              AuthTimezone = "Europe/Helsinki"
+	AuthTimezoneAfricaCairo                 AuthTimezone = "Africa/Cairo"
+	AuthTimezoneAfricaJohannesburg          AuthTimezone = "Africa/Johannesburg"
+	AuthTimezoneEuropeIstanbul              AuthTimezone = "Europe/Istanbul"
+	AuthTimezoneEuropeMoscow                AuthTimezone = "Europe/Moscow"
+	AuthTimezoneAsiaRiyadh                  AuthTimezone = "Asia/Riyadh"
+	AuthTimezoneAfricaNairobi               AuthTimezone = "Africa/Nairobi"
+	AuthTimezoneAsiaTehran                  AuthTimezone = "Asia/Tehran"
+	AuthTimezoneAsiaDubai                   AuthTimezone = "Asia/Dubai"
+	AuthTimezoneAsiaBaku                    AuthTimezone = "Asia/Baku"
+	AuthTimezoneAsiaKabul                   AuthTimezone = "Asia/Kabul"
+	AuthTimezoneAsiaKarachi                 AuthTimezone = "Asia/Karachi"
+	AuthTimezoneAsiaTashkent                AuthTimezone = "Asia/Tashkent"
+	AuthTimezoneAsiaKolkata                 AuthTimezone = "Asia/Kolkata"
+	AuthTimezoneAsiaKathmandu               AuthTimezone = "Asia/Kathmandu"
+	AuthTimezoneAsiaDhaka                   AuthTimezone = "Asia/Dhaka"
+	AuthTimezoneAsiaAlmaty                  AuthTimezone = "Asia/Almaty"
+	AuthTimezoneAsiaYangon                  AuthTimezone = "Asia/Yangon"
+	AuthTimezoneAsiaBangkok                 AuthTimezone = "Asia/Bangkok"
+	AuthTimezoneAsiaJakarta                 AuthTimezone = "Asia/Jakarta"
+	AuthTimezoneAsiaShanghai                AuthTimezone = "Asia/Shanghai"
+	AuthTimezoneAsiaSingapore               AuthTimezone = "Asia/Singapore"
+	AuthTimezoneAustraliaPerth              AuthTimezone = "Australia/Perth"
+	AuthTimezoneAustraliaEucla              AuthTimezone = "Australia/Eucla"
+	AuthTimezoneAsiaTokyo                   AuthTimezone = "Asia/Tokyo"
+	AuthTimezoneAsiaSeoul                   AuthTimezone = "Asia/Seoul"
+	AuthTimezoneAustraliaDarwin             AuthTimezone = "Australia/Darwin"
+	AuthTimezoneAustraliaAdelaide           AuthTimezone = "Australia/Adelaide"
+	AuthTimezoneAustraliaBrisbane           AuthTimezone = "Australia/Brisbane"
+	AuthTimezoneAustraliaSydney             AuthTimezone = "Australia/Sydney"
+	AuthTimezonePacificPortMoresby          AuthTimezone = "Pacific/Port_Moresby"
+	AuthTimezoneAustraliaLordHowe           AuthTimezone = "Australia/Lord_Howe"
+	AuthTimezonePacificNoumea               AuthTimezone = "Pacific/Noumea"
+	AuthTimezonePacificAuckland             AuthTimezone = "Pacific/Auckland"
+	AuthTimezonePacificFiji                 AuthTimezone = "Pacific/Fiji"
+	AuthTimezonePacificChatham              AuthTimezone = "Pacific/Chatham"
+	AuthTimezonePacificTongatapu            AuthTimezone = "Pacific/Tongatapu"
+	AuthTimezonePacificApia                 AuthTimezone = "Pacific/Apia"
+	AuthTimezonePacificKiritimati           AuthTimezone = "Pacific/Kiritimati"
+)
+
+func (e *AuthTimezone) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuthTimezone(s)
+	case string:
+		*e = AuthTimezone(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuthTimezone: %T", src)
+	}
+	return nil
+}
+
+type NullAuthTimezone struct {
+	AuthTimezone AuthTimezone
+	Valid        bool // Valid is true if AuthTimezone is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuthTimezone) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuthTimezone, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuthTimezone.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuthTimezone) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AuthTimezone), nil
+}
+
+func AllAuthTimezoneValues() []AuthTimezone {
+	return []AuthTimezone{
+		AuthTimezoneEtcGMT12,
+		AuthTimezonePacificPagoPago,
+		AuthTimezonePacificHonolulu,
+		AuthTimezonePacificMarquesas,
+		AuthTimezoneAmericaAnchorage,
+		AuthTimezoneAmericaLosAngeles,
+		AuthTimezoneAmericaDenver,
+		AuthTimezoneAmericaPhoenix,
+		AuthTimezoneAmericaChicago,
+		AuthTimezoneAmericaMexicoCity,
+		AuthTimezoneAmericaNewYork,
+		AuthTimezoneAmericaBogota,
+		AuthTimezoneAmericaHalifax,
+		AuthTimezoneAmericaCaracas,
+		AuthTimezoneAmericaStJohns,
+		AuthTimezoneAmericaSaoPaulo,
+		AuthTimezoneAmericaArgentinaBuenosAires,
+		AuthTimezoneAmericaNoronha,
+		AuthTimezoneAtlanticAzores,
+		AuthTimezoneAtlanticCapeVerde,
+		AuthTimezoneUTC,
+		AuthTimezoneEuropeLondon,
+		AuthTimezoneEuropeLisbon,
+		AuthTimezoneAfricaAbidjan,
+		AuthTimezoneEuropePrague,
+		AuthTimezoneEuropeBerlin,
+		AuthTimezoneEuropeParis,
+		AuthTimezoneEuropeWarsaw,
+		AuthTimezoneAfricaLagos,
+		AuthTimezoneEuropeAthens,
+		AuthTimezoneEuropeKyiv,
+		AuthTimezoneEuropeHelsinki,
+		AuthTimezoneAfricaCairo,
+		AuthTimezoneAfricaJohannesburg,
+		AuthTimezoneEuropeIstanbul,
+		AuthTimezoneEuropeMoscow,
+		AuthTimezoneAsiaRiyadh,
+		AuthTimezoneAfricaNairobi,
+		AuthTimezoneAsiaTehran,
+		AuthTimezoneAsiaDubai,
+		AuthTimezoneAsiaBaku,
+		AuthTimezoneAsiaKabul,
+		AuthTimezoneAsiaKarachi,
+		AuthTimezoneAsiaTashkent,
+		AuthTimezoneAsiaKolkata,
+		AuthTimezoneAsiaKathmandu,
+		AuthTimezoneAsiaDhaka,
+		AuthTimezoneAsiaAlmaty,
+		AuthTimezoneAsiaYangon,
+		AuthTimezoneAsiaBangkok,
+		AuthTimezoneAsiaJakarta,
+		AuthTimezoneAsiaShanghai,
+		AuthTimezoneAsiaSingapore,
+		AuthTimezoneAustraliaPerth,
+		AuthTimezoneAustraliaEucla,
+		AuthTimezoneAsiaTokyo,
+		AuthTimezoneAsiaSeoul,
+		AuthTimezoneAustraliaDarwin,
+		AuthTimezoneAustraliaAdelaide,
+		AuthTimezoneAustraliaBrisbane,
+		AuthTimezoneAustraliaSydney,
+		AuthTimezonePacificPortMoresby,
+		AuthTimezoneAustraliaLordHowe,
+		AuthTimezonePacificNoumea,
+		AuthTimezonePacificAuckland,
+		AuthTimezonePacificFiji,
+		AuthTimezonePacificChatham,
+		AuthTimezonePacificTongatapu,
+		AuthTimezonePacificApia,
+		AuthTimezonePacificKiritimati,
+	}
+}
+
 type LifecycleStatus string
 
 const (
@@ -99,6 +502,15 @@ func (ns NullLifecycleStatus) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.LifecycleStatus), nil
+}
+
+func AllLifecycleStatusValues() []LifecycleStatus {
+	return []LifecycleStatus{
+		LifecycleStatusPlanned,
+		LifecycleStatusActive,
+		LifecycleStatusDecommissioned,
+		LifecycleStatusArchived,
+	}
 }
 
 type MountingType string
@@ -149,6 +561,19 @@ func (ns NullMountingType) Value() (driver.Value, error) {
 	return string(ns.MountingType), nil
 }
 
+func AllMountingTypeValues() []MountingType {
+	return []MountingType{
+		MountingTypeRack,
+		MountingTypeWall,
+		MountingTypeDesktop,
+		MountingTypeDinRail,
+		MountingTypeCeiling,
+		MountingTypePole,
+		MountingTypeEmbedded,
+		MountingTypeOther,
+	}
+}
+
 type PoeStandard string
 
 const (
@@ -191,6 +616,15 @@ func (ns NullPoeStandard) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.PoeStandard), nil
+}
+
+func AllPoeStandardValues() []PoeStandard {
+	return []PoeStandard{
+		PoeStandardAf,
+		PoeStandardAt,
+		PoeStandardBt,
+		PoeStandardPassive,
+	}
 }
 
 type Asset struct {
@@ -239,6 +673,11 @@ type AuthUser struct {
 	RoleID       int16
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	Language     AuthLanguage
+	Timezone     NullAuthTimezone
+	DateFormat   AuthDateFormat
+	TimeFormat   AuthTimeFormat
+	Theme        AuthTheme
 }
 
 type Building struct {

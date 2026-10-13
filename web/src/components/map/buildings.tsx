@@ -1,6 +1,7 @@
 import { useListBuildings } from '#/api/buildings/buildings'
 import type { listBuildingsResponse } from '#/api/buildings/buildings'
 import { Layer, Source } from 'react-map-gl/maplibre'
+import { useMapColors } from './colors'
 
 function convertBuildings(data: listBuildingsResponse) {
   if (data.status !== 200) return
@@ -20,6 +21,7 @@ function convertBuildings(data: listBuildingsResponse) {
 }
 
 export function BuildingsSource() {
+  const colors = useMapColors()
   const { data } = useListBuildings(undefined, {
     query: {
       select: convertBuildings,
@@ -61,8 +63,8 @@ export function BuildingsSource() {
           'text-padding': 4,
         }}
         paint={{
-          'text-color': '#1f2937',
-          'text-halo-color': '#ffffff',
+          'text-color': colors.label,
+          'text-halo-color': colors.halo,
           'text-halo-width': 1.5,
         }}
       />

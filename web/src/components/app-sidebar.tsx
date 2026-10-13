@@ -35,51 +35,54 @@ import {
 } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 import { Link } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 
+// Titles are keys in the nav namespace.
 const navMain = [
   {
-    title: 'Map',
+    title: 'map',
     to: '/',
     icon: Map,
   },
   {
-    title: 'Locations',
+    title: 'locations',
     to: '/locations',
     icon: LandPlot,
   },
   {
-    title: 'Buildings',
+    title: 'buildings',
     to: '/buildings',
     icon: Building2,
   },
   {
-    title: 'Devices',
+    title: 'devices',
     to: '/devices',
     icon: Router,
     children: [
       {
-        title: 'Manufacturers',
+        title: 'manufacturers',
         to: '/devices/manufacturers',
         icon: Factory,
       },
       {
-        title: 'Device models',
+        title: 'deviceModels',
         to: '/devices/models',
         icon: Boxes,
       },
       {
-        title: 'Devices',
+        title: 'devices',
         to: '/devices',
         icon: Server,
       },
     ],
   },
-]
+] as const
 
 // A rail down the left on desktop, a bottom bar on mobile: same items, and the
 // logo drops out where the bar has no room for it.
 export function AppSidebarNav() {
   const { isMobile } = useSidebar()
+  const { t } = useTranslation('nav')
   const [commandPaletteOpen, setCommandPaletteOpen] = React.useState(false)
 
   return (
@@ -93,7 +96,10 @@ export function AppSidebarNav() {
             <SidebarMenuButton
               size="lg"
               className="md:h-8 md:p-0"
-              tooltip={{ children: 'Command palette ⌘K', hidden: false }}
+              tooltip={{
+                children: `${t('commandPalette')} ⌘K`,
+                hidden: false,
+              }}
               onClick={() => setCommandPaletteOpen(true)}
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
@@ -115,8 +121,8 @@ export function AppSidebarNav() {
           <SidebarGroupContent className="px-1.5 md:px-0">
             <SidebarMenu className="flex-row gap-2 md:flex-col md:gap-0">
               {navMain.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  {item.children ? (
+                <SidebarMenuItem key={item.to}>
+                  {'children' in item ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         openOnHover
@@ -128,7 +134,7 @@ export function AppSidebarNav() {
                       >
                         <item.icon />
                         <span className="sr-only md:not-sr-only">
-                          {item.title}
+                          {t(item.title)}
                         </span>
                         <ChevronRight className="ml-auto hidden md:block" />
                       </DropdownMenuTrigger>
@@ -139,14 +145,14 @@ export function AppSidebarNav() {
                         sideOffset={8}
                       >
                         <DropdownMenuGroup>
-                          <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
+                          <DropdownMenuLabel>{t(item.title)}</DropdownMenuLabel>
                           {item.children.map((child) => (
                             <DropdownMenuItem
                               key={child.to}
                               render={<Link to={child.to} />}
                             >
                               <child.icon />
-                              {child.title}
+                              {t(child.title)}
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuGroup>
@@ -155,7 +161,7 @@ export function AppSidebarNav() {
                   ) : (
                     <SidebarMenuButton
                       tooltip={{
-                        children: item.title,
+                        children: t(item.title),
                         hidden: false,
                       }}
                       className="size-10 justify-center p-0 md:h-8 md:w-full md:justify-start md:px-2"
@@ -163,7 +169,7 @@ export function AppSidebarNav() {
                     >
                       <item.icon />
                       <span className="sr-only md:not-sr-only">
-                        {item.title}
+                        {t(item.title)}
                       </span>
                     </SidebarMenuButton>
                   )}

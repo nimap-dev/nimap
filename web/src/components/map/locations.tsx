@@ -3,8 +3,7 @@ import type { listLocationsResponse } from '#/api/locations/locations'
 import { useMatchRoute } from '@tanstack/react-router'
 import type { ExpressionSpecification } from 'maplibre-gl'
 import { Layer, Source } from 'react-map-gl/maplibre'
-
-const OUTLINE_COLOR = '#0d9488'
+import { useMapColors } from './colors'
 
 /** Spelled out rather than a bare `get`, which would also accept "false". */
 const SELECTED: ExpressionSpecification = ['==', ['get', 'selected'], true]
@@ -37,6 +36,7 @@ function toFeatures(
 
 export function LocationsSource() {
   const matchRoute = useMatchRoute()
+  const colors = useMapColors()
   const viewed = matchRoute({ to: '/locations/$locationId' })
   const edited = matchRoute({ to: '/locations/$locationId/edit' })
 
@@ -74,13 +74,13 @@ export function LocationsSource() {
       <Layer
         id="locations-fill"
         type="fill"
-        paint={{ 'fill-color': OUTLINE_COLOR, 'fill-opacity': 0.05 }}
+        paint={{ 'fill-color': colors.location, 'fill-opacity': 0.05 }}
       />
       <Layer
         id="locations-outline"
         type="line"
         paint={{
-          'line-color': OUTLINE_COLOR,
+          'line-color': colors.location,
           // Width is the only thing marking the location you opened.
           'line-width': ['case', SELECTED, 3, 1.5],
         }}
@@ -104,8 +104,8 @@ export function LocationsSource() {
           'text-ignore-placement': true,
         }}
         paint={{
-          'text-color': OUTLINE_COLOR,
-          'text-halo-color': '#ffffff',
+          'text-color': colors.location,
+          'text-halo-color': colors.halo,
           'text-halo-width': 2,
         }}
       />

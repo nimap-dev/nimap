@@ -679,6 +679,126 @@ components:
         - type
         - coordinates
       type: object
+    Preferences:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/Preferences.json
+          format: uri
+          readOnly: true
+          type: string
+        dateFormat:
+          description: How calendar dates are written
+          enum:
+            - auto
+            - dmy_dot
+            - iso
+            - mdy_slash
+            - d_mmm_y
+            - mmm_d_y
+          type: string
+        language:
+          description: Interface language
+          enum:
+            - en
+            - cs
+          type: string
+        theme:
+          description: Colour scheme of the interface
+          enum:
+            - system
+            - light
+            - dark
+          type: string
+        timeFormat:
+          description: Whether times use a 24-hour or a 12-hour clock
+          enum:
+            - auto
+            - h24
+            - h12
+          type: string
+        timezone:
+          description: Time zone dates and times are shown in; absent follows the browser
+          enum:
+            - Etc/GMT+12
+            - Pacific/Pago_Pago
+            - Pacific/Honolulu
+            - Pacific/Marquesas
+            - America/Anchorage
+            - America/Los_Angeles
+            - America/Denver
+            - America/Phoenix
+            - America/Chicago
+            - America/Mexico_City
+            - America/New_York
+            - America/Bogota
+            - America/Halifax
+            - America/Caracas
+            - America/St_Johns
+            - America/Sao_Paulo
+            - America/Argentina/Buenos_Aires
+            - America/Noronha
+            - Atlantic/Azores
+            - Atlantic/Cape_Verde
+            - UTC
+            - Europe/London
+            - Europe/Lisbon
+            - Africa/Abidjan
+            - Europe/Prague
+            - Europe/Berlin
+            - Europe/Paris
+            - Europe/Warsaw
+            - Africa/Lagos
+            - Europe/Athens
+            - Europe/Kyiv
+            - Europe/Helsinki
+            - Africa/Cairo
+            - Africa/Johannesburg
+            - Europe/Istanbul
+            - Europe/Moscow
+            - Asia/Riyadh
+            - Africa/Nairobi
+            - Asia/Tehran
+            - Asia/Dubai
+            - Asia/Baku
+            - Asia/Kabul
+            - Asia/Karachi
+            - Asia/Tashkent
+            - Asia/Kolkata
+            - Asia/Kathmandu
+            - Asia/Dhaka
+            - Asia/Almaty
+            - Asia/Yangon
+            - Asia/Bangkok
+            - Asia/Jakarta
+            - Asia/Shanghai
+            - Asia/Singapore
+            - Australia/Perth
+            - Australia/Eucla
+            - Asia/Tokyo
+            - Asia/Seoul
+            - Australia/Darwin
+            - Australia/Adelaide
+            - Australia/Brisbane
+            - Australia/Sydney
+            - Pacific/Port_Moresby
+            - Australia/Lord_Howe
+            - Pacific/Noumea
+            - Pacific/Auckland
+            - Pacific/Fiji
+            - Pacific/Chatham
+            - Pacific/Tongatapu
+            - Pacific/Apia
+            - Pacific/Kiritimati
+          type: string
+      required:
+        - language
+        - dateFormat
+        - timeFormat
+        - theme
+      type: object
     ResetUserPasswordInputBody:
       additionalProperties: false
       properties:
@@ -1443,6 +1563,49 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Change the current user's password
+      tags:
+        - auth
+  /api/auth/account/preferences:
+    get:
+      operationId: get-account-preferences
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Preferences"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Return the current user's display preferences
+      tags:
+        - auth
+    put:
+      operationId: update-account-preferences
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Preferences"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Preferences"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Update the current user's display preferences
       tags:
         - auth
   /api/auth/login:

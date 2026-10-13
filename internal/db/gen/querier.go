@@ -39,6 +39,7 @@ type Querier interface {
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
 	GetUserByUsername(ctx context.Context, lower string) (GetUserByUsernameRow, error)
 	GetUserPasswordHashByID(ctx context.Context, id uuid.UUID) (string, error)
+	GetUserPreferences(ctx context.Context, id uuid.UUID) (GetUserPreferencesRow, error)
 	GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error)
 	ListAssetStoragePaths(ctx context.Context) ([]string, error)
 	ListBuildingAssets(ctx context.Context, buildingID *uuid.UUID) ([]ListBuildingAssetsRow, error)
@@ -71,6 +72,7 @@ type Querier interface {
 	UpdateManufacturer(ctx context.Context, arg UpdateManufacturerParams) (Manufacturer, error)
 	UpdateUserAccount(ctx context.Context, arg UpdateUserAccountParams) (UpdateUserAccountRow, error)
 	UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) error
+	UpdateUserPreferences(ctx context.Context, arg UpdateUserPreferencesParams) (UpdateUserPreferencesRow, error)
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (UpdateUserRoleRow, error)
 }
 

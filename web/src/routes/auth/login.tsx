@@ -16,6 +16,7 @@ import { currentUserQueryOptions } from '#/lib/auth'
 import { TextField } from '#/components/form/text-field'
 import { Button } from '#/components/ui/button'
 import { Field, FieldGroup } from '#/components/ui/field'
+import { applyLanguage, browserLanguage } from '#/lib/i18n'
 
 export const Route = createFileRoute('/auth/login')({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
@@ -37,6 +38,7 @@ export const Route = createFileRoute('/auth/login')({
     if (response.status === 200) {
       throw redirect({ to: '/' })
     }
+    applyLanguage(browserLanguage())
   },
   component: Login,
 })

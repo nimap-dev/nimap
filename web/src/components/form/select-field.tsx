@@ -13,10 +13,10 @@ import {
 } from '#/components/ui/select'
 import type { ReactNode } from 'react'
 
-type SelectFieldApi<T extends string> = {
+type SelectFieldApi<TValue extends string> = {
   name: string
   state: {
-    value: T
+    value: TValue
     meta: {
       isTouched: boolean
       isValid: boolean
@@ -24,7 +24,7 @@ type SelectFieldApi<T extends string> = {
     }
   }
   handleBlur: () => void
-  handleChange: (value: T) => void
+  handleChange: (value: TValue) => void
 }
 
 export type SelectFieldOption<T extends string = string> = {
@@ -35,22 +35,23 @@ export type SelectFieldOption<T extends string = string> = {
 
 /**
  * A labelled single choice bound to a form field whose value is a string, or a
- * union of string literals, with "" meaning nothing picked. `emptyLabel` is
- * what the trigger shows in that state; with `allowEmpty` it is also an
- * option, so an optional choice can be cleared.
+ * union of string literals. A field that may hold "" means nothing picked:
+ * `emptyLabel` is what the trigger shows in that state; with `allowEmpty` it
+ * is also an option, so an optional choice can be cleared. A field typed
+ * without "" is a required choice and needs neither.
  */
-export function SelectField<T extends string>({
+export function SelectField<TValue extends string>({
   field,
   label,
   options,
-  emptyLabel,
+  emptyLabel = '',
   allowEmpty = false,
   description,
 }: {
-  field: SelectFieldApi<T | ''>
+  field: SelectFieldApi<TValue>
   label: string
-  options: Array<SelectFieldOption<T>>
-  emptyLabel: string
+  options: Array<SelectFieldOption<Exclude<TValue, ''>>>
+  emptyLabel?: string
   allowEmpty?: boolean
   description?: ReactNode
 }) {
@@ -62,10 +63,10 @@ export function SelectField<T extends string>({
   return (
     <Field data-invalid={isInvalid}>
       <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
-      <Select<T | ''>
+      <Select<TValue>
         items={labels}
         value={field.state.value}
-        onValueChange={(next) => field.handleChange(next ?? '')}
+        onValueChange={(next) => field.handleChange((next ?? '') as TValue)}
         onOpenChange={(open) => {
           if (!open) field.handleBlur()
         }}

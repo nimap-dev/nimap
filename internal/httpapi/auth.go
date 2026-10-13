@@ -77,6 +77,27 @@ type UserOutput struct {
 	Body User
 }
 
+// Preferences are the current user's display settings. They only shape how the
+// interface presents things, so none of them asks for the password again.
+type Preferences struct {
+	Language   apitypes.Language   `json:"language" doc:"Interface language"`
+	Timezone   *apitypes.Timezone  `json:"timezone,omitempty" doc:"Time zone dates and times are shown in; absent follows the browser"`
+	DateFormat apitypes.DateFormat `json:"dateFormat" doc:"How calendar dates are written"`
+	TimeFormat apitypes.TimeFormat `json:"timeFormat" doc:"Whether times use a 24-hour or a 12-hour clock"`
+	Theme      apitypes.Theme      `json:"theme" doc:"Colour scheme of the interface"`
+}
+
+// UpdatePreferencesInput is the request body for PUT /api/auth/account/preferences.
+// Every preference is sent each time, an absent timezone clearing a chosen one.
+type UpdatePreferencesInput struct {
+	Body Preferences
+}
+
+// PreferencesOutput wraps Preferences as an HTTP response body.
+type PreferencesOutput struct {
+	Body Preferences
+}
+
 // RegisterAuth mounts the authentication operations on the huma API.
 func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 	huma.Register(api, huma.Operation{
@@ -257,6 +278,71 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 			UpdatedAt:   user.UpdatedAt,
 		}}, nil
 	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "get-account-preferences",
+		Method:      http.MethodGet,
+		Path:        "/api/auth/account/preferences",
+		Summary:     "Return the current user's display preferences",
+		Tags:        []string{"auth"},
+		Metadata:    map[string]any{requireAuthMetaKey: true},
+	}, func(ctx context.Context, _ *struct{}) (*PreferencesOutput, error) {
+		id, _ := UserIDFromContext(ctx)
+
+		preferences, err := q.GetUserPreferences(ctx, id)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, huma.Error401Unauthorized("not authenticated")
+			}
+			return nil, huma.Error500InternalServerError(
+				"could not load preferences",
+			)
+		}
+
+		return &PreferencesOutput{Body: Preferences{
+			Language:   apitypes.Language(preferences.Language),
+			Timezone:   timezoneResponse(preferences.Timezone),
+			DateFormat: apitypes.DateFormat(preferences.DateFormat),
+			TimeFormat: apitypes.TimeFormat(preferences.TimeFormat),
+			Theme:      apitypes.Theme(preferences.Theme),
+		}}, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID: "update-account-preferences",
+		Method:      http.MethodPut,
+		Path:        "/api/auth/account/preferences",
+		Summary:     "Update the current user's display preferences",
+		Tags:        []string{"auth"},
+		Metadata:    map[string]any{requireAuthMetaKey: true},
+	}, func(ctx context.Context, in *UpdatePreferencesInput) (*PreferencesOutput, error) {
+		id, _ := UserIDFromContext(ctx)
+
+		preferences, err := q.UpdateUserPreferences(ctx, gen.UpdateUserPreferencesParams{
+			ID:         id,
+			Language:   gen.AuthLanguage(in.Body.Language),
+			Timezone:   timezoneParam(in.Body.Timezone),
+			DateFormat: gen.AuthDateFormat(in.Body.DateFormat),
+			TimeFormat: gen.AuthTimeFormat(in.Body.TimeFormat),
+			Theme:      gen.AuthTheme(in.Body.Theme),
+		})
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				return nil, huma.Error401Unauthorized("not authenticated")
+			}
+			return nil, huma.Error500InternalServerError(
+				"preferences update failed",
+			)
+		}
+
+		return &PreferencesOutput{Body: Preferences{
+			Language:   apitypes.Language(preferences.Language),
+			Timezone:   timezoneResponse(preferences.Timezone),
+			DateFormat: apitypes.DateFormat(preferences.DateFormat),
+			TimeFormat: apitypes.TimeFormat(preferences.TimeFormat),
+			Theme:      apitypes.Theme(preferences.Theme),
+		}}, nil
+	})
 }
 
 // verifyCurrentPassword re-checks the password of the already logged-in user,
@@ -282,6 +368,27 @@ func verifyCurrentPassword(
 	}
 
 	return nil
+}
+
+func timezoneParam(timezone *apitypes.Timezone) gen.NullAuthTimezone {
+	if timezone == nil {
+		return gen.NullAuthTimezone{}
+	}
+
+	return gen.NullAuthTimezone{
+		AuthTimezone: gen.AuthTimezone(*timezone),
+		Valid:        true,
+	}
+}
+
+func timezoneResponse(timezone gen.NullAuthTimezone) *apitypes.Timezone {
+	if !timezone.Valid {
+		return nil
+	}
+
+	value := apitypes.Timezone(timezone.AuthTimezone)
+
+	return &value
 }
 
 // userConstraintError turns a constraint on `auth.users` that the caller

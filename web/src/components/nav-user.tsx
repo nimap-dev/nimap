@@ -20,10 +20,12 @@ import { useAuth, useCan } from '#/lib/auth'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { getGetCurrentUserQueryKey, useLogout } from '#/api/auth/auth'
+import { useTranslation } from 'react-i18next'
 
 export function NavUser() {
   const { isMobile } = useSidebar()
   const { user } = useAuth()
+  const { t } = useTranslation(['nav', 'common'])
   const canManageUsers = useCan('users:manage')
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -90,12 +92,12 @@ export function NavUser() {
             <DropdownMenuGroup>
               <DropdownMenuItem render={<Link to="/auth/account" />}>
                 <BadgeCheck />
-                Account
+                {t('account')}
               </DropdownMenuItem>
               {canManageUsers && (
                 <DropdownMenuItem render={<Link to="/admin/users" />}>
                   <Users />
-                  Manage users
+                  {t('manageUsers')}
                 </DropdownMenuItem>
               )}
             </DropdownMenuGroup>
@@ -106,7 +108,7 @@ export function NavUser() {
               }}
             >
               <LogOut />
-              Log out
+              {t('common:actions.logOut')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

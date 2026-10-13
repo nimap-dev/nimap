@@ -15,11 +15,13 @@ type policy struct {
 
 var wantPolicy = map[string]policy{
 	// auth
-	"login":            {public: true},
-	"logout":           {public: true},
-	"get-current-user": {},
-	"update-password":  {},
-	"update-account":   {},
+	"login":                      {public: true},
+	"logout":                     {public: true},
+	"get-current-user":           {},
+	"update-password":            {},
+	"update-account":             {},
+	"get-account-preferences":    {},
+	"update-account-preferences": {},
 
 	// buildings
 	"get-building":           {permission: auth.ReadRecords},

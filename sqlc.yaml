@@ -49,3 +49,4 @@ sql:
         sql_package: "pgx/v5"
         emit_pointers_for_null_types: true
         emit_interface: true
+        emit_all_enum_values: true

@@ -158,6 +158,33 @@ func (q *Queries) GetUserPasswordHashByID(ctx context.Context, id uuid.UUID) (st
 	return password_hash, err
 }
 
+const getUserPreferences = `-- name: GetUserPreferences :one
+SELECT language, timezone, date_format, time_format, theme
+FROM auth.users
+WHERE id = $1
+`
+
+type GetUserPreferencesRow struct {
+	Language   AuthLanguage
+	Timezone   NullAuthTimezone
+	DateFormat AuthDateFormat
+	TimeFormat AuthTimeFormat
+	Theme      AuthTheme
+}
+
+func (q *Queries) GetUserPreferences(ctx context.Context, id uuid.UUID) (GetUserPreferencesRow, error) {
+	row := q.db.QueryRow(ctx, getUserPreferences, id)
+	var i GetUserPreferencesRow
+	err := row.Scan(
+		&i.Language,
+		&i.Timezone,
+		&i.DateFormat,
+		&i.TimeFormat,
+		&i.Theme,
+	)
+	return i, err
+}
+
 const getUserRoleID = `-- name: GetUserRoleID :one
 SELECT role_id
 FROM auth.users
@@ -272,6 +299,55 @@ type UpdateUserPasswordHashParams struct {
 func (q *Queries) UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) error {
 	_, err := q.db.Exec(ctx, updateUserPasswordHash, arg.ID, arg.PasswordHash)
 	return err
+}
+
+const updateUserPreferences = `-- name: UpdateUserPreferences :one
+UPDATE auth.users
+SET language = $1,
+    timezone = $2,
+    date_format = $3,
+    time_format = $4,
+    theme = $5,
+    updated_at = now()
+WHERE id = $6
+RETURNING language, timezone, date_format, time_format, theme
+`
+
+type UpdateUserPreferencesParams struct {
+	Language   AuthLanguage
+	Timezone   NullAuthTimezone
+	DateFormat AuthDateFormat
+	TimeFormat AuthTimeFormat
+	Theme      AuthTheme
+	ID         uuid.UUID
+}
+
+type UpdateUserPreferencesRow struct {
+	Language   AuthLanguage
+	Timezone   NullAuthTimezone
+	DateFormat AuthDateFormat
+	TimeFormat AuthTimeFormat
+	Theme      AuthTheme
+}
+
+func (q *Queries) UpdateUserPreferences(ctx context.Context, arg UpdateUserPreferencesParams) (UpdateUserPreferencesRow, error) {
+	row := q.db.QueryRow(ctx, updateUserPreferences,
+		arg.Language,
+		arg.Timezone,
+		arg.DateFormat,
+		arg.TimeFormat,
+		arg.Theme,
+		arg.ID,
+	)
+	var i UpdateUserPreferencesRow
+	err := row.Scan(
+		&i.Language,
+		&i.Timezone,
+		&i.DateFormat,
+		&i.TimeFormat,
+		&i.Theme,
+	)
+	return i, err
 }
 
 const updateUserRole = `-- name: UpdateUserRole :one

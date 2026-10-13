@@ -26,6 +26,7 @@ import type {
 import type {
   ErrorModel,
   LoginInputBody,
+  Preferences,
   UpdateAccountInputBody,
   UpdatePasswordInputBody,
   User
@@ -275,6 +276,228 @@ export const useUpdatePassword = <TError = ErrorModel,
         TContext
       > => {
       return useMutation(getUpdatePasswordMutationOptions(options), queryClient);
+    }
+    export type getAccountPreferencesResponse200 = {
+  data: Preferences
+  status: 200
+}
+
+export type getAccountPreferencesResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 200>
+}
+
+export type getAccountPreferencesResponseSuccess = (getAccountPreferencesResponse200) & {
+  headers: Headers;
+};
+export type getAccountPreferencesResponseError = (getAccountPreferencesResponseDefault) & {
+  headers: Headers;
+};
+
+export type getAccountPreferencesResponse = (getAccountPreferencesResponseSuccess | getAccountPreferencesResponseError)
+
+export const getGetAccountPreferencesUrl = () => {
+
+
+
+
+  return `/api/auth/account/preferences`
+}
+
+/**
+ * @summary Return the current user's display preferences
+ */
+export const getAccountPreferences = async ( options?: RequestInit): Promise<getAccountPreferencesResponse> => {
+
+  const res = await fetch(getGetAccountPreferencesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: getAccountPreferencesResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as getAccountPreferencesResponse
+}
+
+
+
+
+
+export const getGetAccountPreferencesQueryKey = () => {
+    return [
+    `/api/auth/account/preferences`
+    ] as const;
+    }
+
+
+export const getGetAccountPreferencesQueryOptions = <TData = Awaited<ReturnType<typeof getAccountPreferences>>, TError = ErrorModel>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccountPreferences>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAccountPreferencesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccountPreferences>>> = ({ signal }) => getAccountPreferences({ signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAccountPreferences>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAccountPreferencesQueryResult = NonNullable<Awaited<ReturnType<typeof getAccountPreferences>>>
+export type GetAccountPreferencesQueryError = ErrorModel
+
+
+export function useGetAccountPreferences<TData = Awaited<ReturnType<typeof getAccountPreferences>>, TError = ErrorModel>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccountPreferences>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAccountPreferences>>,
+          TError,
+          Awaited<ReturnType<typeof getAccountPreferences>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAccountPreferences<TData = Awaited<ReturnType<typeof getAccountPreferences>>, TError = ErrorModel>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccountPreferences>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAccountPreferences>>,
+          TError,
+          Awaited<ReturnType<typeof getAccountPreferences>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAccountPreferences<TData = Awaited<ReturnType<typeof getAccountPreferences>>, TError = ErrorModel>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccountPreferences>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Return the current user's display preferences
+ */
+
+export function useGetAccountPreferences<TData = Awaited<ReturnType<typeof getAccountPreferences>>, TError = ErrorModel>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAccountPreferences>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAccountPreferencesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type updateAccountPreferencesResponse200 = {
+  data: Preferences
+  status: 200
+}
+
+export type updateAccountPreferencesResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 200>
+}
+
+export type updateAccountPreferencesResponseSuccess = (updateAccountPreferencesResponse200) & {
+  headers: Headers;
+};
+export type updateAccountPreferencesResponseError = (updateAccountPreferencesResponseDefault) & {
+  headers: Headers;
+};
+
+export type updateAccountPreferencesResponse = (updateAccountPreferencesResponseSuccess | updateAccountPreferencesResponseError)
+
+export const getUpdateAccountPreferencesUrl = () => {
+
+
+
+
+  return `/api/auth/account/preferences`
+}
+
+/**
+ * @summary Update the current user's display preferences
+ */
+export const updateAccountPreferences = async (preferences: NonReadonly<Preferences>, options?: RequestInit): Promise<updateAccountPreferencesResponse> => {
+
+  const res = await fetch(getUpdateAccountPreferencesUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(preferences)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: updateAccountPreferencesResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as updateAccountPreferencesResponse
+}
+
+
+
+
+
+export const getUpdateAccountPreferencesMutationOptions = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccountPreferences>>, TError,{data: NonReadonly<Preferences>}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAccountPreferences>>, TError,{data: NonReadonly<Preferences>}, TContext> => {
+
+const mutationKey = ['updateAccountPreferences'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAccountPreferences>>, {data: NonReadonly<Preferences>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateAccountPreferences(data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAccountPreferencesMutationResult = NonNullable<Awaited<ReturnType<typeof updateAccountPreferences>>>
+    export type UpdateAccountPreferencesMutationBody = NonReadonly<Preferences>
+    export type UpdateAccountPreferencesMutationError = ErrorModel
+
+    /**
+ * @summary Update the current user's display preferences
+ */
+export const useUpdateAccountPreferences = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAccountPreferences>>, TError,{data: NonReadonly<Preferences>}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateAccountPreferences>>,
+        TError,
+        {data: NonReadonly<Preferences>},
+        TContext
+      > => {
+      return useMutation(getUpdateAccountPreferencesMutationOptions(options), queryClient);
     }
     export type loginResponse200 = {
   data: User

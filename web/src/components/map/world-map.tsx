@@ -16,6 +16,12 @@ import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import '#/lib/maplibre-worker'
+import { useResolvedTheme } from '#/lib/theme'
+
+const MAP_STYLES = {
+  light: 'https://tiles.openfreemap.org/styles/liberty',
+  dark: 'https://tiles.openfreemap.org/styles/dark',
+}
 
 export function WorldMap() {
   const {
@@ -29,6 +35,8 @@ export function WorldMap() {
   } = useWorldMap()
   const navigate = useNavigate()
   const drawRef = useRef<TerraDraw | null>(null)
+
+  const theme = useResolvedTheme()
 
   const setupDraw = useCallback(
     (map: MapLibreMap) => {
@@ -147,7 +155,7 @@ export function WorldMap() {
         latitude: 50.0872,
         zoom: 8,
       }}
-      mapStyle="https://tiles.openfreemap.org/styles/liberty"
+      mapStyle={MAP_STYLES[theme]}
       style={{
         position: 'absolute',
         inset: 0,
@@ -165,7 +173,6 @@ export function WorldMap() {
             : 'grab'
       }
       onLoad={onMapReady}
-      onStyleData={onMapReady}
     >
       <LocationsSource />
       <BuildingsSource />
