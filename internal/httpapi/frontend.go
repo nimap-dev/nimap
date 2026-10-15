@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"io/fs"
+	"mime"
 	"net/http"
 	"path"
 	"strings"
@@ -21,6 +22,13 @@ func RegisterFrontend(r chi.Router) {
 	if err != nil {
 		panic("frontend not built: " + err.Error())
 	}
+
+	// Go's built-in table lacks the PWA manifest, so http.FileServer would sniff
+	// it as text/plain.
+	if err := mime.AddExtensionType(".webmanifest", "application/manifest+json"); err != nil {
+		panic(err)
+	}
+
 	fileServer := http.FileServer(http.FS(static.Assets))
 
 	r.Handle("/*", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
