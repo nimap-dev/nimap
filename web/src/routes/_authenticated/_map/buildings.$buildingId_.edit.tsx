@@ -27,6 +27,7 @@ import {
 } from '@tanstack/react-router'
 import { Crosshair } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { can } from '#/lib/auth'
 import { optional } from '#/lib/utils'
 
@@ -44,6 +45,7 @@ export const Route = createFileRoute(
 const BUILDING_ZOOM = 17
 
 function EditBuilding() {
+  const { t } = useTranslation('buildings')
   const { buildingId } = Route.useParams()
   const { data, isPending } = useGetBuilding(buildingId)
 
@@ -53,7 +55,7 @@ function EditBuilding() {
     return (
       <PanelPending
         back={<Link to="/buildings" />}
-        backLabel="Back to buildings"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -61,9 +63,9 @@ function EditBuilding() {
   if (!building) {
     return (
       <PanelNotFound
-        noun="building"
+        description={t('detail.notFound')}
         back={<Link to="/buildings" />}
-        backLabel="Back to buildings"
+        backLabel={t('detail.back')}
       />
     )
   }

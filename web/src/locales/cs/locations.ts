@@ -1,0 +1,51 @@
+export default {
+  fields: {
+    placement: 'Umístění',
+    address: 'Adresa',
+    parent: 'Patří pod',
+    boundary: 'Hranice',
+    point: 'Bod na mapě',
+    notes: 'Poznámky',
+  },
+  tabs: {
+    inside: 'Uvnitř',
+  },
+  list: {
+    title: 'Lokality',
+    new: 'Nová lokalita',
+    loadFailed: 'Lokality se nepodařilo načíst',
+    search: 'Hledat lokality a adresy…',
+    name: 'Název',
+    updated: 'Upraveno',
+    showInside: 'Zobrazit, co je uvnitř {{name}}',
+    hideInside: 'Skrýt, co je uvnitř {{name}}',
+  },
+  detail: {
+    back: 'Zpět na lokality',
+    notFound: 'Tato lokalita neexistuje, nebo k ní nemáte přístup.',
+    edit: 'Upravit lokalitu',
+    frame: 'Ukázat na mapě',
+    status: 'Stav lokality',
+    noParent: 'Nikam',
+    notDrawn: 'Nenakreslena',
+    notPlaced: 'Neumístěna',
+    derived: ' · odvozený',
+    noBoundary: ' · bez hranice',
+    stayed: 'Lokalita {{name}} zůstala beze změny',
+    statusChanged: 'Stav lokality {{name}} změněn na: {{status}}',
+  },
+  inside: {
+    locations: 'Lokality',
+    buildings: 'Budovy',
+    noLocations: 'V této lokalitě nejsou vnořené žádné další lokality.',
+    noBuildings: 'V této lokalitě nestojí žádná budova.',
+  },
+  delete: {
+    label: 'Smazat lokalitu',
+    title: 'Smazat {{name}}?',
+    description:
+      'Mazání slouží k opravě chyb, třeba duplicity nebo omylem přidané lokality. Pokud lokalita přestala sloužit, nastavte jí raději stav {{decommissioned}}: zůstane jí historie, půjde dál vyhledat a jen zmizí z mapy. Dokud jsou v ní vnořené další lokality, smazání se odmítne. Odsud to nelze vrátit.',
+    stillThere: 'Lokalita {{name}} stále existuje',
+    deleted: 'Lokalita {{name}} byla smazána',
+  },
+}

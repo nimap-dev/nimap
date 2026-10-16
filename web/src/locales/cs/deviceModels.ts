@@ -20,6 +20,7 @@ export default {
     manufacturer: 'Výrobce',
     type: 'Typ',
     name: 'Název',
+    identification: 'Identifikace',
     variant: 'Varianta',
     partNumber: 'Katalogové číslo',
     productPage: 'Stránka produktu',

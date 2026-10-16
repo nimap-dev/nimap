@@ -2,10 +2,10 @@ export default {
   fields: {
     name: 'Název',
     website: 'Web',
+    contact: 'Kontakt',
     notes: 'Poznámky',
     notesPlaceholder: 'Kontakty na podporu, distributor, záruční podmínky…',
     updated: 'Upraveno',
-    created: 'Vytvořeno',
   },
   list: {
     title: 'Výrobci',
@@ -19,6 +19,13 @@ export default {
     notFound: 'Tento výrobce neexistuje, nebo k němu nemáte přístup.',
     edit: 'Upravit výrobce',
     noWebsite: 'Bez webu',
+  },
+  tabs: {
+    models: 'Modely',
+  },
+  models: {
+    empty: 'Od tohoto výrobce zatím není žádný model zařízení.',
+    openList: 'Otevřít v seznamu modelů',
   },
   delete: {
     label: 'Smazat výrobce',

@@ -4,7 +4,19 @@ import {
   useDeleteManufacturer,
   useGetManufacturer,
 } from '#/api/manufacturers/manufacturers'
-import { Detail, DetailEmpty, DetailList } from '#/components/detail-list'
+import { useListDeviceModels } from '#/api/device-models/device-models'
+import {
+  Detail,
+  DetailEmpty,
+  DetailGrid,
+  DetailList,
+  DetailMeta,
+  DetailNote,
+} from '#/components/detail-list'
+import { DeviceTypeIcon } from '#/components/device-type-icon'
+import { LifecycleBadge } from '#/components/lifecycle-badge'
+import { RecordTab, RecordTabs, RecordTabsList } from '#/components/record-tabs'
+import { RelatedLink, RelatedList } from '#/components/related-list'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import {
   AlertDialog,
@@ -19,18 +31,30 @@ import {
   AlertDialogTrigger,
 } from '#/components/ui/alert-dialog'
 import { Button } from '#/components/ui/button'
+import { TabsContent } from '#/components/ui/tabs'
 import { toast } from '#/components/ui/toast'
 import { useCan } from '#/lib/auth'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
+import { formatModelName } from '#/lib/device-models'
+import { ALL_LIFECYCLE_STATUSES } from '#/lib/lifecycle'
 import { useQueryClient } from '@tanstack/react-query'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import * as zod from 'zod'
+
+/** The tabs this page has; anything else in the address falls back to the first. */
+const TABS = ['overview', 'models'] as const
+type Tab = (typeof TABS)[number]
 
 export const Route = createFileRoute(
   '/_authenticated/_nav/devices/manufacturers/$manufacturerId',
-)({ component: ViewManufacturer })
+)({
+  validateSearch: zod.object({
+    tab: zod.enum(TABS).optional().catch(undefined),
+  }),
+  component: ViewManufacturer,
+})
 
 function ViewManufacturer() {
   const { t } = useTranslation(['manufacturers', 'common'])
@@ -39,7 +63,13 @@ function ViewManufacturer() {
   const { data, isPending } = useGetManufacturer(manufacturerId)
   const deleteManufacturer = useDeleteManufacturer()
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
+  const { tab = 'overview' } = Route.useSearch()
+  const navigate = Route.useNavigate()
+  const { data: modelsData } = useListDeviceModels({
+    manufacturerId,
+    status: ALL_LIFECYCLE_STATUSES,
+  })
+  const models = modelsData?.status === 200 ? modelsData.data : undefined
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   const manufacturer = data?.status === 200 ? data.data : undefined
@@ -100,75 +130,131 @@ function ViewManufacturer() {
 
   return (
     <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
-      <Panel
-        title={manufacturer.name}
-        back={<Link to="/devices/manufacturers" />}
-        backLabel={t('detail.back')}
-        action={
-          canWrite && (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={t('detail.edit')}
-                render={
-                  <Link
-                    to="/devices/manufacturers/$manufacturerId/edit"
-                    params={{ manufacturerId }}
-                  />
-                }
-                nativeButton={false}
-              >
-                <Pencil />
-              </Button>
-              <AlertDialogTrigger
-                aria-label={t('delete.label')}
-                render={<Button variant="ghost" size="icon" />}
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-              >
-                <Trash2 />
-              </AlertDialogTrigger>
-            </>
-          )
+      <RecordTabs
+        value={tab}
+        onValueChange={(value) =>
+          navigate({
+            search: {
+              tab: value === 'overview' ? undefined : (value as Tab),
+            },
+            replace: true,
+          })
         }
       >
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-          {manufacturer.notes && (
-            <p className="text-sm whitespace-pre-line text-muted-foreground">
-              {manufacturer.notes}
-            </p>
-          )}
-
-          <DetailList>
-            <Detail label={t('fields.website')}>
-              {manufacturer.website ? (
-                <a
-                  href={manufacturer.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline"
+        <Panel
+          title={manufacturer.name}
+          back={<Link to="/devices/manufacturers" />}
+          backLabel={t('detail.back')}
+          action={
+            canWrite && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('detail.edit')}
+                  render={
+                    <Link
+                      to="/devices/manufacturers/$manufacturerId/edit"
+                      params={{ manufacturerId }}
+                    />
+                  }
+                  nativeButton={false}
                 >
-                  {manufacturer.website}
-                </a>
-              ) : (
-                <DetailEmpty>{t('detail.noWebsite')}</DetailEmpty>
+                  <Pencil />
+                </Button>
+                <AlertDialogTrigger
+                  aria-label={t('delete.label')}
+                  render={<Button variant="ghost" size="icon" />}
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 />
+                </AlertDialogTrigger>
+              </>
+            )
+          }
+          tabs={
+            <RecordTabsList>
+              <RecordTab value="overview">
+                {t('common:tabs.overview')}
+              </RecordTab>
+              <RecordTab value="models" count={models?.length}>
+                {t('tabs.models')}
+              </RecordTab>
+            </RecordTabsList>
+          }
+        >
+          <TabsContent value="overview">
+            <DetailGrid>
+              <DetailList title={t('fields.contact')}>
+                <Detail
+                  label={t('fields.website')}
+                  title={manufacturer.website}
+                >
+                  {manufacturer.website ? (
+                    <a
+                      href={manufacturer.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline"
+                    >
+                      {manufacturer.website}
+                    </a>
+                  ) : (
+                    <DetailEmpty>{t('detail.noWebsite')}</DetailEmpty>
+                  )}
+                </Detail>
+              </DetailList>
+
+              {manufacturer.notes && (
+                <DetailNote title={t('fields.notes')}>
+                  {manufacturer.notes}
+                </DetailNote>
               )}
-            </Detail>
-            <Detail
-              label={t('fields.updated')}
-              title={formatAbsoluteDate(manufacturer.updatedAt)}
-            >
-              {formatRelativeDate(manufacturer.updatedAt)}
-            </Detail>
-            <Detail
-              label={t('fields.created')}
-              title={formatAbsoluteDate(manufacturer.createdAt)}
-            >
-              {formatRelativeDate(manufacturer.createdAt)}
-            </Detail>
-          </DetailList>
-        </div>
-      </Panel>
+
+              <DetailMeta
+                createdAt={manufacturer.createdAt}
+                updatedAt={manufacturer.updatedAt}
+              />
+            </DetailGrid>
+          </TabsContent>
+
+          <TabsContent value="models">
+            <div className="mx-auto w-full max-w-4xl">
+              <RelatedList
+                count={models?.length}
+                empty={t('models.empty')}
+                action={
+                  <Link
+                    to="/devices/models"
+                    search={{ manufacturerId }}
+                    className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+                  >
+                    {t('models.openList')}
+                  </Link>
+                }
+              >
+                {models?.map((model) => (
+                  <li key={model.id}>
+                    <RelatedLink
+                      to="/devices/models/$modelId"
+                      params={{ modelId: model.id }}
+                      icon={<DeviceTypeIcon type={model.deviceType} />}
+                      meta={<LifecycleBadge status={model.status} />}
+                    >
+                      {formatModelName(model)}
+                      {model.partNumber && (
+                        <span className="text-muted-foreground">
+                          {` · ${model.partNumber}`}
+                        </span>
+                      )}
+                    </RelatedLink>
+                  </li>
+                ))}
+              </RelatedList>
+            </div>
+          </TabsContent>
+        </Panel>
+      </RecordTabs>
 
       <AlertDialogContent size="sm">
         <AlertDialogHeader>

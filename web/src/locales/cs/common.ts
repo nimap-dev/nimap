@@ -51,10 +51,16 @@ export default {
   table: {
     search: 'Hledat…',
     noResults: 'Žádné výsledky.',
+    shown: '{{count}} z {{total}}',
+    clearFilters: 'Zrušit filtry',
   },
   meta: {
-    created: 'vytvořeno {{when}}',
-    updated: 'upraveno {{when}}',
+    created: 'Vytvořeno {{when}}',
+    updated: 'Upraveno {{when}}',
+  },
+  tabs: {
+    overview: 'Přehled',
+    files: 'Soubory',
   },
   validation: {
     passwordsMismatch: 'Hesla se neshodují',

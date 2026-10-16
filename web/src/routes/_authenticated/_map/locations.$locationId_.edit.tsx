@@ -24,6 +24,7 @@ import {
   useNavigate,
 } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import { can } from '#/lib/auth'
 import { optional } from '#/lib/utils'
@@ -41,6 +42,7 @@ export const Route = createFileRoute(
 })
 
 function EditLocation() {
+  const { t } = useTranslation('locations')
   const { locationId } = Route.useParams()
   const { data, isPending } = useGetLocation(locationId)
 
@@ -50,7 +52,7 @@ function EditLocation() {
     return (
       <PanelPending
         back={<Link to="/locations" />}
-        backLabel="Back to locations"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -58,9 +60,9 @@ function EditLocation() {
   if (!location) {
     return (
       <PanelNotFound
-        noun="location"
+        description={t('detail.notFound')}
         back={<Link to="/locations" />}
-        backLabel="Back to locations"
+        backLabel={t('detail.back')}
       />
     )
   }

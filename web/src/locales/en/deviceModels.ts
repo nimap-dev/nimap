@@ -22,6 +22,7 @@ export default {
     manufacturer: 'Manufacturer',
     type: 'Type',
     name: 'Name',
+    identification: 'Identification',
     variant: 'Variant',
     partNumber: 'Part number',
     productPage: 'Product page',

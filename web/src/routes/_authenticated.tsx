@@ -38,7 +38,7 @@ function RouteComponent() {
   return (
     <SidebarProvider
       className="max-md:h-svh max-md:flex-col"
-      style={{ '--sidebar-width': '25rem' } as CSSProperties}
+      style={{ '--sidebar-width': '30rem' } as CSSProperties}
     >
       <PreferencesSync />
       <Outlet />

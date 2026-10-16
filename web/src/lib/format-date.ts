@@ -1,3 +1,5 @@
+import i18n from '#/lib/i18n'
+
 const SECOND = 1000
 const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
@@ -13,14 +15,31 @@ const RELATIVE_UNITS: Array<{ unit: Intl.RelativeTimeFormatUnit; ms: number }> =
     { unit: 'minute', ms: MINUTE },
   ]
 
-const relativeFormat = new Intl.RelativeTimeFormat(undefined, {
-  numeric: 'auto',
-})
-const absoluteFormat = new Intl.DateTimeFormat(undefined, {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-})
+/**
+ * The formatters for the interface language, not the browser's: a Czech
+ * interface in an English browser should still say "minulý týden". Made once
+ * per language, since a table formats a date on every row.
+ */
+const formatters = new Map<
+  string,
+  { relative: Intl.RelativeTimeFormat; absolute: Intl.DateTimeFormat }
+>()
+
+function formattersFor(language: string) {
+  let found = formatters.get(language)
+  if (!found) {
+    found = {
+      relative: new Intl.RelativeTimeFormat(language, { numeric: 'auto' }),
+      absolute: new Intl.DateTimeFormat(language, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }),
+    }
+    formatters.set(language, found)
+  }
+  return found
+}
 
 /**
  * Formats a timestamp as "2 hours ago" / "yesterday" / "last week", falling
@@ -37,18 +56,20 @@ export function formatRelativeDate(
 
   const diff = time - (now instanceof Date ? now.getTime() : now)
   const elapsed = Math.abs(diff)
+  const { relative, absolute } = formattersFor(i18n.language)
 
-  if (elapsed >= MONTH) return absoluteFormat.format(date)
-  if (elapsed < MINUTE) return 'just now'
+  if (elapsed >= MONTH) return absolute.format(date)
+  // "now" / "nyní", in whichever language the interface speaks.
+  if (elapsed < MINUTE) return relative.format(0, 'second')
 
   const { unit, ms } = RELATIVE_UNITS.find(
     (candidate) => elapsed >= candidate.ms,
   )!
   // Truncate rather than round so 90 minutes reads "1 hour ago", not "2 hours ago".
-  return relativeFormat.format(Math.trunc(diff / ms), unit)
+  return relative.format(Math.trunc(diff / ms), unit)
 }
 
 export function formatAbsoluteDate(value: string | number | Date) {
   const date = value instanceof Date ? value : new Date(value)
-  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString()
+  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString(i18n.language)
 }

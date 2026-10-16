@@ -309,6 +309,15 @@ function AllDeviceModels() {
             />
           </>
         }
+        onClearFilters={
+          deviceTypeId || manufacturerId || mounting || search.status
+            ? () =>
+                navigateSearch({
+                  search: {},
+                  replace: true,
+                })
+            : undefined
+        }
         onRowClick={(model) =>
           navigate({
             to: '/devices/models/$modelId',

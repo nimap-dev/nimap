@@ -4,7 +4,10 @@ import type { DataTableFeatures } from '#/components/data-table/data-table-featu
 import { Button } from '#/components/ui/button'
 import { formatAddress } from '#/lib/address'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
-import { DEFAULT_LIFECYCLE_STATUSES } from '#/lib/lifecycle'
+import {
+  DEFAULT_LIFECYCLE_STATUSES,
+  isDefaultLifecycleStatuses,
+} from '#/lib/lifecycle'
 import {
   buildLocationTree,
   flattenLocationTree,
@@ -16,6 +19,8 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { StatusFilter } from '#/components/status-filter'
 import { Panel } from '#/components/panel'
 import { TableSkeleton } from '#/components/data-table/table-skeleton'
@@ -33,11 +38,14 @@ const columnHelper = createColumnHelper<DataTableFeatures, LocationTreeRow>()
 // No sortable headers anywhere in this table on purpose: the rows arrive in
 // tree order and sorting any column would scatter children away from parents,
 // leaving the indentation describing a shape that is no longer on screen.
-function makeColumns(onToggle: (id: string) => void) {
+function makeColumns(
+  t: TFunction<['locations', 'common']>,
+  onToggle: (id: string) => void,
+) {
   return columnHelper.columns([
     columnHelper.accessor((row) => row.location.name, {
       id: 'name',
-      header: () => 'Name',
+      header: () => t('list.name'),
       cell: ({ row, getValue }) => {
         const { location, depth, isMatch, hasChildren, isCollapsed } =
           row.original
@@ -54,11 +62,12 @@ function makeColumns(onToggle: (id: string) => void) {
                 type="button"
                 onClick={() => onToggle(location.id)}
                 aria-expanded={!isCollapsed}
-                aria-label={
-                  isCollapsed
-                    ? `Show what is inside ${location.name}`
-                    : `Hide what is inside ${location.name}`
-                }
+                aria-label={t(
+                  isCollapsed ? 'list.showInside' : 'list.hideInside',
+                  {
+                    name: location.name,
+                  },
+                )}
                 className="-ml-1 mt-0.5 shrink-0 rounded text-muted-foreground hover:text-foreground"
               >
                 <Chevron className="size-4" />
@@ -99,13 +108,13 @@ function makeColumns(onToggle: (id: string) => void) {
     }),
     columnHelper.accessor((row) => row.location.status, {
       id: 'status',
-      header: () => 'Status',
+      header: () => t('common:lifecycle.label'),
       meta: { width: '9rem' },
       cell: ({ getValue }) => <LifecycleBadge status={getValue()} />,
     }),
     columnHelper.accessor((row) => row.location.updatedAt, {
       id: 'updatedAt',
-      header: () => 'Updated',
+      header: () => t('list.updated'),
       meta: { width: '7.5rem' },
       cell: ({ getValue }) => (
         <span
@@ -120,6 +129,7 @@ function makeColumns(onToggle: (id: string) => void) {
 }
 
 function AllLocations() {
+  const { t } = useTranslation(['locations', 'common'])
   const canWrite = useCan('records:write')
   const [statuses, setStatuses] = useState(DEFAULT_LIFECYCLE_STATUSES)
   const [query, setQuery] = useState('')
@@ -136,47 +146,56 @@ function AllLocations() {
 
   const columns = useMemo(
     () =>
-      makeColumns((id) =>
+      makeColumns(t, (id) =>
         setCollapsed((current) => {
           const next = new Set(current)
           if (!next.delete(id)) next.add(id)
           return next
         }),
       ),
-    [],
+    [t],
   )
 
-  if (isPending)
+  const newLocation = canWrite && (
+    <Button
+      size="icon"
+      aria-label={t('list.new')}
+      render={<Link to="/locations/new" />}
+      nativeButton={false}
+    >
+      <Plus />
+    </Button>
+  )
+
+  if (isPending) {
     return (
-      <Panel title="All Locations">
+      <Panel title={t('list.title')} action={newLocation}>
         <TableSkeleton />
       </Panel>
     )
+  }
 
-  if (!all) return <Panel title="All Locations">Failed to load locations</Panel>
+  if (!all) {
+    return (
+      <Panel title={t('list.title')} action={newLocation}>
+        {t('list.loadFailed')}
+      </Panel>
+    )
+  }
 
   return (
-    <Panel
-      title="All Locations"
-      action={
-        canWrite && (
-          <Button
-            size="icon"
-            aria-label="New location"
-            render={<Link to="/locations/new" />}
-            nativeButton={false}
-          >
-            <Plus />
-          </Button>
-        )
-      }
-    >
+    <Panel title={t('list.title')} action={newLocation}>
       <DataTable
         columns={columns}
         data={rows}
         search={{ value: query, onChange: setQuery }}
-        searchPlaceholder="Search locations…"
+        searchPlaceholder={t('list.search')}
         actions={<StatusFilter value={statuses} onChange={setStatuses} />}
+        onClearFilters={
+          isDefaultLifecycleStatuses(statuses)
+            ? undefined
+            : () => setStatuses(DEFAULT_LIFECYCLE_STATUSES)
+        }
         onRowClick={(row) =>
           navigate({
             to: '/locations/$locationId',

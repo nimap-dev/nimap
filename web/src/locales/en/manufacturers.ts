@@ -3,10 +3,10 @@ export default {
   fields: {
     name: 'Name',
     website: 'Website',
+    contact: 'Contact',
     notes: 'Notes',
     notesPlaceholder: 'Support contacts, distributor, warranty terms…',
     updated: 'Updated',
-    created: 'Created',
   },
   list: {
     title: 'Manufacturers',
@@ -21,6 +21,13 @@ export default {
       "This manufacturer doesn't exist, or you don't have access to it.",
     edit: 'Edit manufacturer',
     noWebsite: 'No website',
+  },
+  tabs: {
+    models: 'Models',
+  },
+  models: {
+    empty: 'No device models from this manufacturer yet.',
+    openList: 'Open in the model list',
   },
   delete: {
     label: 'Delete manufacturer',

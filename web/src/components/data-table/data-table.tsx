@@ -42,6 +42,11 @@ interface DataTableProps<TData extends RowData> {
   }
   /** Rendered at the end of the toolbar row, e.g. a "new item" button. */
   actions?: React.ReactNode
+  /**
+   * Set while the list is narrowed by anything beyond the search box (a
+   * status, a type), so the footer can say so and offer the way back.
+   */
+  onClearFilters?: () => void
   className?: string
 }
 
@@ -53,6 +58,7 @@ export function DataTable<TData extends RowData>({
   searchPlaceholder,
   search: controlledSearch,
   actions,
+  onClearFilters,
   className,
 }: DataTableProps<TData>) {
   const { t } = useTranslation()
@@ -86,8 +92,19 @@ export function DataTable<TData extends RowData>({
       onChange: (value: string) => column.setFilterValue(value),
     })
 
+  const shown = table.getRowModel().rows.length
+  const clearFilters = onClearFilters && (
+    <button
+      type="button"
+      onClick={onClearFilters}
+      className="underline-offset-2 hover:text-foreground hover:underline"
+    >
+      {t('table.clearFilters')}
+    </button>
+  )
+
   return (
-    <div className={cn('flex flex-col gap-4', className)}>
+    <div className={cn('flex flex-col gap-3', className)}>
       {(search || actions) && (
         <div className="flex flex-wrap items-center gap-2">
           {search && (
@@ -103,9 +120,9 @@ export function DataTable<TData extends RowData>({
           {actions}
         </div>
       )}
-      <div className="rounded-md border">
+      <div className="overflow-hidden rounded-lg border bg-card">
         <Table className="table-fixed" style={{ minWidth: minTableWidth }}>
-          <TableHeader>
+          <TableHeader className="bg-muted/40 text-xs text-muted-foreground">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -167,7 +184,7 @@ export function DataTable<TData extends RowData>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-24 text-center text-muted-foreground"
                 >
                   {t('table.noResults')}
                 </TableCell>
@@ -176,6 +193,19 @@ export function DataTable<TData extends RowData>({
           </TableBody>
         </Table>
       </div>
+      <p className="flex flex-wrap items-center gap-x-2 px-1 text-xs text-muted-foreground">
+        <span className="tabular-nums">
+          {shown < data.length
+            ? t('table.shown', { count: shown, total: data.length })
+            : t('results', { count: data.length })}
+        </span>
+        {clearFilters && (
+          <>
+            <span aria-hidden="true">·</span>
+            {clearFilters}
+          </>
+        )}
+      </p>
     </div>
   )
 }

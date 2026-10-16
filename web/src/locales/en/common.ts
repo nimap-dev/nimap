@@ -49,11 +49,17 @@ export default {
   table: {
     search: 'Search…',
     noResults: 'No results.',
+    shown: '{{count}} of {{total}}',
+    clearFilters: 'Clear filters',
   },
   /** The created/updated line under a record. */
   meta: {
-    created: 'created {{when}}',
-    updated: 'updated {{when}}',
+    created: 'Created {{when}}',
+    updated: 'Updated {{when}}',
+  },
+  tabs: {
+    overview: 'Overview',
+    files: 'Files',
   },
   validation: {
     passwordsMismatch: 'Passwords do not match',

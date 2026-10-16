@@ -1,3 +1,4 @@
+import { useListAssets } from '#/api/assets/assets'
 import {
   getGetBuildingQueryKey,
   getListBuildingsQueryKey,
@@ -5,32 +6,19 @@ import {
   useGetBuilding,
   useUpdateBuildingStatus,
 } from '#/api/buildings/buildings'
-import type { BuildingResponseStatus } from '#/api/model'
+import { useGetLocation } from '#/api/locations/locations'
 import { AssetList } from '#/components/asset-list'
+import {
+  Detail,
+  DetailEmpty,
+  DetailGrid,
+  DetailList,
+  DetailMeta,
+  DetailNote,
+} from '#/components/detail-list'
+import { LifecycleStatusSelect } from '#/components/lifecycle-status-select'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
-import { Skeleton } from '#/components/ui/skeleton'
-import { useCan } from '#/lib/auth'
-import { Detail, DetailEmpty, DetailList } from '#/components/detail-list'
-import { Button } from '#/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '#/components/ui/select'
-import { toast } from '#/components/ui/toast'
-import { formatAddress } from '#/lib/address'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
-import {
-  useLifecycleStatusLabels,
-  useLifecycleStatusOptions,
-} from '#/lib/lifecycle'
-import { useWorldMap } from '#/lib/map'
-import { useQueryClient } from '@tanstack/react-query'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { Crosshair, Pencil, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { RecordTab, RecordTabs, RecordTabsList } from '#/components/record-tabs'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,25 +30,54 @@ import {
   AlertDialogMedia,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { useGetLocation } from '#/api/locations/locations'
+} from '#/components/ui/alert-dialog'
+import { Button } from '#/components/ui/button'
+import { Skeleton } from '#/components/ui/skeleton'
+import { TabsContent } from '#/components/ui/tabs'
+import { toast } from '#/components/ui/toast'
+import { formatAddress } from '#/lib/address'
+import { useCan } from '#/lib/auth'
+import { useLifecycleStatusLabels } from '#/lib/lifecycle'
+import type { LifecycleStatus } from '#/lib/lifecycle'
+import { useWorldMap } from '#/lib/map'
+import { useQueryClient } from '@tanstack/react-query'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { Crosshair, Pencil, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import * as zod from 'zod'
+
+/** The tabs this page has; anything else in the address falls back to the first. */
+const TABS = ['overview', 'files'] as const
+type Tab = (typeof TABS)[number]
 
 export const Route = createFileRoute(
   '/_authenticated/_map/buildings/$buildingId',
-)({ component: ViewBuilding })
+)({
+  validateSearch: zod.object({
+    tab: zod.enum(TABS).optional().catch(undefined),
+  }),
+  component: ViewBuilding,
+})
 
 function ViewBuilding() {
+  const { t } = useTranslation(['buildings', 'common'])
   const lifecycleStatusLabels = useLifecycleStatusLabels()
-  const lifecycleStatusOptions = useLifecycleStatusOptions()
   const { buildingId } = Route.useParams()
   const canWrite = useCan('records:write')
   const { data, isPending } = useGetBuilding(buildingId)
   const deleteBuilding = useDeleteBuilding()
   const updateStatus = useUpdateBuildingStatus()
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
   const { flyTo } = useWorldMap()
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const { tab = 'overview' } = Route.useSearch()
+  const navigate = Route.useNavigate()
+  const { data: assetsData } = useListAssets({
+    resourceType: 'building',
+    resourceId: buildingId,
+  })
+  const assets = assetsData?.status === 200 ? assetsData.data : undefined
 
   const building = data?.status === 200 ? data.data : undefined
   const [longitude, latitude] = building?.representativePoint.coordinates ?? []
@@ -73,7 +90,7 @@ function ViewBuilding() {
     return (
       <PanelPending
         back={<Link to="/buildings" />}
-        backLabel="Back to buildings"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -81,17 +98,18 @@ function ViewBuilding() {
   if (!building) {
     return (
       <PanelNotFound
-        noun="building"
+        description={t('detail.notFound')}
         back={<Link to="/buildings" />}
-        backLabel="Back to buildings"
+        backLabel={t('detail.back')}
       />
     )
   }
 
   // Captured before the request: after a successful delete the query is gone.
   const name = building.name
+  const address = formatAddress(building.address)
 
-  async function handleStatusChange(status: BuildingResponseStatus) {
+  async function handleStatusChange(status: LifecycleStatus) {
     try {
       const res = await updateStatus.mutateAsync({
         id: buildingId,
@@ -101,29 +119,34 @@ function ViewBuilding() {
       if (res.status !== 200) {
         toast.add({
           type: 'error',
-          title: 'Could not change the status',
-          description: res.data.detail ?? `${name} stayed as it was`,
+          title: t('common:errors.couldNotChangeStatus'),
+          description: res.data.detail ?? t('detail.stayed', { name }),
         })
         return
       }
     } catch {
       toast.add({
         type: 'error',
-        title: 'Could not change the status',
-        description: 'The request failed, check your connection and retry',
+        title: t('common:errors.couldNotChangeStatus'),
+        description: t('common:errors.requestFailed'),
       })
       return
     }
 
-    await queryClient.invalidateQueries({
-      queryKey: getGetBuildingQueryKey(buildingId),
-    })
-    await queryClient.invalidateQueries({
-      queryKey: getListBuildingsQueryKey(),
-    })
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: getGetBuildingQueryKey(buildingId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: getListBuildingsQueryKey(),
+      }),
+    ])
     toast.add({
       type: 'success',
-      description: `${name} is now ${lifecycleStatusLabels[status].toLowerCase()}`,
+      description: t('detail.statusChanged', {
+        name,
+        status: lifecycleStatusLabels[status].toLowerCase(),
+      }),
     })
   }
 
@@ -132,18 +155,19 @@ function ViewBuilding() {
       const res = await deleteBuilding.mutateAsync({ id: buildingId })
 
       if (res.status !== 204) {
+        setConfirmingDelete(false)
         toast.add({
           type: 'error',
-          title: 'Could not delete',
-          description: res.data.detail ?? `${name} is still there`,
+          title: t('common:errors.couldNotDelete'),
+          description: res.data.detail ?? t('delete.stillThere', { name }),
         })
         return
       }
     } catch {
       toast.add({
         type: 'error',
-        title: 'Could not delete',
-        description: 'The request failed, check your connection and retry',
+        title: t('common:errors.couldNotDelete'),
+        description: t('common:errors.requestFailed'),
       })
       return
     }
@@ -153,128 +177,136 @@ function ViewBuilding() {
     await queryClient.invalidateQueries({
       queryKey: getListBuildingsQueryKey(),
     })
-    toast.add({ type: 'success', description: `${name} was deleted` })
+    toast.add({ type: 'success', description: t('delete.deleted', { name }) })
     navigate({ to: '/buildings', replace: true })
   }
 
   return (
     <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
-      <Panel
-        title={building.name}
-        back={<Link to="/buildings" />}
-        backLabel="Back to buildings"
-        action={
-          <>
-            {
+      <RecordTabs
+        value={tab}
+        onValueChange={(value) =>
+          navigate({
+            search: {
+              tab: value === 'overview' ? undefined : (value as Tab),
+            },
+            replace: true,
+          })
+        }
+      >
+        <Panel
+          title={building.name}
+          back={<Link to="/buildings" />}
+          backLabel={t('detail.back')}
+          action={
+            <>
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label={t('detail.frame')}
+                title={t('detail.frame')}
                 onClick={() => flyTo(longitude, latitude, 17)}
               >
                 <Crosshair />
               </Button>
-            }
-            {canWrite && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Edit building"
-                  render={
-                    <Link
-                      to="/buildings/$buildingId/edit"
-                      params={{ buildingId }}
-                    />
-                  }
-                  nativeButton={false}
-                >
-                  <Pencil />
-                </Button>
-                <AlertDialogTrigger
-                  aria-label="Delete building"
-                  render={<Button variant="ghost" size="icon" />}
-                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash2 />
-                </AlertDialogTrigger>
-              </>
-            )}
-          </>
-        }
-      >
-        {building.notes && (
-          <p className="text-sm whitespace-pre-line text-muted-foreground">
-            {building.notes}
-          </p>
-        )}
-
-        <DetailList>
-          <Detail label="Status" align="center">
-            <Select
-              items={lifecycleStatusLabels}
+              {canWrite && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t('detail.edit')}
+                    render={
+                      <Link
+                        to="/buildings/$buildingId/edit"
+                        params={{ buildingId }}
+                      />
+                    }
+                    nativeButton={false}
+                  >
+                    <Pencil />
+                  </Button>
+                  <AlertDialogTrigger
+                    aria-label={t('delete.label')}
+                    render={<Button variant="ghost" size="icon" />}
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 />
+                  </AlertDialogTrigger>
+                </>
+              )}
+            </>
+          }
+          summary={
+            <LifecycleStatusSelect
               value={building.status}
-              onValueChange={(value) =>
-                handleStatusChange(value as BuildingResponseStatus)
-              }
-              disabled={!canWrite || updateStatus.isPending}
-            >
-              <SelectTrigger size="sm" aria-label="Building status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {lifecycleStatusOptions.map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Detail>
+              onValueChange={handleStatusChange}
+              readOnly={!canWrite}
+              disabled={updateStatus.isPending}
+              aria-label={t('detail.status')}
+            />
+          }
+          tabs={
+            <RecordTabsList>
+              <RecordTab value="overview">
+                {t('common:tabs.overview')}
+              </RecordTab>
+              <RecordTab value="files" count={assets?.length}>
+                {t('common:tabs.files')}
+              </RecordTab>
+            </RecordTabsList>
+          }
+        >
+          <TabsContent value="overview">
+            <DetailGrid>
+              <DetailList title={t('fields.placement')}>
+                <Detail label={t('fields.location')}>
+                  {building.locationId ? (
+                    <BuildingLocation locationId={building.locationId} />
+                  ) : (
+                    <DetailEmpty>{t('detail.noLocation')}</DetailEmpty>
+                  )}
+                </Detail>
+                <Detail label={t('fields.address')} title={address}>
+                  {address || (
+                    <DetailEmpty>{t('common:states.notRecorded')}</DetailEmpty>
+                  )}
+                </Detail>
+                <Detail label={t('fields.position')}>
+                  {latitude.toFixed(5)}, {longitude.toFixed(5)}
+                </Detail>
+              </DetailList>
 
-          <Detail label="Location">
-            {building.locationId ? (
-              <BuildingLocation locationId={building.locationId} />
-            ) : (
-              <DetailEmpty>No location</DetailEmpty>
-            )}
-          </Detail>
+              {building.notes && (
+                <DetailNote title={t('fields.notes')}>
+                  {building.notes}
+                </DetailNote>
+              )}
 
-          {formatAddress(building.address) && (
-            <Detail label="Address">{formatAddress(building.address)}</Detail>
-          )}
+              <DetailMeta
+                createdAt={building.createdAt}
+                updatedAt={building.updatedAt}
+              />
+            </DetailGrid>
+          </TabsContent>
 
-          <Detail label="Position">
-            {latitude.toFixed(5)}, {longitude.toFixed(5)}
-          </Detail>
+          <TabsContent value="files">
+            <div className="mx-auto w-full max-w-4xl">
+              <AssetList resourceType="building" resourceId={buildingId} />
+            </div>
+          </TabsContent>
+        </Panel>
+      </RecordTabs>
 
-          <Detail
-            label="Updated"
-            title={formatAbsoluteDate(building.updatedAt)}
-          >
-            {formatRelativeDate(building.updatedAt)}
-          </Detail>
-          <Detail
-            label="Created"
-            title={formatAbsoluteDate(building.createdAt)}
-          >
-            {formatRelativeDate(building.createdAt)}
-          </Detail>
-        </DetailList>
-
-        <AssetList resourceType="building" resourceId={buildingId} />
-      </Panel>
       <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogMedia>
             <Trash2 />
           </AlertDialogMedia>
-          <AlertDialogTitle>Delete {building.name}?</AlertDialogTitle>
+          <AlertDialogTitle>{t('delete.title', { name })}</AlertDialogTitle>
           <AlertDialogDescription>
-            Deleting is for fixing mistakes: a duplicate, or a footprint drawn
-            by accident. If the building went out of service, set its status to
-            Decommissioned instead: it keeps its history, stays searchable, and
-            only drops off the map. Deletion is refused once floors, devices or
-            cables reference this building, and you can't undo it from here.
+            {t('delete.description', {
+              decommissioned: lifecycleStatusLabels.decommissioned,
+            })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -282,14 +314,16 @@ function ViewBuilding() {
             variant="outline"
             disabled={deleteBuilding.isPending}
           >
-            Cancel
+            {t('common:actions.cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={deleteBuilding.isPending}
             onClick={handleDelete}
           >
-            {deleteBuilding.isPending ? 'Deleting…' : 'Delete building'}
+            {deleteBuilding.isPending
+              ? t('common:actions.deleting')
+              : t('delete.label')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -304,6 +338,7 @@ function ViewBuilding() {
  * building that has not been placed.
  */
 function BuildingLocation({ locationId }: { locationId: string }) {
+  const { t } = useTranslation('buildings')
   const { data, isPending } = useGetLocation(locationId)
   const location = data?.status === 200 ? data.data : undefined
 
@@ -315,9 +350,9 @@ function BuildingLocation({ locationId }: { locationId: string }) {
     <Link
       to="/locations/$locationId"
       params={{ locationId }}
-      className="truncate hover:underline"
+      className="truncate hover:text-foreground hover:underline"
     >
-      {location?.name ?? 'View location'}
+      {location?.name ?? t('detail.viewLocation')}
     </Link>
   )
 }

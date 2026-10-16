@@ -10,6 +10,8 @@ import map from './map'
 import form from './form'
 import deviceModels from './deviceModels'
 import manufacturers from './manufacturers'
+import buildings from './buildings'
+import locations from './locations'
 
 export default {
   common,
@@ -22,4 +24,6 @@ export default {
   form,
   deviceModels,
   manufacturers,
+  buildings,
+  locations,
 } satisfies Translation<typeof en>

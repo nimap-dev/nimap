@@ -2,7 +2,8 @@ import { useRoleLabels } from '#/lib/roles'
 import type { Role } from '#/lib/roles'
 import { cn } from '#/lib/utils'
 
-const roleStyles: Record<Role, string> = {
+/** Each role's tint, shared with the role picker so the two always match. */
+export const roleStyles: Record<Role, string> = {
   viewer: 'bg-muted text-muted-foreground',
   editor: 'bg-sky-500/10 text-sky-700 dark:bg-sky-400/10 dark:text-sky-300',
   admin:

@@ -1,13 +1,6 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '#/components/ui/card'
+import { DetailGrid, DetailMeta } from '#/components/detail-list'
+import { FormSection } from '#/components/form-section'
 import { Skeleton } from '#/components/ui/skeleton'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
 import { currentUserQueryOptions, useAuth } from '#/lib/auth'
 import type { User } from '#/api/model'
 import { createFileRoute } from '@tanstack/react-router'
@@ -72,39 +65,25 @@ function Account() {
         </span>
       }
     >
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <DetailGrid>
         {isLoading ? (
           <AccountSkeleton />
         ) : (
           user && (
             <>
               <AccountForm user={user} />
-              <Preferences />
               <PasswordForm />
-              <AccountMeta user={user} />
+              <Preferences />
+              <DetailMeta
+                id={user.id}
+                createdAt={user.createdAt}
+                updatedAt={user.updatedAt}
+              />
             </>
           )
         )}
-      </div>
+      </DetailGrid>
     </Panel>
-  )
-}
-
-function AccountMeta({ user }: { user: User }) {
-  const { t } = useTranslation()
-
-  return (
-    <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
-      <span className="font-mono select-all">{user.id}</span>
-      <span aria-hidden="true">·</span>
-      <span title={formatAbsoluteDate(user.createdAt)}>
-        {t('meta.created', { when: formatRelativeDate(user.createdAt) })}
-      </span>
-      <span aria-hidden="true">·</span>
-      <span title={formatAbsoluteDate(user.updatedAt)}>
-        {t('meta.updated', { when: formatRelativeDate(user.updatedAt) })}
-      </span>
-    </p>
   )
 }
 
@@ -145,61 +124,16 @@ function AccountForm({ user }: { user: User }) {
   })
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('account.title')}</CardTitle>
-        <CardDescription>{t('account.description')}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form
-          id="account-form"
-          onSubmit={(e) => {
-            e.preventDefault()
-            form.handleSubmit()
-          }}
-        >
-          <FieldGroup>
-            <form.Field
-              name="username"
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('account.username')}
-                  autoComplete="username"
-                />
-              )}
-            />
-            <form.Field
-              name="email"
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('account.email')}
-                  type="email"
-                  autoComplete="email"
-                />
-              )}
-            />
-            <form.Field
-              name="currentPassword"
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('account.currentPassword')}
-                  type="password"
-                  autoComplete="current-password"
-                />
-              )}
-            />
-          </FieldGroup>
-        </form>
-      </CardContent>
-      <CardFooter>
+    <FormSection
+      title={t('account.title')}
+      description={t('account.description')}
+      footer={
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting] as const}
           children={([canSubmit, isSubmitting]) => (
             <Button
               type="submit"
+              size="sm"
               form="account-form"
               disabled={!canSubmit || isSubmitting}
             >
@@ -209,8 +143,51 @@ function AccountForm({ user }: { user: User }) {
             </Button>
           )}
         />
-      </CardFooter>
-    </Card>
+      }
+    >
+      <form
+        id="account-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          form.handleSubmit()
+        }}
+      >
+        <FieldGroup>
+          <form.Field
+            name="username"
+            children={(field) => (
+              <TextField
+                field={field}
+                label={t('account.username')}
+                autoComplete="username"
+              />
+            )}
+          />
+          <form.Field
+            name="email"
+            children={(field) => (
+              <TextField
+                field={field}
+                label={t('account.email')}
+                type="email"
+                autoComplete="email"
+              />
+            )}
+          />
+          <form.Field
+            name="currentPassword"
+            children={(field) => (
+              <TextField
+                field={field}
+                label={t('account.currentPassword')}
+                type="password"
+                autoComplete="current-password"
+              />
+            )}
+          />
+        </FieldGroup>
+      </form>
+    </FormSection>
   )
 }
 
@@ -300,86 +277,17 @@ function PreferencesForm({
   })
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('preferences.title')}</CardTitle>
-        <CardDescription>{t('preferences.description')}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form
-          id="preferences-form"
-          onSubmit={(e) => {
-            e.preventDefault()
-            form.handleSubmit()
-          }}
-        >
-          <FieldGroup>
-            <form.Field
-              name="language"
-              children={(field) => (
-                <SelectField
-                  field={field}
-                  label={t('preferences.language')}
-                  options={languageOptions}
-                />
-              )}
-            />
-            <form.Field
-              name="theme"
-              children={(field) => (
-                <ChoiceField
-                  field={field}
-                  label={t('preferences.theme')}
-                  options={themeOptions(t).map((option) => ({
-                    ...option,
-                    icon: themeIcons[option.value],
-                  }))}
-                />
-              )}
-            />
-            <form.Field
-              name="timezone"
-              children={(field) => (
-                <SelectField
-                  field={field}
-                  label={t('preferences.timezone')}
-                  emptyLabel={t('preferences.browserTimezone', {
-                    zone: browserTimezone.replaceAll('_', ' '),
-                  })}
-                  allowEmpty
-                  options={timezoneOptions}
-                />
-              )}
-            />
-            <form.Field
-              name="dateFormat"
-              children={(field) => (
-                <SelectField
-                  field={field}
-                  label={t('preferences.dateFormat')}
-                  options={dateFormatOptions(t)}
-                />
-              )}
-            />
-            <form.Field
-              name="timeFormat"
-              children={(field) => (
-                <ChoiceField
-                  field={field}
-                  label={t('preferences.timeFormat')}
-                  options={timeFormatOptions(t)}
-                />
-              )}
-            />
-          </FieldGroup>
-        </form>
-      </CardContent>
-      <CardFooter>
+    <FormSection
+      title={t('preferences.title')}
+      className="@3xl/grid:col-span-2"
+      description={t('preferences.description')}
+      footer={
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting] as const}
           children={([canSubmit, isSubmitting]) => (
             <Button
               type="submit"
+              size="sm"
               form="preferences-form"
               disabled={!canSubmit || isSubmitting}
             >
@@ -389,27 +297,81 @@ function PreferencesForm({
             </Button>
           )}
         />
-      </CardFooter>
-    </Card>
+      }
+    >
+      <form
+        id="preferences-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          form.handleSubmit()
+        }}
+      >
+        <FieldGroup>
+          <form.Field
+            name="language"
+            children={(field) => (
+              <SelectField
+                field={field}
+                label={t('preferences.language')}
+                options={languageOptions}
+              />
+            )}
+          />
+          <form.Field
+            name="theme"
+            children={(field) => (
+              <ChoiceField
+                field={field}
+                label={t('preferences.theme')}
+                options={themeOptions(t).map((option) => ({
+                  ...option,
+                  icon: themeIcons[option.value],
+                }))}
+              />
+            )}
+          />
+          <form.Field
+            name="timezone"
+            children={(field) => (
+              <SelectField
+                field={field}
+                label={t('preferences.timezone')}
+                emptyLabel={t('preferences.browserTimezone', {
+                  zone: browserTimezone.replaceAll('_', ' '),
+                })}
+                allowEmpty
+                options={timezoneOptions}
+              />
+            )}
+          />
+          <form.Field
+            name="dateFormat"
+            children={(field) => (
+              <SelectField
+                field={field}
+                label={t('preferences.dateFormat')}
+                options={dateFormatOptions(t)}
+              />
+            )}
+          />
+          <form.Field
+            name="timeFormat"
+            children={(field) => (
+              <ChoiceField
+                field={field}
+                label={t('preferences.timeFormat')}
+                options={timeFormatOptions(t)}
+              />
+            )}
+          />
+        </FieldGroup>
+      </form>
+    </FormSection>
   )
 }
 
 function PreferencesSkeleton() {
-  return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-5 w-32" />
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {[0, 1, 2, 3, 4].map((field) => (
-          <div className="grid gap-2" key={field}>
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-9 w-full" />
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  )
+  return <FormSectionSkeleton fields={5} className="@3xl/grid:col-span-2" />
 }
 
 /**
@@ -457,62 +419,16 @@ function PasswordForm() {
   })
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('password.title')}</CardTitle>
-        <CardDescription>{t('password.description')}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form
-          id="password-form"
-          onSubmit={(e) => {
-            e.preventDefault()
-            form.handleSubmit()
-          }}
-        >
-          <FieldGroup>
-            <form.Field
-              name="currentPassword"
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('password.currentPassword')}
-                  type="password"
-                  autoComplete="current-password"
-                />
-              )}
-            />
-            <form.Field
-              name="newPassword"
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('password.newPassword')}
-                  type="password"
-                  autoComplete="new-password"
-                />
-              )}
-            />
-            <form.Field
-              name="confirmPassword"
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('password.confirmPassword')}
-                  type="password"
-                  autoComplete="new-password"
-                />
-              )}
-            />
-          </FieldGroup>
-        </form>
-      </CardContent>
-      <CardFooter>
+    <FormSection
+      title={t('password.title')}
+      description={t('password.description')}
+      footer={
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting] as const}
           children={([canSubmit, isSubmitting]) => (
             <Button
               type="submit"
+              size="sm"
               form="password-form"
               disabled={!canSubmit || isSubmitting}
             >
@@ -520,30 +436,83 @@ function PasswordForm() {
             </Button>
           )}
         />
-      </CardFooter>
-    </Card>
+      }
+    >
+      <form
+        id="password-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          form.handleSubmit()
+        }}
+      >
+        <FieldGroup>
+          <form.Field
+            name="currentPassword"
+            children={(field) => (
+              <TextField
+                field={field}
+                label={t('password.currentPassword')}
+                type="password"
+                autoComplete="current-password"
+              />
+            )}
+          />
+          <form.Field
+            name="newPassword"
+            children={(field) => (
+              <TextField
+                field={field}
+                label={t('password.newPassword')}
+                type="password"
+                autoComplete="new-password"
+              />
+            )}
+          />
+          <form.Field
+            name="confirmPassword"
+            children={(field) => (
+              <TextField
+                field={field}
+                label={t('password.confirmPassword')}
+                type="password"
+                autoComplete="new-password"
+              />
+            )}
+          />
+        </FieldGroup>
+      </form>
+    </FormSection>
   )
 }
 
 function AccountSkeleton() {
   return (
     <>
-      {[0, 1].map((card) => (
-        <Card key={card}>
-          <CardHeader>
-            <Skeleton className="h-5 w-32" />
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            {[0, 1, 2].map((field) => (
-              <div className="grid gap-2" key={field}>
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-9 w-full" />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      ))}
-      <Skeleton className="h-3 w-72" />
+      <FormSectionSkeleton fields={3} />
+      <FormSectionSkeleton fields={3} />
     </>
+  )
+}
+
+/** A form section still loading: its heading and a column of empty fields. */
+function FormSectionSkeleton({
+  fields,
+  className,
+}: {
+  fields: number
+  className?: string
+}) {
+  return (
+    <FormSection
+      title={<Skeleton className="h-3 w-24" />}
+      className={className}
+    >
+      {Array.from({ length: fields }).map((_, field) => (
+        <div className="grid gap-2" key={field}>
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-9 w-full" />
+        </div>
+      ))}
+    </FormSection>
   )
 }

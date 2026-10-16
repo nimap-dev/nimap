@@ -1,0 +1,51 @@
+export default {
+  fields: {
+    placement: 'Placement',
+    address: 'Address',
+    parent: 'Inside',
+    boundary: 'Boundary',
+    point: 'Map point',
+    notes: 'Notes',
+  },
+  tabs: {
+    inside: 'Inside',
+  },
+  list: {
+    title: 'Locations',
+    new: 'New location',
+    loadFailed: 'Could not load the locations',
+    search: 'Search locations and addresses…',
+    name: 'Name',
+    updated: 'Updated',
+    showInside: 'Show what is inside {{name}}',
+    hideInside: 'Hide what is inside {{name}}',
+  },
+  detail: {
+    back: 'Back to locations',
+    notFound: "This location doesn't exist, or you don't have access to it.",
+    edit: 'Edit location',
+    frame: 'Show on the map',
+    status: 'Location status',
+    noParent: 'Nothing',
+    notDrawn: 'Not drawn',
+    notPlaced: 'Not placed',
+    derived: ' · derived',
+    noBoundary: ' · no boundary',
+    stayed: '{{name}} stayed as it was',
+    statusChanged: '{{name}} is now {{status}}',
+  },
+  inside: {
+    locations: 'Locations',
+    buildings: 'Buildings',
+    noLocations: 'No other locations are nested inside this one.',
+    noBuildings: 'No buildings stand in this location.',
+  },
+  delete: {
+    label: 'Delete location',
+    title: 'Delete {{name}}?',
+    description:
+      "Deleting is for fixing mistakes: a duplicate, or one added by accident. If the location went out of service, set its status to {{decommissioned}} instead: it keeps its history, stays searchable, and only drops off the map. Deletion is refused while other locations are still nested inside this one, and you can't undo it from here.",
+    stillThere: '{{name}} is still there',
+    deleted: '{{name}} was deleted',
+  },
+}

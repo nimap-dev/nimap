@@ -307,7 +307,7 @@ export function MapSearch() {
 
   return (
     <>
-      <div className="absolute top-2 right-14 left-11 z-10 md:right-auto md:w-80">
+      <div className="absolute top-2.5 right-23 left-2.5 z-10 md:right-auto md:w-80">
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input

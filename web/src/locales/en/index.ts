@@ -8,6 +8,8 @@ import map from './map'
 import form from './form'
 import deviceModels from './deviceModels'
 import manufacturers from './manufacturers'
+import buildings from './buildings'
+import locations from './locations'
 
 /** English, the source language: every other language mirrors its keys. */
 export default {
@@ -21,4 +23,6 @@ export default {
   form,
   deviceModels,
   manufacturers,
+  buildings,
+  locations,
 }

@@ -2,7 +2,8 @@ import { useLifecycleStatusLabels } from '#/lib/lifecycle'
 import type { LifecycleStatus } from '#/lib/lifecycle'
 import { cn } from '#/lib/utils'
 
-const statusStyles: Record<LifecycleStatus, string> = {
+/** Each status's tint, shared with the status picker so the two always match. */
+export const lifecycleStatusStyles: Record<LifecycleStatus, string> = {
   planned: 'bg-sky-500/10 text-sky-700 dark:bg-sky-400/10 dark:text-sky-300',
   active:
     'bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300',
@@ -24,7 +25,7 @@ export function LifecycleBadge({
     <span
       className={cn(
         'inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-xs font-medium',
-        statusStyles[status],
+        lifecycleStatusStyles[status],
         className,
       )}
     >

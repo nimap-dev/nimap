@@ -18,6 +18,8 @@ export function Panel({
   backLabel,
   action,
   children,
+  summary,
+  tabs,
 }: {
   title: ReactNode
   /** A `<Link>` to render as the back button. */
@@ -25,6 +27,8 @@ export function Panel({
   backLabel?: string
   action?: ReactNode
   children: ReactNode
+  summary?: ReactNode
+  tabs?: ReactNode
 }) {
   const { t } = useTranslation()
 
@@ -45,6 +49,16 @@ export function Panel({
         <h2 className="min-w-0 flex-1 truncate font-medium">{title}</h2>
         {action}
       </div>
+      {(summary || tabs) && (
+        <div className="border-b">
+          {summary && (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 text-sm text-muted-foreground">
+              {summary}
+            </div>
+          )}
+          {tabs && <div className="overflow-x-auto px-3">{tabs}</div>}
+        </div>
+      )}
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-3">
         {children}
       </div>
@@ -77,17 +91,15 @@ export function PanelPending({
 }
 
 /**
- * What it shows when the record is not there. `description` says so in the
- * interface language; `noun` is the English sentence of the pages not yet
- * translated, and goes once they all pass a description.
+ * What it shows when the record is not there. `description` names the kind of
+ * record in the page's own words; without one it falls back to the generic
+ * sentence.
  */
 export function PanelNotFound({
-  noun,
   description,
   back,
   backLabel,
 }: {
-  noun?: string
   description?: string
   back: ReactElement
   backLabel: string
@@ -97,10 +109,7 @@ export function PanelNotFound({
   return (
     <Panel title={t('notFound.title')} back={back} backLabel={backLabel}>
       <p className="text-sm text-muted-foreground">
-        {description ??
-          (noun
-            ? `This ${noun} doesn't exist, or you don't have access to it.`
-            : t('notFound.description'))}
+        {description ?? t('notFound.description')}
       </p>
       <Button variant="outline" size="sm" render={back} nativeButton={false}>
         {backLabel}

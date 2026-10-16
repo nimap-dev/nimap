@@ -5,7 +5,7 @@ import { SidebarInset } from '#/components/ui/sidebar'
 import { cn } from '#/lib/utils'
 import { MapProvider } from '#/lib/map'
 import { createFileRoute, Outlet, useMatchRoute } from '@tanstack/react-router'
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { PanelRightClose, PanelRightOpen } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -28,11 +28,7 @@ function RouteComponent() {
   return (
     <MapProvider>
       <AppSidebarNav />
-      {withPanel && (
-        <MapPanel open={panelOpen} onClose={() => setPanelOpen(false)}>
-          <Outlet />
-        </MapPanel>
-      )}
+
       <SidebarInset>
         <WorldMap />
         {withPanel && (
@@ -42,14 +38,19 @@ function RouteComponent() {
             aria-label={panelOpen ? t('panel.collapse') : t('panel.expand')}
             onClick={() => setPanelOpen((open) => !open)}
             className={cn(
-              'absolute top-2 left-2 z-30 bg-background shadow-sm',
+              'absolute top-2.5 right-12 z-30 bg-background shadow-sm',
               panelOpen && 'max-md:hidden',
             )}
           >
-            {panelOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
+            {panelOpen ? <PanelRightOpen /> : <PanelRightClose />}
           </Button>
         )}
       </SidebarInset>
+      {withPanel && (
+        <MapPanel open={panelOpen} onClose={() => setPanelOpen(false)}>
+          <Outlet />
+        </MapPanel>
+      )}
     </MapProvider>
   )
 }

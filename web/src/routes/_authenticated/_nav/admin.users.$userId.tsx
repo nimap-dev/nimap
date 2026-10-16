@@ -13,9 +13,9 @@ import {
 } from '#/api/endpoints/admin/admin.zod'
 import type { User } from '#/api/model'
 import { TextField } from '#/components/form/text-field'
-import { Detail, DetailList } from '#/components/detail-list'
+import { DetailGrid, DetailMeta } from '#/components/detail-list'
+import { FormSection } from '#/components/form-section'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
-import { RoleBadge } from '#/components/role-badge'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,14 +29,6 @@ import {
   AlertDialogTrigger,
 } from '#/components/ui/alert-dialog'
 import { Button } from '#/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '#/components/ui/card'
 import { FieldGroup } from '#/components/ui/field'
 import {
   Select,
@@ -47,7 +39,6 @@ import {
 } from '#/components/ui/select'
 import { toast } from '#/components/ui/toast'
 import { useAuth } from '#/lib/auth'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
 import { asRole, roles, useRoleLabels } from '#/lib/roles'
 import type { Role } from '#/lib/roles'
 import { useForm } from '@tanstack/react-form'
@@ -139,12 +130,7 @@ function ManageUserDetail({ user }: { user: User }) {
   return (
     <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
       <Panel
-        title={
-          <span className="flex items-center gap-2">
-            <span className="truncate">{user.username}</span>
-            <RoleBadge role={asRole(user.role)} />
-          </span>
-        }
+        title={user.username}
         back={<Link to="/admin/users" />}
         backLabel={t('users.back')}
         action={
@@ -159,33 +145,23 @@ function ManageUserDetail({ user }: { user: User }) {
           )
         }
       >
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+        <DetailGrid>
           {isSelf ? (
             <OwnAccountNotice />
           ) : (
             <>
               <UserAccountForm user={user} />
-              <UserRoleCard user={user} />
+              <UserRoleSection user={user} />
               <UserPasswordForm user={user} />
             </>
           )}
 
-          <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
-            <span className="font-mono select-all">{user.id}</span>
-            <span aria-hidden="true">·</span>
-            <span title={formatAbsoluteDate(user.createdAt)}>
-              {t('common:meta.created', {
-                when: formatRelativeDate(user.createdAt),
-              })}
-            </span>
-            <span aria-hidden="true">·</span>
-            <span title={formatAbsoluteDate(user.updatedAt)}>
-              {t('common:meta.updated', {
-                when: formatRelativeDate(user.updatedAt),
-              })}
-            </span>
-          </p>
-        </div>
+          <DetailMeta
+            id={user.id}
+            createdAt={user.createdAt}
+            updatedAt={user.updatedAt}
+          />
+        </DetailGrid>
       </Panel>
 
       <AlertDialogContent size="sm">
@@ -224,21 +200,21 @@ function OwnAccountNotice() {
   const { t } = useTranslation('admin')
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('self.title')}</CardTitle>
-        <CardDescription>{t('self.description')}</CardDescription>
-      </CardHeader>
-      <CardFooter>
+    <FormSection
+      title={t('self.title')}
+      description={t('self.description')}
+      className="@3xl/grid:col-span-2"
+      footer={
         <Button
           variant="outline"
+          size="sm"
           render={<Link to="/auth/account" />}
           nativeButton={false}
         >
           {t('self.goToAccount')}
         </Button>
-      </CardFooter>
-    </Card>
+      }
+    />
   )
 }
 
@@ -273,51 +249,17 @@ function UserAccountForm({ user }: { user: User }) {
   })
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('account.title')}</CardTitle>
-        <CardDescription>{t('account.description')}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form
-          id="user-account-form"
-          onSubmit={(e) => {
-            e.preventDefault()
-            form.handleSubmit()
-          }}
-        >
-          <FieldGroup>
-            <form.Field
-              name="username"
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('fields.username')}
-                  autoComplete="off"
-                />
-              )}
-            />
-            <form.Field
-              name="email"
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('fields.email')}
-                  type="email"
-                  autoComplete="off"
-                />
-              )}
-            />
-          </FieldGroup>
-        </form>
-      </CardContent>
-      <CardFooter>
+    <FormSection
+      title={t('account.title')}
+      description={t('account.description')}
+      footer={
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting] as const}
           children={([canSubmit, isSubmitting]) => (
             <Button
               type="submit"
               form="user-account-form"
+              size="sm"
               disabled={!canSubmit || isSubmitting}
             >
               {isSubmitting
@@ -326,29 +268,70 @@ function UserAccountForm({ user }: { user: User }) {
             </Button>
           )}
         />
-      </CardFooter>
-    </Card>
+      }
+    >
+      <form
+        id="user-account-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          form.handleSubmit()
+        }}
+      >
+        <FieldGroup>
+          <form.Field
+            name="username"
+            children={(field) => (
+              <TextField
+                field={field}
+                label={t('fields.username')}
+                autoComplete="off"
+              />
+            )}
+          />
+          <form.Field
+            name="email"
+            children={(field) => (
+              <TextField
+                field={field}
+                label={t('fields.email')}
+                type="email"
+                autoComplete="off"
+              />
+            )}
+          />
+        </FieldGroup>
+      </form>
+    </FormSection>
   )
 }
 
-function UserRoleCard({ user }: { user: User }) {
+function UserRoleSection({ user }: { user: User }) {
   const updateRole = useUpdateUserRole()
   const queryClient = useQueryClient()
   const { t } = useTranslation(['admin', 'common'])
   const roleLabels = useRoleLabels()
 
   async function handleRoleChange(role: Role) {
-    const res = await updateRole.mutateAsync({
-      id: user.id,
-      data: { role },
-    })
+    try {
+      const res = await updateRole.mutateAsync({
+        id: user.id,
+        data: { role },
+      })
 
-    if (res.status !== 200) {
+      if (res.status !== 200) {
+        toast.add({
+          type: 'error',
+          title: t('role.couldNotChange'),
+          description:
+            res.data.detail ?? t('role.unchanged', { username: user.username }),
+        })
+        return
+      }
+    } catch {
       toast.add({
         type: 'error',
         title: t('role.couldNotChange'),
-        description:
-          res.data.detail ?? t('role.unchanged', { username: user.username }),
+        description: t('common:errors.requestFailed'),
       })
       return
     }
@@ -367,35 +350,28 @@ function UserRoleCard({ user }: { user: User }) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('common:roles.label')}</CardTitle>
-        <CardDescription>{t('role.description')}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <DetailList>
-          <Detail label={t('common:roles.label')} align="center">
-            <Select
-              items={roleLabels}
-              value={asRole(user.role)}
-              onValueChange={(value) => handleRoleChange(value as Role)}
-              disabled={updateRole.isPending}
-            >
-              <SelectTrigger size="sm" aria-label={t('role.selectLabel')}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role} value={role}>
-                    {roleLabels[role]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Detail>
-        </DetailList>
-      </CardContent>
-    </Card>
+    <FormSection
+      title={t('common:roles.label')}
+      description={t('role.description')}
+    >
+      <Select
+        items={roleLabels}
+        value={asRole(user.role)}
+        onValueChange={(value) => handleRoleChange(value as Role)}
+        disabled={updateRole.isPending}
+      >
+        <SelectTrigger className="w-full" aria-label={t('role.selectLabel')}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {roles.map((role) => (
+            <SelectItem key={role} value={role}>
+              {roleLabels[role]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </FormSection>
   )
 }
 
@@ -442,59 +418,57 @@ function UserPasswordForm({ user }: { user: User }) {
   })
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('password.title')}</CardTitle>
-        <CardDescription>{t('password.description')}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form
-          id="user-password-form"
-          onSubmit={(e) => {
-            e.preventDefault()
-            form.handleSubmit()
-          }}
-        >
-          <FieldGroup>
-            <form.Field
-              name="newPassword"
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('fields.newPassword')}
-                  type="password"
-                  autoComplete="new-password"
-                />
-              )}
-            />
-            <form.Field
-              name="confirmPassword"
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('fields.confirmPassword')}
-                  type="password"
-                  autoComplete="new-password"
-                />
-              )}
-            />
-          </FieldGroup>
-        </form>
-      </CardContent>
-      <CardFooter>
+    <FormSection
+      title={t('password.title')}
+      description={t('password.description')}
+      footer={
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting] as const}
           children={([canSubmit, isSubmitting]) => (
             <Button
               type="submit"
               form="user-password-form"
+              size="sm"
               disabled={!canSubmit || isSubmitting}
             >
               {isSubmitting ? t('password.submitting') : t('password.submit')}
             </Button>
           )}
         />
-      </CardFooter>
-    </Card>
+      }
+    >
+      <form
+        id="user-password-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          form.handleSubmit()
+        }}
+      >
+        <FieldGroup>
+          <form.Field
+            name="newPassword"
+            children={(field) => (
+              <TextField
+                field={field}
+                label={t('fields.newPassword')}
+                type="password"
+                autoComplete="new-password"
+              />
+            )}
+          />
+          <form.Field
+            name="confirmPassword"
+            children={(field) => (
+              <TextField
+                field={field}
+                label={t('fields.confirmPassword')}
+                type="password"
+                autoComplete="new-password"
+              />
+            )}
+          />
+        </FieldGroup>
+      </form>
+    </FormSection>
   )
 }
