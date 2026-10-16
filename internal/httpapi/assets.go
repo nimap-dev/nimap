@@ -255,6 +255,11 @@ func RegisterAssets(api huma.API, q *gen.Queries, pool *pgxpool.Pool, store *med
 					AssetID:    asset.ID,
 					BuildingID: &in.ResourceID,
 				})
+			case apitypes.ResourceTypeDeviceModel:
+				_, err = qtx.CreateDeviceModelAssetAttachment(ctx, gen.CreateDeviceModelAssetAttachmentParams{
+					AssetID:       asset.ID,
+					DeviceModelID: &in.ResourceID,
+				})
 			}
 
 			if err != nil {
@@ -437,6 +442,30 @@ func RegisterAssets(api huma.API, q *gen.Queries, pool *pgxpool.Pool, store *med
 					},
 				})
 			}
+		case apitypes.ResourceTypeDeviceModel:
+			rows, err := q.ListDeviceModelAssets(ctx, &in.ResourceID)
+			if err != nil {
+				return nil, huma.Error500InternalServerError("asset list failed")
+			}
+
+			for _, row := range rows {
+				body = append(body, AssetAttachmentResponse{
+					ID:      row.ID,
+					Caption: row.Caption,
+					Asset: AssetResponse{
+						ID:               row.AssetID,
+						Title:            row.Title,
+						OriginalFilename: row.OriginalFilename,
+						ContentType:      row.ContentType,
+						Type:             apitypes.AssetType(row.Type),
+						ByteSize:         row.ByteSize,
+						Width:            row.Width,
+						Height:           row.Height,
+						CreatedAt:        row.CreatedAt,
+					},
+				})
+			}
+
 		}
 
 		return &ListAssetsOutput{Body: body}, nil
