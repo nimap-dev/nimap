@@ -7,12 +7,14 @@ import { MapProvider } from '#/lib/map'
 import { createFileRoute, Outlet, useMatchRoute } from '@tanstack/react-router'
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute('/_authenticated/_map')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
+  const { t } = useTranslation('map')
   const matchRoute = useMatchRoute()
   const withPanel = !matchRoute({ to: '/' })
   const [panelOpen, setPanelOpen] = useState(true)
@@ -37,7 +39,7 @@ function RouteComponent() {
           <Button
             variant="outline"
             size="icon"
-            aria-label={panelOpen ? 'Collapse panel' : 'Expand panel'}
+            aria-label={panelOpen ? t('panel.collapse') : t('panel.expand')}
             onClick={() => setPanelOpen((open) => !open)}
             className={cn(
               'absolute top-2 left-2 z-30 bg-background shadow-sm',

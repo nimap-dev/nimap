@@ -36,8 +36,8 @@ import { formatAddress } from '#/lib/address'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
 import {
   ALL_LIFECYCLE_STATUSES,
-  lifecycleStatusLabels,
-  lifecycleStatusOptions,
+  useLifecycleStatusLabels,
+  useLifecycleStatusOptions,
 } from '#/lib/lifecycle'
 import {
   buildLocationTree,
@@ -58,6 +58,8 @@ export const Route = createFileRoute(
 })
 
 function ViewLocation() {
+  const lifecycleStatusLabels = useLifecycleStatusLabels()
+  const lifecycleStatusOptions = useLifecycleStatusOptions()
   const { locationId } = Route.useParams()
   const canWrite = useCan('records:write')
   const { data, isPending } = useGetLocation(locationId)

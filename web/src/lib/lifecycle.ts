@@ -1,4 +1,5 @@
 import { BuildingResponseStatus } from '#/api/model'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Orval mints a separate enum type per schema, one for buildings, one for
@@ -38,17 +39,31 @@ export function isDefaultLifecycleStatuses(statuses: LifecycleStatus[]) {
   )
 }
 
-// Orval mints a separate enum per schema, but every one of them carries the
-// same lifecycle values, so a single table of labels covers all of them.
-export const lifecycleStatusLabels: Record<BuildingResponseStatus, string> = {
-  [BuildingResponseStatus.planned]: 'Planned',
-  [BuildingResponseStatus.active]: 'Active',
-  [BuildingResponseStatus.decommissioned]: 'Decommissioned',
-  [BuildingResponseStatus.archived]: 'Archived',
+/**
+ * Each status's name in the interface language. Orval mints a separate enum
+ * per schema, but every one of them carries the same lifecycle values, so a
+ * single table of labels covers all of them.
+ */
+export function useLifecycleStatusLabels(): Record<LifecycleStatus, string> {
+  const { t } = useTranslation()
+
+  return {
+    planned: t('lifecycle.planned'),
+    active: t('lifecycle.active'),
+    decommissioned: t('lifecycle.decommissioned'),
+    archived: t('lifecycle.archived'),
+  }
 }
 
-// Listed in lifecycle order rather than the order the generated enum happens to
-// sit in, so the options read planned → active → out of service.
-export const lifecycleStatusOptions = Object.entries(
-  lifecycleStatusLabels,
-) as Array<[BuildingResponseStatus, string]>
+/**
+ * The statuses with their labels, listed in lifecycle order rather than the
+ * order the generated enum happens to sit in, so the options read planned →
+ * active → out of service.
+ */
+export function useLifecycleStatusOptions() {
+  const labels = useLifecycleStatusLabels()
+
+  return ALL_LIFECYCLE_STATUSES.map(
+    (status) => [status, labels[status]] as [LifecycleStatus, string],
+  )
+}

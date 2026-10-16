@@ -21,6 +21,7 @@ import {
   redirect,
   useNavigate,
 } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import * as zod from 'zod'
 
 export const Route = createFileRoute('/_authenticated/_nav/devices/models/new')(
@@ -40,6 +41,7 @@ export const Route = createFileRoute('/_authenticated/_nav/devices/models/new')(
 )
 
 function NewDeviceModel() {
+  const { t } = useTranslation('deviceModels')
   const { from } = Route.useSearch()
   const { data: source, isPending } = useGetDeviceModel(from ?? '', {
     query: { enabled: Boolean(from) },
@@ -49,7 +51,7 @@ function NewDeviceModel() {
     return (
       <PanelPending
         back={<Link to="/devices/models" />}
-        backLabel="Back to device models"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -78,6 +80,7 @@ function NewDeviceModelForm({
   defaultValues: DeviceModelFormValues
   copiedFrom: string | undefined
 }) {
+  const { t } = useTranslation(['deviceModels', 'common'])
   const createDeviceModel = useCreateDeviceModel()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -91,8 +94,8 @@ function NewDeviceModelForm({
       if (res.status !== 201) {
         toast.add({
           type: 'error',
-          title: 'Could not create the device model',
-          description: res.data.detail ?? 'The device model was not created',
+          title: t('new.couldNotCreate'),
+          description: res.data.detail ?? t('new.notCreated'),
         })
         return
       }
@@ -102,7 +105,9 @@ function NewDeviceModelForm({
       })
       toast.add({
         type: 'success',
-        description: `${res.data.manufacturer.name} ${formatModelName(res.data)} was created`,
+        description: t('new.created', {
+          name: `${res.data.manufacturer.name} ${formatModelName(res.data)}`,
+        }),
       })
       navigate({
         to: '/devices/models/$modelId',
@@ -112,30 +117,31 @@ function NewDeviceModelForm({
     } catch {
       toast.add({
         type: 'error',
-        title: 'Could not create the device model',
-        description: 'The request failed, check your connection and retry',
+        title: t('new.couldNotCreate'),
+        description: t('common:errors.requestFailed'),
       })
     }
   }
 
   return (
     <Panel
-      title={copiedFrom ? `Copy of ${copiedFrom}` : 'New device model'}
+      title={
+        copiedFrom ? t('new.copyOf', { name: copiedFrom }) : t('new.title')
+      }
       back={<Link to="/devices/models" />}
-      backLabel="Back to device models"
+      backLabel={t('detail.back')}
     >
       {copiedFrom && (
         <p className="mx-auto w-full max-w-2xl text-sm text-muted-foreground">
-          Everything is copied except the variant and part number. Give the copy
-          a different name or variant, the same pair can exist only once.
+          {t('new.copyNote')}
         </p>
       )}
       <DeviceModelForm
         formId="new-device-model-form"
         defaultValues={defaultValues}
         withStatus
-        submit="Create device model"
-        submitting="Creating…"
+        submit={t('new.submit')}
+        submitting={t('new.submitting')}
         cancel={<Link to="/devices/models" />}
         onSubmit={handleSubmit}
       />

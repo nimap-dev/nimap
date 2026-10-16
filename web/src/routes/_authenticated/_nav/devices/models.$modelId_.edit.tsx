@@ -22,6 +22,7 @@ import {
   redirect,
   useNavigate,
 } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute(
   '/_authenticated/_nav/devices/models/$modelId_/edit',
@@ -38,6 +39,7 @@ export const Route = createFileRoute(
 })
 
 function EditDeviceModel() {
+  const { t } = useTranslation('deviceModels')
   const { modelId } = Route.useParams()
   const { data, isPending } = useGetDeviceModel(modelId)
 
@@ -47,7 +49,7 @@ function EditDeviceModel() {
     return (
       <PanelPending
         back={<Link to="/devices/models" />}
-        backLabel="Back to device models"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -55,9 +57,9 @@ function EditDeviceModel() {
   if (!model) {
     return (
       <PanelNotFound
-        noun="device model"
+        description={t('detail.notFound')}
         back={<Link to="/devices/models" />}
-        backLabel="Back to device models"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -66,6 +68,7 @@ function EditDeviceModel() {
 }
 
 function EditDeviceModelForm({ model }: { model: DeviceModelResponse }) {
+  const { t } = useTranslation(['deviceModels', 'common'])
   const updateDeviceModel = useUpdateDeviceModel()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -84,8 +87,8 @@ function EditDeviceModelForm({ model }: { model: DeviceModelResponse }) {
       if (res.status !== 200) {
         toast.add({
           type: 'error',
-          title: 'Could not save',
-          description: res.data.detail ?? 'The device model was not updated',
+          title: t('common:errors.couldNotSave'),
+          description: res.data.detail ?? t('edit.notUpdated'),
         })
         return
       }
@@ -98,7 +101,7 @@ function EditDeviceModelForm({ model }: { model: DeviceModelResponse }) {
           queryKey: getGetDeviceModelQueryKey(model.id),
         }),
       ])
-      toast.add({ type: 'success', description: 'Device model updated' })
+      toast.add({ type: 'success', description: t('edit.updated') })
       navigate({
         to: '/devices/models/$modelId',
         params: { modelId: model.id },
@@ -107,23 +110,25 @@ function EditDeviceModelForm({ model }: { model: DeviceModelResponse }) {
     } catch {
       toast.add({
         type: 'error',
-        title: 'Could not save',
-        description: 'The request failed, check your connection and retry',
+        title: t('common:errors.couldNotSave'),
+        description: t('common:errors.requestFailed'),
       })
     }
   }
 
   return (
     <Panel
-      title={`Edit ${model.manufacturer.name} ${formatModelName(model)}`}
+      title={t('edit.title', {
+        name: `${model.manufacturer.name} ${formatModelName(model)}`,
+      })}
       back={backToDetail}
-      backLabel="Back to device model"
+      backLabel={t('detail.backToModel')}
     >
       <DeviceModelForm
         formId="edit-device-model-form"
         defaultValues={deviceModelToValues(model)}
-        submit="Save changes"
-        submitting="Saving…"
+        submit={t('common:actions.saveChanges')}
+        submitting={t('common:actions.saving')}
         cancel={backToDetail}
         onSubmit={handleSubmit}
       />

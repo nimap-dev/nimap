@@ -88,7 +88,7 @@ export function AppSidebarNav() {
   return (
     <Sidebar
       collapsible="none"
-      className="order-last h-14 w-full shrink-0 flex-row items-center justify-around border-t md:order-0 md:h-svh md:w-[calc(var(--sidebar-width-icon)+1px)]! md:flex-col md:items-stretch md:justify-start md:border-t-0 md:border-r"
+      className="order-last h-16 w-full shrink-0 flex-row items-center justify-around border-t md:order-0 md:h-svh md:w-[calc(var(--sidebar-width-icon)+1px)]! md:flex-col md:items-stretch md:justify-start md:border-t-0 md:border-r"
     >
       <SidebarHeader className="hidden md:flex">
         <SidebarMenu>
@@ -129,7 +129,7 @@ export function AppSidebarNav() {
                         delay={50}
                         closeDelay={150}
                         render={
-                          <SidebarMenuButton className="size-10 justify-center p-0 data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground md:h-8 md:w-full md:justify-start md:px-2" />
+                          <SidebarMenuButton className="size-14 justify-center p-0 max-md:[&_svg]:size-6 data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground md:h-8 md:w-full md:justify-start md:px-2" />
                         }
                       >
                         <item.icon />
@@ -164,7 +164,7 @@ export function AppSidebarNav() {
                         children: t(item.title),
                         hidden: false,
                       }}
-                      className="size-10 justify-center p-0 md:h-8 md:w-full md:justify-start md:px-2"
+                      className="size-14 justify-center p-0 max-md:[&_svg]:size-6 md:h-8 md:w-full md:justify-start md:px-2"
                       render={<Link to={item.to} />}
                     >
                       <item.icon />
@@ -199,7 +199,7 @@ export function MapPanel({
     <>
       {open && (
         <div
-          className="fixed inset-x-0 top-0 bottom-14 z-10 bg-black/40 md:hidden"
+          className="fixed inset-x-0 top-0 bottom-16 z-10 bg-black/40 md:hidden"
           onClick={onClose}
         />
       )}
@@ -208,7 +208,7 @@ export function MapPanel({
         inert={!open}
         className={cn(
           '[--map-panel-width:min(20rem,85vw)] md:[--map-panel-width:var(--sidebar-width)]',
-          'fixed top-0 bottom-14 left-0 z-20 shrink-0 overflow-hidden bg-sidebar text-sidebar-foreground shadow-lg transition-[width] duration-200 ease-linear',
+          'fixed top-0 bottom-16 left-0 z-20 shrink-0 overflow-hidden bg-sidebar text-sidebar-foreground shadow-lg transition-[width] duration-200 ease-linear',
           'md:static md:h-svh md:border-r md:shadow-none',
           open ? 'w-(--map-panel-width)' : 'w-0',
         )}

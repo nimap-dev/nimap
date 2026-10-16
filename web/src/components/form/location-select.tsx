@@ -17,6 +17,7 @@ import {
 } from '#/lib/location-tree'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const TOP_LEVEL = ''
 
@@ -40,8 +41,8 @@ export function LocationSelect({
   id,
   value,
   onChange,
-  label = 'Inside',
-  emptyLabel = 'Not inside anything',
+  label,
+  emptyLabel,
   /**
    * The location being edited. It and everything nested inside it drop out of
    * the options.
@@ -61,6 +62,10 @@ export function LocationSelect({
   excludeSubtreeOf?: string
   suggestFor?: MultiPolygon
 }) {
+  const { t } = useTranslation('form')
+  label ??= t('location.label')
+  emptyLabel ??= t('location.empty')
+
   const { data } = useAllLocations()
   const all = data?.status === 200 ? data.data : undefined
 
@@ -135,12 +140,12 @@ export function LocationSelect({
       {suggestion &&
         (suggestion.id === value ? (
           <p className="text-sm text-muted-foreground">
-            From the shape drawn on the map
+            {t('location.fromShape')}
           </p>
         ) : (
           <div className="flex items-center justify-between gap-2 text-sm">
             <span className="min-w-0 flex-1 truncate text-muted-foreground">
-              The shape sits in {suggestion.name}
+              {t('location.shapeSitsIn', { name: suggestion.name })}
             </span>
             <Button
               type="button"
@@ -151,7 +156,7 @@ export function LocationSelect({
                 onChange(suggestion.id)
               }}
             >
-              Use
+              {t('location.use')}
             </Button>
           </div>
         ))}

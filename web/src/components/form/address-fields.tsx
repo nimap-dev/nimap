@@ -1,6 +1,7 @@
 import { Field, FieldLabel } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 import type { AddressValue } from '#/lib/address'
+import { useTranslation } from 'react-i18next'
 
 /**
  * The four address inputs, driven as one value. Forms hold the address in a
@@ -17,6 +18,8 @@ export function AddressFields({
   value: AddressValue
   onChange: (value: AddressValue) => void
 }) {
+  const { t } = useTranslation('form')
+
   function set(part: keyof AddressValue) {
     return (event: React.ChangeEvent<HTMLInputElement>) =>
       onChange({ ...value, [part]: event.target.value })
@@ -25,7 +28,9 @@ export function AddressFields({
   return (
     <>
       <Field>
-        <FieldLabel htmlFor={`${idPrefix}-street`}>Street</FieldLabel>
+        <FieldLabel htmlFor={`${idPrefix}-street`}>
+          {t('address.street')}
+        </FieldLabel>
         <Input
           id={`${idPrefix}-street`}
           value={value.street}
@@ -37,7 +42,9 @@ export function AddressFields({
 
       <div className="flex gap-2">
         <Field className="w-28 shrink-0">
-          <FieldLabel htmlFor={`${idPrefix}-zip`}>ZIP</FieldLabel>
+          <FieldLabel htmlFor={`${idPrefix}-zip`}>
+            {t('address.zip')}
+          </FieldLabel>
           <Input
             id={`${idPrefix}-zip`}
             value={value.zip}
@@ -48,7 +55,9 @@ export function AddressFields({
         </Field>
 
         <Field className="min-w-0 flex-1">
-          <FieldLabel htmlFor={`${idPrefix}-city`}>City</FieldLabel>
+          <FieldLabel htmlFor={`${idPrefix}-city`}>
+            {t('address.city')}
+          </FieldLabel>
           <Input
             id={`${idPrefix}-city`}
             value={value.city}
@@ -60,7 +69,9 @@ export function AddressFields({
       </div>
 
       <Field>
-        <FieldLabel htmlFor={`${idPrefix}-country`}>Country</FieldLabel>
+        <FieldLabel htmlFor={`${idPrefix}-country`}>
+          {t('address.country')}
+        </FieldLabel>
         <Input
           id={`${idPrefix}-country`}
           value={value.country}
@@ -77,7 +88,7 @@ export function AddressFields({
           id={`${idPrefix}-country-hint`}
           className="text-xs text-muted-foreground"
         >
-          Two-letter code
+          {t('address.countryHint')}
         </span>
       </Field>
     </>

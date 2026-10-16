@@ -1,0 +1,46 @@
+export default {
+  address: {
+    street: 'Ulice',
+    zip: 'PSČ',
+    city: 'Město',
+    country: 'Země',
+    countryHint: 'Dvoupísmenný kód',
+  },
+  shape: {
+    parts_one: '{{count}} část',
+    parts_few: '{{count}} části',
+    parts_many: '{{count}} části',
+    parts_other: '{{count}} částí',
+    partsDrawn_one: '{{count}} nakreslená část',
+    partsDrawn_few: '{{count}} nakreslené části',
+    partsDrawn_many: '{{count}} nakreslené části',
+    partsDrawn_other: '{{count}} nakreslených částí',
+    clickToDraw: 'Kreslete klikáním do mapy',
+    draw: 'Kreslit',
+    discard: 'Zahodit',
+  },
+  area: {
+    label: 'Hranice',
+    notDrawn: 'Nenakresleno — nepovinné',
+    paused: 'Pozastaveno, než umístíte bod',
+    pausedSuffix: ' · pozastaveno, než umístíte bod',
+  },
+  footprint: {
+    label: 'Půdorys',
+    reshape: ' — tvar upravíte přetažením bodu',
+  },
+  point: {
+    label: 'Bod na mapě',
+    clickToPlace: 'Umístěte ho kliknutím do mapy',
+    derived: 'Odvozeno z hranice',
+    notPlaced: 'Neumístěno — nepovinné',
+    place: 'Umístit',
+  },
+  location: {
+    label: 'Nadřazená lokace',
+    empty: 'Žádná',
+    fromShape: 'Podle tvaru nakresleného v mapě',
+    shapeSitsIn: 'Tvar leží v lokaci {{name}}',
+    use: 'Použít',
+  },
+}

@@ -5,6 +5,8 @@ import {
 import type { DeviceModelResponse } from '#/api/model'
 import type { LifecycleStatus } from '#/lib/lifecycle'
 import { optional } from '#/lib/utils'
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Orval mints a mounting enum per schema (response, create, update), all with
@@ -12,34 +14,44 @@ import { optional } from '#/lib/utils'
  */
 export type MountingType = DeviceModelResponseMounting
 
-export const mountingLabels: Record<MountingType, string> = {
-  [DeviceModelResponseMounting.rack]: 'Rack',
-  [DeviceModelResponseMounting.wall]: 'Wall',
-  [DeviceModelResponseMounting.desktop]: 'Desktop',
-  [DeviceModelResponseMounting.din_rail]: 'DIN rail',
-  [DeviceModelResponseMounting.ceiling]: 'Ceiling',
-  [DeviceModelResponseMounting.pole]: 'Pole',
-  [DeviceModelResponseMounting.embedded]: 'Embedded',
-  [DeviceModelResponseMounting.other]: 'Other',
+/** Each mounting type's name in the interface language. */
+export function useMountingLabels(): Record<MountingType, string> {
+  const { t } = useTranslation('deviceModels')
+
+  return {
+    rack: t('mounting.rack'),
+    wall: t('mounting.wall'),
+    desktop: t('mounting.desktop'),
+    din_rail: t('mounting.din_rail'),
+    ceiling: t('mounting.ceiling'),
+    pole: t('mounting.pole'),
+    embedded: t('mounting.embedded'),
+    other: t('mounting.other'),
+  }
 }
 
-export const mountingOptions = Object.entries(mountingLabels) as Array<
-  [MountingType, string]
->
+export function useMountingOptions() {
+  return Object.entries(useMountingLabels()) as Array<[MountingType, string]>
+}
 
 /** Orval's per-schema enum again: one name for "a PoE standard". */
 export type PoeStandard = DeviceModelResponsePoeInStandard
 
-export const poeStandardLabels: Record<PoeStandard, string> = {
-  [DeviceModelResponsePoeInStandard.af]: '802.3af (PoE)',
-  [DeviceModelResponsePoeInStandard.at]: '802.3at (PoE+)',
-  [DeviceModelResponsePoeInStandard.bt]: '802.3bt (PoE++)',
-  [DeviceModelResponsePoeInStandard.passive]: 'Passive',
+/** The standards keep their IEEE names; only "passive" is a word to translate. */
+export function usePoeStandardLabels(): Record<PoeStandard, string> {
+  const { t } = useTranslation('deviceModels')
+
+  return {
+    [DeviceModelResponsePoeInStandard.af]: '802.3af (PoE)',
+    [DeviceModelResponsePoeInStandard.at]: '802.3at (PoE+)',
+    [DeviceModelResponsePoeInStandard.bt]: '802.3bt (PoE++)',
+    [DeviceModelResponsePoeInStandard.passive]: t('poeStandard.passive'),
+  }
 }
 
-export const poeStandardOptions = Object.entries(poeStandardLabels) as Array<
-  [PoeStandard, string]
->
+export function usePoeStandardOptions() {
+  return Object.entries(usePoeStandardLabels()) as Array<[PoeStandard, string]>
+}
 
 /** The model's name with its variant, if it has one: "CRS326 (rev2)". */
 export function formatModelName(
@@ -48,33 +60,43 @@ export function formatModelName(
   return model.variant ? `${model.name} (${model.variant})` : model.name
 }
 
-/**
- * How the model sits in place, in as few words as the data allows: "1U rack",
- * "2U", "Wall", or an empty string when neither is known.
- */
-export function formatFormFactor(
-  model: Pick<DeviceModelResponse, 'rackUnits' | 'mounting'>,
-): string {
-  const units = model.rackUnits ? `${model.rackUnits}U` : ''
-  const mounting = model.mounting ? mountingLabels[model.mounting] : ''
+/** The list's summaries of a model, in the interface language. */
+export function useDeviceModelFormatters() {
+  const { t } = useTranslation('deviceModels')
 
-  if (units && model.mounting === DeviceModelResponseMounting.rack) {
-    return `${units} rack`
-  }
+  // Kept stable per language, so a table's memoised columns can depend on it.
+  return useMemo(
+    () => ({
+      /**
+       * How the model sits in place, in as few words as the data allows: "1U
+       * rack", "2U", "Wall", or an empty string when neither is known.
+       */
+      formatFormFactor(
+        model: Pick<DeviceModelResponse, 'rackUnits' | 'mounting'>,
+      ): string {
+        const units = model.rackUnits ? `${model.rackUnits}U` : ''
+        const mounting = model.mounting ? t(`mounting.${model.mounting}`) : ''
 
-  return [units, mounting].filter(Boolean).join(' · ')
-}
+        if (units && model.mounting === DeviceModelResponseMounting.rack) {
+          return t('rackFormFactor', { units: model.rackUnits })
+        }
 
-/**
- * Which way the model handles Power over Ethernet, under a "PoE" heading: "In"
- * when it can be powered, "Out" when it powers others, "" for neither.
- */
-export function formatPoe(
-  model: Pick<DeviceModelResponse, 'poeIn' | 'poeOut'>,
-): string {
-  return [model.poeIn && 'In', model.poeOut && 'Out']
-    .filter(Boolean)
-    .join(' · ')
+        return [units, mounting].filter(Boolean).join(' · ')
+      },
+
+      /**
+       * Which way the model handles Power over Ethernet, under a "PoE"
+       * heading: "In" when it can be powered, "Out" when it powers others, ""
+       * for neither.
+       */
+      formatPoe(model: Pick<DeviceModelResponse, 'poeIn' | 'poeOut'>): string {
+        return [model.poeIn && t('poeIn'), model.poeOut && t('poeOut')]
+          .filter(Boolean)
+          .join(' · ')
+      },
+    }),
+    [t],
+  )
 }
 
 /**

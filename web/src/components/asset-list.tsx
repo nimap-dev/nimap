@@ -41,6 +41,7 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 type AssetType = AssetAttachmentResponse['asset']['type']
 
@@ -51,6 +52,7 @@ export function AssetList({
   resourceType: ListAssetsParams['resourceType']
   resourceId: string
 }) {
+  const { t } = useTranslation(['assets', 'common'])
   const canWrite = useCan('records:write')
   const queryClient = useQueryClient()
   const picker = useRef<HTMLInputElement>(null)
@@ -78,16 +80,16 @@ export function AssetList({
         if (res.status !== 201) {
           toast.add({
             type: 'error',
-            title: `Could not upload ${file.name}`,
-            description: res.data.detail ?? 'The file was not stored',
+            title: t('couldNotUpload', { name: file.name }),
+            description: res.data.detail ?? t('notStored'),
           })
           continue
         }
       } catch {
         toast.add({
           type: 'error',
-          title: `Could not upload ${file.name}`,
-          description: 'The request failed, check your connection and retry',
+          title: t('couldNotUpload', { name: file.name }),
+          description: t('requestFailed'),
         })
       }
     }
@@ -110,16 +112,16 @@ export function AssetList({
       if (res.status !== 204) {
         toast.add({
           type: 'error',
-          title: 'Could not remove',
-          description: res.data.detail ?? `${name} is still there`,
+          title: t('couldNotRemove'),
+          description: res.data.detail ?? t('stillThere', { name }),
         })
         return
       }
     } catch {
       toast.add({
         type: 'error',
-        title: 'Could not remove',
-        description: 'The request failed, check your connection and retry',
+        title: t('couldNotRemove'),
+        description: t('requestFailed'),
       })
       return
     }
@@ -128,7 +130,7 @@ export function AssetList({
     await queryClient.invalidateQueries({
       queryKey: getListAssetsQueryKey(params),
     })
-    toast.add({ type: 'success', description: `${name} was removed` })
+    toast.add({ type: 'success', description: t('removed', { name }) })
   }
 
   return (
@@ -138,7 +140,7 @@ export function AssetList({
     >
       <section className="grid gap-2">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="text-sm font-medium">Files</h3>
+          <h3 className="text-sm font-medium">{t('title')}</h3>
           {canWrite && (
             <>
               <input
@@ -162,14 +164,14 @@ export function AssetList({
                 onClick={() => picker.current?.click()}
               >
                 <Upload />
-                {upload.isPending ? 'Uploading…' : 'Add files'}
+                {upload.isPending ? t('uploading') : t('add')}
               </Button>
             </>
           )}
         </div>
 
         {attachments.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No files yet.</p>
+          <p className="text-sm text-muted-foreground">{t('empty')}</p>
         ) : (
           <ul className="grid grid-cols-3 gap-2">
             {attachments.map((attachment, index) => (
@@ -186,7 +188,9 @@ export function AssetList({
                   <Button
                     variant="ghost"
                     size="icon"
-                    aria-label={`Remove ${attachment.asset.title}`}
+                    aria-label={t('removeNamed', {
+                      name: attachment.asset.title,
+                    })}
                     onClick={() => setRemoving(attachment)}
                     className="absolute top-1 right-1 bg-background/80 text-destructive opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
                   >
@@ -218,25 +222,24 @@ export function AssetList({
           <AlertDialogMedia>
             <Trash2 />
           </AlertDialogMedia>
-          <AlertDialogTitle>Remove this file?</AlertDialogTitle>
+          <AlertDialogTitle>{t('remove.title')}</AlertDialogTitle>
           <AlertDialogDescription>
             <span className="mb-2 block line-clamp-2 font-medium break-all text-foreground">
               {removing?.asset.title}
             </span>
-            The file is deleted, not just detached, unless something else still
-            points at it. You can't undo this from here.
+            {t('remove.description')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel variant="outline" disabled={remove.isPending}>
-            Cancel
+            {t('common:actions.cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={remove.isPending}
             onClick={handleRemove}
           >
-            {remove.isPending ? 'Removing…' : 'Remove file'}
+            {remove.isPending ? t('remove.submitting') : t('remove.submit')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -255,6 +258,8 @@ function AssetViewer({
   onIndex: (index: number | undefined) => void
   onRemove?: (attachment: AssetAttachmentResponse) => void
 }) {
+  const { t } = useTranslation(['assets', 'common'])
+
   useEffect(() => {
     if (index === undefined || attachments.length === 0) {
       return
@@ -303,7 +308,7 @@ function AssetViewer({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Download"
+            aria-label={t('download')}
             nativeButton={false}
             render={<a href={url} download={current.asset.originalFilename} />}
           >
@@ -313,7 +318,7 @@ function AssetViewer({
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Remove file"
+              aria-label={t('remove.submit')}
               onClick={() => onRemove(current)}
               className="text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
@@ -321,7 +326,7 @@ function AssetViewer({
             </Button>
           )}
           <DialogClose
-            aria-label="Close"
+            aria-label={t('common:actions.close')}
             render={<Button variant="ghost" size="icon" />}
           >
             <X />
@@ -336,7 +341,7 @@ function AssetViewer({
               <Button
                 variant="outline"
                 size="icon"
-                aria-label="Previous file"
+                aria-label={t('previous')}
                 onClick={() =>
                   onIndex((index - 1 + attachments.length) % attachments.length)
                 }
@@ -347,7 +352,7 @@ function AssetViewer({
               <Button
                 variant="outline"
                 size="icon"
-                aria-label="Next file"
+                aria-label={t('next')}
                 onClick={() => onIndex((index + 1) % attachments.length)}
                 className="absolute right-2 rounded-full"
               >
@@ -368,6 +373,7 @@ function AssetPreview({
   attachment: AssetAttachmentResponse
   url: string
 }) {
+  const { t } = useTranslation(['assets', 'common'])
   const { asset } = attachment
 
   if (asset.type === 'image') {
@@ -407,7 +413,7 @@ function AssetPreview({
         nativeButton={false}
         render={<a href={url} target="_blank" rel="noreferrer" />}
       >
-        Open in a new tab
+        {t('openInNewTab')}
       </Button>
     </div>
   )

@@ -1,4 +1,4 @@
-import { lifecycleStatusLabels } from '#/lib/lifecycle'
+import { useLifecycleStatusLabels } from '#/lib/lifecycle'
 import type { LifecycleStatus } from '#/lib/lifecycle'
 import { cn } from '#/lib/utils'
 
@@ -18,6 +18,8 @@ export function LifecycleBadge({
   status: LifecycleStatus
   className?: string
 }) {
+  const lifecycleStatusLabels = useLifecycleStatusLabels()
+
   return (
     <span
       className={cn(

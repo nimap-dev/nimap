@@ -1,4 +1,5 @@
 import * as zod from 'zod'
+import i18n from '#/lib/i18n'
 
 /**
  * An optional whole number between `min` and `max`, as NumberField reports it:
@@ -11,17 +12,20 @@ export function wholeNumberSchema({
   min = 1,
   max = 2_147_483_647,
 }: { min?: number; max?: number } = {}) {
-  const message =
+  const message = () =>
     min === 1
-      ? 'Enter a whole number above zero'
-      : `Enter a whole number from ${min}`
+      ? i18n.t('common:validation.wholeAboveZero')
+      : i18n.t('common:validation.wholeFrom', { min })
 
   return zod
     .number({ error: message })
     .int({ error: message })
     .min(min, { error: message })
     .max(max, {
-      error: `Enter a number no larger than ${max.toLocaleString()}`,
+      error: () =>
+        i18n.t('common:validation.notLarger', {
+          max: max.toLocaleString(i18n.language),
+        }),
     })
     .optional()
 }

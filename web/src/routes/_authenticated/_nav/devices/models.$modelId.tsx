@@ -33,22 +33,31 @@ import { useCan } from '#/lib/auth'
 import {
   formatDimensions,
   formatModelName,
-  mountingLabels,
-  poeStandardLabels,
+  useMountingLabels,
+  usePoeStandardLabels,
 } from '#/lib/device-models'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
-import { lifecycleStatusLabels, lifecycleStatusOptions } from '#/lib/lifecycle'
+import {
+  useLifecycleStatusLabels,
+  useLifecycleStatusOptions,
+} from '#/lib/lifecycle'
 import type { LifecycleStatus } from '#/lib/lifecycle'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Copy, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute(
   '/_authenticated/_nav/devices/models/$modelId',
 )({ component: ViewDeviceModel })
 
 function ViewDeviceModel() {
+  const { t } = useTranslation(['deviceModels', 'common'])
+  const mountingLabels = useMountingLabels()
+  const poeStandardLabels = usePoeStandardLabels()
+  const lifecycleStatusLabels = useLifecycleStatusLabels()
+  const lifecycleStatusOptions = useLifecycleStatusOptions()
   const { modelId } = Route.useParams()
   const canWrite = useCan('records:write')
   const { data, isPending } = useGetDeviceModel(modelId)
@@ -64,7 +73,7 @@ function ViewDeviceModel() {
     return (
       <PanelPending
         back={<Link to="/devices/models" />}
-        backLabel="Back to device models"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -72,9 +81,9 @@ function ViewDeviceModel() {
   if (!model) {
     return (
       <PanelNotFound
-        noun="device model"
+        description={t('detail.notFound')}
         back={<Link to="/devices/models" />}
-        backLabel="Back to device models"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -92,16 +101,17 @@ function ViewDeviceModel() {
       if (res.status !== 200) {
         toast.add({
           type: 'error',
-          title: 'Could not change the status',
-          description: res.data.detail ?? `${fullName} stayed as it was`,
+          title: t('common:errors.couldNotChangeStatus'),
+          description:
+            res.data.detail ?? t('detail.stayed', { name: fullName }),
         })
         return
       }
     } catch {
       toast.add({
         type: 'error',
-        title: 'Could not change the status',
-        description: 'The request failed, check your connection and retry',
+        title: t('common:errors.couldNotChangeStatus'),
+        description: t('common:errors.requestFailed'),
       })
       return
     }
@@ -116,7 +126,10 @@ function ViewDeviceModel() {
     ])
     toast.add({
       type: 'success',
-      description: `${fullName} is now ${lifecycleStatusLabels[status].toLowerCase()}`,
+      description: t('detail.statusChanged', {
+        name: fullName,
+        status: lifecycleStatusLabels[status].toLowerCase(),
+      }),
     })
   }
 
@@ -128,16 +141,17 @@ function ViewDeviceModel() {
         setConfirmingDelete(false)
         toast.add({
           type: 'error',
-          title: 'Could not delete',
-          description: res.data.detail ?? `${fullName} is still there`,
+          title: t('common:errors.couldNotDelete'),
+          description:
+            res.data.detail ?? t('delete.stillThere', { name: fullName }),
         })
         return
       }
     } catch {
       toast.add({
         type: 'error',
-        title: 'Could not delete',
-        description: 'The request failed, check your connection and retry',
+        title: t('common:errors.couldNotDelete'),
+        description: t('common:errors.requestFailed'),
       })
       return
     }
@@ -147,7 +161,10 @@ function ViewDeviceModel() {
     await queryClient.invalidateQueries({
       queryKey: getListDeviceModelsQueryKey(),
     })
-    toast.add({ type: 'success', description: `${fullName} was deleted` })
+    toast.add({
+      type: 'success',
+      description: t('delete.deleted', { name: fullName }),
+    })
     navigate({ to: '/devices/models', replace: true })
   }
 
@@ -158,14 +175,14 @@ function ViewDeviceModel() {
       <Panel
         title={fullName}
         back={<Link to="/devices/models" />}
-        backLabel="Back to device models"
+        backLabel={t('detail.back')}
         action={
           canWrite && (
             <>
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Edit device model"
+                aria-label={t('detail.edit')}
                 render={
                   <Link
                     to="/devices/models/$modelId/edit"
@@ -179,8 +196,8 @@ function ViewDeviceModel() {
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Duplicate device model"
-                title="Duplicate"
+                aria-label={t('detail.duplicate')}
+                title={t('detail.duplicateShort')}
                 render={
                   <Link to="/devices/models/new" search={{ from: modelId }} />
                 }
@@ -189,7 +206,7 @@ function ViewDeviceModel() {
                 <Copy />
               </Button>
               <AlertDialogTrigger
-                aria-label="Delete device model"
+                aria-label={t('delete.label')}
                 render={<Button variant="ghost" size="icon" />}
                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
@@ -207,7 +224,7 @@ function ViewDeviceModel() {
           )}
 
           <DetailList>
-            <Detail label="Status" align="center">
+            <Detail label={t('common:lifecycle.label')} align="center">
               <Select
                 items={lifecycleStatusLabels}
                 value={model.status}
@@ -216,7 +233,7 @@ function ViewDeviceModel() {
                 }
                 disabled={!canWrite || updateStatus.isPending}
               >
-                <SelectTrigger size="sm" aria-label="Device model status">
+                <SelectTrigger size="sm" aria-label={t('detail.status')}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -228,7 +245,7 @@ function ViewDeviceModel() {
                 </SelectContent>
               </Select>
             </Detail>
-            <Detail label="Manufacturer">
+            <Detail label={t('fields.manufacturer')}>
               <Link
                 to="/devices/manufacturers/$manufacturerId"
                 params={{ manufacturerId: model.manufacturer.id }}
@@ -237,19 +254,23 @@ function ViewDeviceModel() {
                 {model.manufacturer.name}
               </Link>
             </Detail>
-            <Detail label="Type" align="center">
+            <Detail label={t('fields.type')} align="center">
               <span className="inline-flex items-center gap-2">
                 <DeviceTypeIcon type={model.deviceType} />
                 {model.deviceType.name}
               </span>
             </Detail>
-            <Detail label="Variant">
-              {model.variant ?? <DetailEmpty>None</DetailEmpty>}
+            <Detail label={t('fields.variant')}>
+              {model.variant ?? (
+                <DetailEmpty>{t('common:states.none')}</DetailEmpty>
+              )}
             </Detail>
-            <Detail label="Part number">
-              {model.partNumber ?? <DetailEmpty>Not recorded</DetailEmpty>}
+            <Detail label={t('fields.partNumber')}>
+              {model.partNumber ?? (
+                <DetailEmpty>{t('common:states.notRecorded')}</DetailEmpty>
+              )}
             </Detail>
-            <Detail label="Product page" title={model.website}>
+            <Detail label={t('fields.productPage')} title={model.website}>
               {model.website ? (
                 <a
                   href={model.website}
@@ -260,76 +281,84 @@ function ViewDeviceModel() {
                   {model.website}
                 </a>
               ) : (
-                <DetailEmpty>Not recorded</DetailEmpty>
+                <DetailEmpty>{t('common:states.notRecorded')}</DetailEmpty>
               )}
             </Detail>
           </DetailList>
 
           <section className="grid gap-2">
-            <h3 className="text-sm font-medium">Physical</h3>
+            <h3 className="text-sm font-medium">{t('fields.physical')}</h3>
             <DetailList>
-              <Detail label="Dimensions">
-                {dimensions || <DetailEmpty>Not recorded</DetailEmpty>}
+              <Detail label={t('fields.dimensions')}>
+                {dimensions || (
+                  <DetailEmpty>{t('common:states.notRecorded')}</DetailEmpty>
+                )}
               </Detail>
-              <Detail label="Rack units">
+              <Detail label={t('fields.rackUnits')}>
                 {model.rackUnits ? (
                   `${model.rackUnits}U`
                 ) : (
-                  <DetailEmpty>Not recorded</DetailEmpty>
+                  <DetailEmpty>{t('common:states.notRecorded')}</DetailEmpty>
                 )}
               </Detail>
-              <Detail label="Mounting">
+              <Detail label={t('fields.mounting')}>
                 {model.mounting ? (
                   mountingLabels[model.mounting]
                 ) : (
-                  <DetailEmpty>Not specified</DetailEmpty>
+                  <DetailEmpty>{t('common:states.notSpecified')}</DetailEmpty>
                 )}
               </Detail>
             </DetailList>
           </section>
 
           <section className="grid gap-2">
-            <h3 className="text-sm font-medium">Power</h3>
+            <h3 className="text-sm font-medium">{t('fields.power')}</h3>
             <DetailList>
-              <Detail label="Maximum draw">
+              <Detail label={t('fields.maxDraw')}>
                 {model.powerWattsMax ? (
                   `${model.powerWattsMax} W`
                 ) : (
-                  <DetailEmpty>Not recorded</DetailEmpty>
+                  <DetailEmpty>{t('common:states.notRecorded')}</DetailEmpty>
                 )}
               </Detail>
-              <Detail label="Powered over Ethernet">
+              <Detail label={t('fields.poeIn')}>
                 {model.poeIn ? (
                   model.poeInStandard ? (
-                    `Yes, ${poeStandardLabels[model.poeInStandard]}`
+                    t('detail.yesStandard', {
+                      standard: poeStandardLabels[model.poeInStandard],
+                    })
                   ) : (
                     <>
-                      Yes <DetailEmpty>· standard unknown</DetailEmpty>
+                      {t('common:states.yes')}{' '}
+                      <DetailEmpty>{t('detail.standardUnknown')}</DetailEmpty>
                     </>
                   )
                 ) : (
-                  'No'
+                  t('common:states.no')
                 )}
               </Detail>
-              <Detail label="Supplies PoE">
+              <Detail label={t('fields.poeOut')}>
                 {model.poeOut ? (
                   model.poeOutStandard ? (
-                    `Yes, up to ${poeStandardLabels[model.poeOutStandard]}`
+                    t('detail.yesUpTo', {
+                      standard: poeStandardLabels[model.poeOutStandard],
+                    })
                   ) : (
                     <>
-                      Yes <DetailEmpty>· standard unknown</DetailEmpty>
+                      {t('common:states.yes')}{' '}
+                      <DetailEmpty>{t('detail.standardUnknown')}</DetailEmpty>
                     </>
                   )
                 ) : (
-                  'No'
+                  t('common:states.no')
                 )}
               </Detail>
               {model.poeOut && (
-                <Detail label="PoE budget">
+                <Detail label={t('fields.poeBudget')}>
                   {model.poeBudgetWatts ? (
                     `${model.poeBudgetWatts} W`
                   ) : (
-                    <DetailEmpty>Not recorded</DetailEmpty>
+                    <DetailEmpty>{t('common:states.notRecorded')}</DetailEmpty>
                   )}
                 </Detail>
               )}
@@ -338,11 +367,15 @@ function ViewDeviceModel() {
 
           <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
             <span title={formatAbsoluteDate(model.createdAt)}>
-              created {formatRelativeDate(model.createdAt)}
+              {t('common:meta.created', {
+                when: formatRelativeDate(model.createdAt),
+              })}
             </span>
             <span aria-hidden="true">·</span>
             <span title={formatAbsoluteDate(model.updatedAt)}>
-              updated {formatRelativeDate(model.updatedAt)}
+              {t('common:meta.updated', {
+                when: formatRelativeDate(model.updatedAt),
+              })}
             </span>
           </p>
         </div>
@@ -353,12 +386,13 @@ function ViewDeviceModel() {
           <AlertDialogMedia>
             <Trash2 />
           </AlertDialogMedia>
-          <AlertDialogTitle>Delete {fullName}?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {t('delete.title', { name: fullName })}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            Deleting is for fixing mistakes, such as a duplicate or a model
-            entered by accident. If the model is no longer sold or used, set its
-            status to Decommissioned instead: it stays on record and only drops
-            out of the default lists. You can't undo this from here.
+            {t('delete.description', {
+              decommissioned: lifecycleStatusLabels.decommissioned,
+            })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -366,14 +400,16 @@ function ViewDeviceModel() {
             variant="outline"
             disabled={deleteDeviceModel.isPending}
           >
-            Cancel
+            {t('common:actions.cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={deleteDeviceModel.isPending}
             onClick={handleDelete}
           >
-            {deleteDeviceModel.isPending ? 'Deleting…' : 'Delete device model'}
+            {deleteDeviceModel.isPending
+              ? t('common:actions.deleting')
+              : t('delete.label')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

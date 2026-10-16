@@ -17,6 +17,7 @@ import { TextField } from '#/components/form/text-field'
 import { Button } from '#/components/ui/button'
 import { Field, FieldGroup } from '#/components/ui/field'
 import { applyLanguage, browserLanguage } from '#/lib/i18n'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute('/auth/login')({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
@@ -44,6 +45,7 @@ export const Route = createFileRoute('/auth/login')({
 })
 
 function Login() {
+  const { t } = useTranslation('auth')
   const loginMutation = useLogin()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -63,13 +65,13 @@ function Login() {
       if (res.status !== 200) {
         toast.add({
           type: 'error',
-          description: res.data.detail ?? 'Invalid username or password',
+          description: res.data.detail ?? t('login.invalid'),
         })
         return
       }
 
       queryClient.setQueryData(currentUserQueryOptions.queryKey, res)
-      toast.add({ type: 'success', description: 'Logged in successfully' })
+      toast.add({ type: 'success', description: t('login.success') })
 
       router.history.replace(search.redirect ?? '/')
     },
@@ -78,10 +80,8 @@ function Login() {
     <div className="flex min-h-screen w-full items-center">
       <Card className="mx-auto w-full sm:max-w-md">
         <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>
-            Login by providing your username and password below.
-          </CardDescription>
+          <CardTitle>{t('login.title')}</CardTitle>
+          <CardDescription>{t('login.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -97,7 +97,7 @@ function Login() {
                 children={(field) => (
                   <TextField
                     field={field}
-                    label="Username"
+                    label={t('login.username')}
                     placeholder="admin"
                     autoComplete="username"
                   />
@@ -108,7 +108,7 @@ function Login() {
                 children={(field) => (
                   <TextField
                     field={field}
-                    label="Password"
+                    label={t('login.password')}
                     type="password"
                     placeholder="my-secure-password"
                     autoComplete="current-password"
@@ -121,7 +121,7 @@ function Login() {
         <CardFooter>
           <Field orientation="horizontal">
             <Button type="submit" form="login-form">
-              Login
+              {t('login.submit')}
             </Button>
           </Field>
         </CardFooter>

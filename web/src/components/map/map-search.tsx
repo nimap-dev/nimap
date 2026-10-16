@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useId, useMemo, useRef, useState, useEffect } from 'react'
 import { Marker } from 'react-map-gl/maplibre'
+import { useTranslation } from 'react-i18next'
 
 /** Your own buildings are already in memory, so one letter is enough for them. */
 const MIN_QUERY_LENGTH = 1
@@ -120,6 +121,7 @@ function useDebounced(value: string, delay: number) {
  * toggle, and clear of the navigation control on narrow screens.
  */
 export function MapSearch() {
+  const { t } = useTranslation('map')
   const { flyTo, fitBounds, isDrawing } = useWorldMap()
   const navigate = useNavigate()
 
@@ -312,8 +314,8 @@ export function MapSearch() {
             ref={inputRef}
             type="search"
             value={query}
-            placeholder="Search locations, buildings and places…"
-            aria-label="Search locations, buildings and places"
+            placeholder={t('search.placeholder')}
+            aria-label={t('search.label')}
             role="combobox"
             aria-expanded={showResults}
             aria-controls={listboxId}
@@ -341,7 +343,7 @@ export function MapSearch() {
               query && (
                 <button
                   type="button"
-                  aria-label="Clear search"
+                  aria-label={t('search.clear')}
                   // Blur would close the list before the click lands.
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={clear}
@@ -396,10 +398,10 @@ export function MapSearch() {
                 {result.kind !== 'place' && (
                   <span className="shrink-0 text-xs text-muted-foreground">
                     {isDrawing
-                      ? 'Show on map'
+                      ? t('search.showOnMap')
                       : result.kind === 'location'
-                        ? 'Location'
-                        : 'Building'}
+                        ? t('search.location')
+                        : t('search.building')}
                   </span>
                 )}
               </li>
@@ -407,12 +409,12 @@ export function MapSearch() {
             {results.length === 0 && (
               <li className="px-2.5 py-2 text-sm text-muted-foreground">
                 {isError
-                  ? 'Place search is unavailable right now'
+                  ? t('search.unavailable')
                   : isFetching
-                    ? 'Searching…'
+                    ? t('search.searching')
                     : isPlaceSearchable
-                      ? 'Nothing found'
-                      : 'Nothing of yours matches — keep typing to search places'}
+                      ? t('search.nothingFound')
+                      : t('search.keepTyping')}
               </li>
             )}
           </ul>

@@ -19,10 +19,9 @@ import { StatusFilter } from '#/components/status-filter'
 import { Button } from '#/components/ui/button'
 import { useCan } from '#/lib/auth'
 import {
-  formatFormFactor,
   formatModelName,
-  formatPoe,
-  mountingOptions,
+  useDeviceModelFormatters,
+  useMountingOptions,
 } from '#/lib/device-models'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
 import {
@@ -33,6 +32,8 @@ import { keepPreviousData } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Plus } from 'lucide-react'
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import * as zod from 'zod'
 
 /**
@@ -65,115 +66,140 @@ const columnHelper = createColumnHelper<
   DeviceModelResponse
 >()
 
-const columns = columnHelper.columns([
-  columnHelper.accessor((model) => model.deviceType.name, {
-    id: 'type',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Type</DataTableColumnHeader>
-    ),
-    sortFn: 'text',
-    meta: { width: '9rem' },
-    cell: ({ row, getValue }) => (
-      <span className="flex min-w-0 items-center gap-2">
-        <DeviceTypeIcon type={row.original.deviceType} />
-        <span className="truncate">{getValue()}</span>
-      </span>
-    ),
-  }),
-  columnHelper.accessor('name', {
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Model</DataTableColumnHeader>
-    ),
-    sortFn: 'text',
-    filterFn: (row, _columnId, filterValue) => {
-      const needle = String(filterValue).toLowerCase()
-      const model = row.original
+// Built in a hook so the headers follow the interface language.
+function useColumns() {
+  const { t } = useTranslation(['deviceModels', 'common'])
+  const { formatFormFactor, formatPoe } = useDeviceModelFormatters()
 
-      return [
-        model.name,
-        model.variant,
-        model.partNumber,
-        model.manufacturer.name,
-        model.deviceType.name,
-      ].some((text) => text?.toLowerCase().includes(needle))
-    },
-    cell: ({ row }) => (
-      <div className="grid gap-0.5">
-        <Link
-          to="/devices/models/$modelId"
-          params={{ modelId: row.original.id }}
-          className="block truncate font-medium hover:underline"
-        >
-          {formatModelName(row.original)}
-        </Link>
-        {row.original.partNumber && (
-          <span
-            className="block truncate text-xs text-muted-foreground"
-            title={row.original.partNumber}
-          >
-            {row.original.partNumber}
-          </span>
-        )}
-      </div>
-    ),
-  }),
-  columnHelper.accessor((model) => model.manufacturer.name, {
-    id: 'manufacturer',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column}>
-        Manufacturer
-      </DataTableColumnHeader>
-    ),
-    sortFn: 'text',
-    meta: { width: '10rem' },
-    cell: ({ getValue }) => (
-      <span className="block truncate">{getValue()}</span>
-    ),
-  }),
-  columnHelper.accessor((model) => formatFormFactor(model), {
-    id: 'formFactor',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Form factor</DataTableColumnHeader>
-    ),
-    sortFn: 'text',
-    meta: { width: '8rem' },
-    cell: ({ getValue }) => <MutedCell>{getValue()}</MutedCell>,
-  }),
-  columnHelper.accessor((model) => formatPoe(model), {
-    id: 'poe',
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column}>PoE</DataTableColumnHeader>
-    ),
-    sortFn: 'text',
-    meta: { width: '6rem' },
-    cell: ({ getValue }) => <MutedCell>{getValue()}</MutedCell>,
-  }),
-  columnHelper.accessor('status', {
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Status</DataTableColumnHeader>
-    ),
-    meta: { width: '9rem' },
-    cell: ({ getValue }) => <LifecycleBadge status={getValue()} />,
-  }),
-  columnHelper.accessor('updatedAt', {
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Updated</DataTableColumnHeader>
-    ),
-    sortFn: 'datetime',
-    sortDescFirst: true,
-    meta: { width: '7.5rem' },
-    cell: ({ getValue }) => (
-      <span
-        className="text-muted-foreground"
-        title={formatAbsoluteDate(getValue())}
-      >
-        {formatRelativeDate(getValue())}
-      </span>
-    ),
-  }),
-])
+  return useMemo(
+    () =>
+      columnHelper.columns([
+        columnHelper.accessor((model) => model.deviceType.name, {
+          id: 'type',
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column}>
+              {t('fields.type')}
+            </DataTableColumnHeader>
+          ),
+          sortFn: 'text',
+          meta: { width: '9rem' },
+          cell: ({ row, getValue }) => (
+            <span className="flex min-w-0 items-center gap-2">
+              <DeviceTypeIcon type={row.original.deviceType} />
+              <span className="truncate">{getValue()}</span>
+            </span>
+          ),
+        }),
+        columnHelper.accessor('name', {
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column}>
+              {t('fields.model')}
+            </DataTableColumnHeader>
+          ),
+          sortFn: 'text',
+          filterFn: (row, _columnId, filterValue) => {
+            const needle = String(filterValue).toLowerCase()
+            const model = row.original
+
+            return [
+              model.name,
+              model.variant,
+              model.partNumber,
+              model.manufacturer.name,
+              model.deviceType.name,
+            ].some((text) => text?.toLowerCase().includes(needle))
+          },
+          cell: ({ row }) => (
+            <div className="grid gap-0.5">
+              <Link
+                to="/devices/models/$modelId"
+                params={{ modelId: row.original.id }}
+                className="block truncate font-medium hover:underline"
+              >
+                {formatModelName(row.original)}
+              </Link>
+              {row.original.partNumber && (
+                <span
+                  className="block truncate text-xs text-muted-foreground"
+                  title={row.original.partNumber}
+                >
+                  {row.original.partNumber}
+                </span>
+              )}
+            </div>
+          ),
+        }),
+        columnHelper.accessor((model) => model.manufacturer.name, {
+          id: 'manufacturer',
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column}>
+              {t('fields.manufacturer')}
+            </DataTableColumnHeader>
+          ),
+          sortFn: 'text',
+          meta: { width: '10rem' },
+          cell: ({ getValue }) => (
+            <span className="block truncate">{getValue()}</span>
+          ),
+        }),
+        columnHelper.accessor((model) => formatFormFactor(model), {
+          id: 'formFactor',
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column}>
+              {t('fields.formFactor')}
+            </DataTableColumnHeader>
+          ),
+          sortFn: 'text',
+          meta: { width: '8rem' },
+          cell: ({ getValue }) => <MutedCell>{getValue()}</MutedCell>,
+        }),
+        columnHelper.accessor((model) => formatPoe(model), {
+          id: 'poe',
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column}>
+              {t('fields.poe')}
+            </DataTableColumnHeader>
+          ),
+          sortFn: 'text',
+          meta: { width: '6rem' },
+          cell: ({ getValue }) => <MutedCell>{getValue()}</MutedCell>,
+        }),
+        columnHelper.accessor('status', {
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column}>
+              {t('common:lifecycle.label')}
+            </DataTableColumnHeader>
+          ),
+          meta: { width: '9rem' },
+          cell: ({ getValue }) => <LifecycleBadge status={getValue()} />,
+        }),
+        columnHelper.accessor('updatedAt', {
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column}>
+              {t('fields.updated')}
+            </DataTableColumnHeader>
+          ),
+          sortFn: 'datetime',
+          sortDescFirst: true,
+          meta: { width: '7.5rem' },
+          cell: ({ getValue }) => (
+            <span
+              className="text-muted-foreground"
+              title={formatAbsoluteDate(getValue())}
+            >
+              {formatRelativeDate(getValue())}
+            </span>
+          ),
+        }),
+      ]),
+    [t, formatFormFactor, formatPoe],
+  )
+}
 
 function AllDeviceModels() {
+  const { t } = useTranslation('deviceModels')
+  const columns = useColumns()
+  const mountingOptions = useMountingOptions()
   const canWrite = useCan('records:write')
   const navigate = useNavigate()
   const search = Route.useSearch()
@@ -216,7 +242,7 @@ function AllDeviceModels() {
   const newModel = canWrite && (
     <Button
       size="icon"
-      aria-label="New device model"
+      aria-label={t('list.new')}
       render={<Link to="/devices/models/new" />}
       nativeButton={false}
     >
@@ -226,7 +252,7 @@ function AllDeviceModels() {
 
   if (isPending) {
     return (
-      <Panel title="Device models" action={newModel}>
+      <Panel title={t('list.title')} action={newModel}>
         <TableSkeleton />
       </Panel>
     )
@@ -234,38 +260,38 @@ function AllDeviceModels() {
 
   if (!models || models.status !== 200) {
     return (
-      <Panel title="Device models" action={newModel}>
-        Failed to load device models
+      <Panel title={t('list.title')} action={newModel}>
+        {t('list.loadFailed')}
       </Panel>
     )
   }
 
   return (
-    <Panel title="Device models" action={newModel}>
+    <Panel title={t('list.title')} action={newModel}>
       <DataTable
         columns={columns}
         data={models.data}
         searchColumn="name"
-        searchPlaceholder="Search models, part numbers, manufacturers…"
+        searchPlaceholder={t('list.search')}
         actions={
           <>
             <FilterSelect
-              label="Filter by type"
-              anyLabel="Any type"
+              label={t('list.filterType')}
+              anyLabel={t('list.anyType')}
               value={deviceTypeId}
               onChange={(value) => setFilter({ deviceTypeId: value })}
               options={typeOptions}
             />
             <FilterSelect
-              label="Filter by manufacturer"
-              anyLabel="Any manufacturer"
+              label={t('list.filterManufacturer')}
+              anyLabel={t('list.anyManufacturer')}
               value={manufacturerId}
               onChange={(value) => setFilter({ manufacturerId: value })}
               options={manufacturerOptions}
             />
             <FilterSelect
-              label="Filter by mounting"
-              anyLabel="Any mounting"
+              label={t('list.filterMounting')}
+              anyLabel={t('list.anyMounting')}
               value={mounting}
               onChange={(value) => setFilter({ mounting: value })}
               options={mountingOptions.map(([value, label]) => ({

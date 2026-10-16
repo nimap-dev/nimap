@@ -26,12 +26,14 @@ import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute(
   '/_authenticated/_nav/devices/manufacturers/$manufacturerId',
 )({ component: ViewManufacturer })
 
 function ViewManufacturer() {
+  const { t } = useTranslation(['manufacturers', 'common'])
   const { manufacturerId } = Route.useParams()
   const canWrite = useCan('records:write')
   const { data, isPending } = useGetManufacturer(manufacturerId)
@@ -46,7 +48,7 @@ function ViewManufacturer() {
     return (
       <PanelPending
         back={<Link to="/devices/manufacturers" />}
-        backLabel="Back to manufacturers"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -54,9 +56,9 @@ function ViewManufacturer() {
   if (!manufacturer) {
     return (
       <PanelNotFound
-        noun="manufacturer"
+        description={t('detail.notFound')}
         back={<Link to="/devices/manufacturers" />}
-        backLabel="Back to manufacturers"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -71,16 +73,16 @@ function ViewManufacturer() {
         setConfirmingDelete(false)
         toast.add({
           type: 'error',
-          title: 'Could not delete',
-          description: res.data.detail ?? `${name} is still there`,
+          title: t('common:errors.couldNotDelete'),
+          description: res.data.detail ?? t('delete.stillThere', { name }),
         })
         return
       }
     } catch {
       toast.add({
         type: 'error',
-        title: 'Could not delete',
-        description: 'The request failed, check your connection and retry',
+        title: t('common:errors.couldNotDelete'),
+        description: t('common:errors.requestFailed'),
       })
       return
     }
@@ -92,7 +94,7 @@ function ViewManufacturer() {
     await queryClient.invalidateQueries({
       queryKey: getListManufacturersQueryKey(),
     })
-    toast.add({ type: 'success', description: `${name} was deleted` })
+    toast.add({ type: 'success', description: t('delete.deleted', { name }) })
     navigate({ to: '/devices/manufacturers', replace: true })
   }
 
@@ -101,14 +103,14 @@ function ViewManufacturer() {
       <Panel
         title={manufacturer.name}
         back={<Link to="/devices/manufacturers" />}
-        backLabel="Back to manufacturers"
+        backLabel={t('detail.back')}
         action={
           canWrite && (
             <>
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Edit manufacturer"
+                aria-label={t('detail.edit')}
                 render={
                   <Link
                     to="/devices/manufacturers/$manufacturerId/edit"
@@ -120,7 +122,7 @@ function ViewManufacturer() {
                 <Pencil />
               </Button>
               <AlertDialogTrigger
-                aria-label="Delete manufacturer"
+                aria-label={t('delete.label')}
                 render={<Button variant="ghost" size="icon" />}
                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
@@ -138,7 +140,7 @@ function ViewManufacturer() {
           )}
 
           <DetailList>
-            <Detail label="Website">
+            <Detail label={t('fields.website')}>
               {manufacturer.website ? (
                 <a
                   href={manufacturer.website}
@@ -149,17 +151,17 @@ function ViewManufacturer() {
                   {manufacturer.website}
                 </a>
               ) : (
-                <DetailEmpty>No website</DetailEmpty>
+                <DetailEmpty>{t('detail.noWebsite')}</DetailEmpty>
               )}
             </Detail>
             <Detail
-              label="Updated"
+              label={t('fields.updated')}
               title={formatAbsoluteDate(manufacturer.updatedAt)}
             >
               {formatRelativeDate(manufacturer.updatedAt)}
             </Detail>
             <Detail
-              label="Created"
+              label={t('fields.created')}
               title={formatAbsoluteDate(manufacturer.createdAt)}
             >
               {formatRelativeDate(manufacturer.createdAt)}
@@ -173,12 +175,11 @@ function ViewManufacturer() {
           <AlertDialogMedia>
             <Trash2 />
           </AlertDialogMedia>
-          <AlertDialogTitle>Delete {manufacturer.name}?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {t('delete.title', { name: manufacturer.name })}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            Deleting is for fixing mistakes, such as a duplicate or a misspelled
-            name that should be merged into another. It is refused while any
-            device model is made by this manufacturer, and you can't undo it
-            from here.
+            {t('delete.description')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -186,14 +187,16 @@ function ViewManufacturer() {
             variant="outline"
             disabled={deleteManufacturer.isPending}
           >
-            Cancel
+            {t('common:actions.cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={deleteManufacturer.isPending}
             onClick={handleDelete}
           >
-            {deleteManufacturer.isPending ? 'Deleting…' : 'Delete manufacturer'}
+            {deleteManufacturer.isPending
+              ? t('common:actions.deleting')
+              : t('delete.label')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

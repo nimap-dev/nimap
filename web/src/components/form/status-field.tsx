@@ -6,8 +6,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '#/components/ui/select'
-import { lifecycleStatusLabels, lifecycleStatusOptions } from '#/lib/lifecycle'
+import {
+  useLifecycleStatusLabels,
+  useLifecycleStatusOptions,
+} from '#/lib/lifecycle'
 import type { LifecycleStatus } from '#/lib/lifecycle'
+import { useTranslation } from 'react-i18next'
 
 type StatusFieldApi = {
   name: string
@@ -17,9 +21,13 @@ type StatusFieldApi = {
 
 // The lifecycle status picker as a form field.
 export function StatusField({ field }: { field: StatusFieldApi }) {
+  const { t } = useTranslation()
+  const lifecycleStatusLabels = useLifecycleStatusLabels()
+  const lifecycleStatusOptions = useLifecycleStatusOptions()
+
   return (
     <Field>
-      <FieldLabel htmlFor={field.name}>Status</FieldLabel>
+      <FieldLabel htmlFor={field.name}>{t('lifecycle.label')}</FieldLabel>
       <Select
         items={lifecycleStatusLabels}
         value={field.state.value}

@@ -1,6 +1,7 @@
 import type { Point } from '#/api/model'
 import { Button } from '#/components/ui/button'
 import { Field, FieldLabel } from '#/components/ui/field'
+import { useTranslation } from 'react-i18next'
 
 export function formatCoordinates(point: Point): string {
   const [longitude, latitude] = point.coordinates
@@ -21,26 +22,28 @@ export function RepresentativePointField({
   onPick: () => void
   onClear: () => void
 }) {
+  const { t } = useTranslation(['form', 'common'])
+
   return (
     <Field>
-      <FieldLabel>Map point</FieldLabel>
+      <FieldLabel>{t('point.label')}</FieldLabel>
       <div className="flex items-center justify-between gap-2 rounded-lg border p-2 text-sm">
         <span className={point ? undefined : 'text-muted-foreground'}>
           {point
             ? formatCoordinates(point)
             : isPicking
-              ? 'Click on the map to place it'
+              ? t('point.clickToPlace')
               : hasArea
-                ? 'Derived from the boundary'
-                : 'Not placed — optional'}
+                ? t('point.derived')
+                : t('point.notPlaced')}
         </span>
         {point || isPicking ? (
           <Button type="button" variant="ghost" size="sm" onClick={onClear}>
-            {point ? 'Clear' : 'Cancel'}
+            {point ? t('common:actions.clear') : t('common:actions.cancel')}
           </Button>
         ) : (
           <Button type="button" variant="outline" size="sm" onClick={onPick}>
-            Place
+            {t('point.place')}
           </Button>
         )}
       </div>

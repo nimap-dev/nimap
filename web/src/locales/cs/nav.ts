@@ -8,4 +8,16 @@ export default {
   commandPalette: 'Paleta příkazů',
   account: 'Účet',
   manageUsers: 'Správa uživatelů',
+  users: 'Uživatelé',
+  palette: {
+    placeholder: 'Přejít na…',
+    empty: 'Nic nenalezeno.',
+    goTo: 'Přejít na',
+    create: 'Vytvořit',
+    newLocation: 'Nová lokace',
+    newBuilding: 'Nová budova',
+    newManufacturer: 'Nový výrobce',
+    newDeviceModel: 'Nový model zařízení',
+    newUser: 'Nový uživatel',
+  },
 }

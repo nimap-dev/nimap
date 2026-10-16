@@ -25,6 +25,7 @@ import {
 } from '#/components/ui/command'
 import { useCan } from '#/lib/auth'
 import type { Permission } from '#/lib/auth'
+import { useTranslation } from 'react-i18next'
 
 type PaletteEntry = {
   label: string
@@ -33,61 +34,69 @@ type PaletteEntry = {
   permission?: Permission
 }
 
-const groups: { heading: string; entries: PaletteEntry[] }[] = [
-  {
-    heading: 'Go to',
-    entries: [
-      { label: 'Map', to: '/', icon: Map },
-      { label: 'Locations', to: '/locations', icon: LandPlot },
-      { label: 'Buildings', to: '/buildings', icon: Building2 },
-      { label: 'Manufacturers', to: '/devices/manufacturers', icon: Factory },
-      { label: 'Device models', to: '/devices/models', icon: Boxes },
-      { label: 'Devices', to: '/devices', icon: Server },
-      { label: 'Account', to: '/auth/account', icon: User },
-      {
-        label: 'Users',
-        to: '/admin/users',
-        icon: Users,
-        permission: 'users:manage',
-      },
-    ],
-  },
-  {
-    heading: 'Create',
-    entries: [
-      {
-        label: 'New location',
-        to: '/locations/new',
-        icon: Plus,
-        permission: 'records:write',
-      },
-      {
-        label: 'New building',
-        to: '/buildings/new',
-        icon: Plus,
-        permission: 'records:write',
-      },
-      {
-        label: 'New manufacturer',
-        to: '/devices/manufacturers/new',
-        icon: Plus,
-        permission: 'records:write',
-      },
-      {
-        label: 'New device model',
-        to: '/devices/models/new',
-        icon: Plus,
-        permission: 'records:write',
-      },
-      {
-        label: 'New user',
-        to: '/admin/users/new',
-        icon: Plus,
-        permission: 'users:manage',
-      },
-    ],
-  },
-]
+function useGroups(): { heading: string; entries: PaletteEntry[] }[] {
+  const { t } = useTranslation('nav')
+
+  return [
+    {
+      heading: t('palette.goTo'),
+      entries: [
+        { label: t('map'), to: '/', icon: Map },
+        { label: t('locations'), to: '/locations', icon: LandPlot },
+        { label: t('buildings'), to: '/buildings', icon: Building2 },
+        {
+          label: t('manufacturers'),
+          to: '/devices/manufacturers',
+          icon: Factory,
+        },
+        { label: t('deviceModels'), to: '/devices/models', icon: Boxes },
+        { label: t('devices'), to: '/devices', icon: Server },
+        { label: t('account'), to: '/auth/account', icon: User },
+        {
+          label: t('users'),
+          to: '/admin/users',
+          icon: Users,
+          permission: 'users:manage',
+        },
+      ],
+    },
+    {
+      heading: t('palette.create'),
+      entries: [
+        {
+          label: t('palette.newLocation'),
+          to: '/locations/new',
+          icon: Plus,
+          permission: 'records:write',
+        },
+        {
+          label: t('palette.newBuilding'),
+          to: '/buildings/new',
+          icon: Plus,
+          permission: 'records:write',
+        },
+        {
+          label: t('palette.newManufacturer'),
+          to: '/devices/manufacturers/new',
+          icon: Plus,
+          permission: 'records:write',
+        },
+        {
+          label: t('palette.newDeviceModel'),
+          to: '/devices/models/new',
+          icon: Plus,
+          permission: 'records:write',
+        },
+        {
+          label: t('palette.newUser'),
+          to: '/admin/users/new',
+          icon: Plus,
+          permission: 'users:manage',
+        },
+      ],
+    },
+  ]
+}
 
 export function CommandPalette({
   open,
@@ -108,6 +117,8 @@ export function CommandPalette({
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [open, onOpenChange])
 
+  const { t } = useTranslation('nav')
+  const groups = useGroups()
   const navigate = useNavigate()
   const permitted: Record<Permission, boolean> = {
     'records:read': useCan('records:read'),
@@ -118,9 +129,9 @@ export function CommandPalette({
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <Command>
-        <CommandInput placeholder="Go to…" />
+        <CommandInput placeholder={t('palette.placeholder')} />
         <CommandList>
-          <CommandEmpty>Nothing found.</CommandEmpty>
+          <CommandEmpty>{t('palette.empty')}</CommandEmpty>
           {groups.map((group) => (
             <CommandGroup key={group.heading} heading={group.heading}>
               {group.entries
@@ -129,7 +140,7 @@ export function CommandPalette({
                 )
                 .map((entry) => (
                   <CommandItem
-                    key={entry.label}
+                    key={entry.to}
                     value={entry.label}
                     onSelect={() => {
                       onOpenChange(false)

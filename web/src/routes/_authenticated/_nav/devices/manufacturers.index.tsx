@@ -12,6 +12,8 @@ import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Plus } from 'lucide-react'
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute(
   '/_authenticated/_nav/devices/manufacturers/',
@@ -24,93 +26,110 @@ const columnHelper = createColumnHelper<
   ManufacturerResponse
 >()
 
-const columns = columnHelper.columns([
-  columnHelper.accessor('name', {
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Name</DataTableColumnHeader>
-    ),
-    sortFn: 'text',
-    filterFn: (row, _columnId, filterValue) => {
-      const needle = String(filterValue).toLowerCase()
+// Built in a hook so the headers follow the interface language.
+function useColumns() {
+  const { t } = useTranslation('manufacturers')
 
-      return (
-        row.original.name.toLowerCase().includes(needle) ||
-        (row.original.website?.toLowerCase().includes(needle) ?? false)
-      )
-    },
-    cell: ({ row, getValue }) => (
-      <Link
-        to="/devices/manufacturers/$manufacturerId"
-        params={{ manufacturerId: row.original.id }}
-        className="block truncate font-medium hover:underline"
-      >
-        {getValue()}
-      </Link>
-    ),
-  }),
-  columnHelper.accessor('website', {
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Website</DataTableColumnHeader>
-    ),
-    sortFn: 'text',
-    cell: ({ getValue }) => {
-      if (getValue()) {
-        return (
-          <a
-            className="block truncate text-muted-foreground hover:underline"
-            target="_blank"
-            rel="noopener noreferrer"
-            href={getValue()}
-          >
-            {getValue()}
-          </a>
-        )
-      }
+  return useMemo(
+    () =>
+      columnHelper.columns([
+        columnHelper.accessor('name', {
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column}>
+              {t('fields.name')}
+            </DataTableColumnHeader>
+          ),
+          sortFn: 'text',
+          filterFn: (row, _columnId, filterValue) => {
+            const needle = String(filterValue).toLowerCase()
 
-      return <MutedCell />
-    },
-  }),
-  columnHelper.accessor('updatedAt', {
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column}>Updated</DataTableColumnHeader>
-    ),
-    sortFn: 'datetime',
-    sortDescFirst: true,
-    meta: { width: '7.5rem' },
-    cell: ({ getValue }) => (
-      <span
-        className="text-muted-foreground"
-        title={formatAbsoluteDate(getValue())}
-      >
-        {formatRelativeDate(getValue())}
-      </span>
-    ),
-  }),
-])
+            return (
+              row.original.name.toLowerCase().includes(needle) ||
+              (row.original.website?.toLowerCase().includes(needle) ?? false)
+            )
+          },
+          cell: ({ row, getValue }) => (
+            <Link
+              to="/devices/manufacturers/$manufacturerId"
+              params={{ manufacturerId: row.original.id }}
+              className="block truncate font-medium hover:underline"
+            >
+              {getValue()}
+            </Link>
+          ),
+        }),
+        columnHelper.accessor('website', {
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column}>
+              {t('fields.website')}
+            </DataTableColumnHeader>
+          ),
+          sortFn: 'text',
+          cell: ({ getValue }) => {
+            if (getValue()) {
+              return (
+                <a
+                  className="block truncate text-muted-foreground hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={getValue()}
+                >
+                  {getValue()}
+                </a>
+              )
+            }
+
+            return <MutedCell />
+          },
+        }),
+        columnHelper.accessor('updatedAt', {
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column}>
+              {t('fields.updated')}
+            </DataTableColumnHeader>
+          ),
+          sortFn: 'datetime',
+          sortDescFirst: true,
+          meta: { width: '7.5rem' },
+          cell: ({ getValue }) => (
+            <span
+              className="text-muted-foreground"
+              title={formatAbsoluteDate(getValue())}
+            >
+              {formatRelativeDate(getValue())}
+            </span>
+          ),
+        }),
+      ]),
+    [t],
+  )
+}
 
 function RouteComponent() {
+  const { t } = useTranslation('manufacturers')
+  const columns = useColumns()
   const canWrite = useCan('records:write')
   const { data: manufacturers, isPending } = useListManufacturers()
   const navigate = useNavigate()
 
   if (isPending)
     return (
-      <Panel title="Manufacturers">
+      <Panel title={t('list.title')}>
         <TableSkeleton />
       </Panel>
     )
 
   if (!manufacturers || manufacturers.status != 200)
-    return <Panel title="Manufacturers">Failed to load manufacturers</Panel>
+    return <Panel title={t('list.title')}>{t('list.loadFailed')}</Panel>
 
   return (
     <Panel
-      title="Manufacturers"
+      title={t('list.title')}
       action={
         canWrite && (
           <Button
             size="icon"
-            aria-label="New manufacturer"
+            aria-label={t('list.new')}
             render={<Link to="/devices/manufacturers/new" />}
             nativeButton={false}
           >
@@ -123,7 +142,7 @@ function RouteComponent() {
         columns={columns}
         data={manufacturers.data}
         searchColumn="name"
-        searchPlaceholder="Search manufacturers…"
+        searchPlaceholder={t('list.search')}
         onRowClick={(manufacturer) =>
           navigate({
             to: '/devices/manufacturers/$manufacturerId',

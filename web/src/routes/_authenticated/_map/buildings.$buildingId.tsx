@@ -22,7 +22,10 @@ import {
 import { toast } from '#/components/ui/toast'
 import { formatAddress } from '#/lib/address'
 import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
-import { lifecycleStatusLabels, lifecycleStatusOptions } from '#/lib/lifecycle'
+import {
+  useLifecycleStatusLabels,
+  useLifecycleStatusOptions,
+} from '#/lib/lifecycle'
 import { useWorldMap } from '#/lib/map'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
@@ -47,6 +50,8 @@ export const Route = createFileRoute(
 )({ component: ViewBuilding })
 
 function ViewBuilding() {
+  const lifecycleStatusLabels = useLifecycleStatusLabels()
+  const lifecycleStatusOptions = useLifecycleStatusOptions()
   const { buildingId } = Route.useParams()
   const canWrite = useCan('records:write')
   const { data, isPending } = useGetBuilding(buildingId)

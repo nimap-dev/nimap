@@ -5,9 +5,10 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
-import { lifecycleStatusOptions } from '#/lib/lifecycle'
+import { useLifecycleStatusOptions } from '#/lib/lifecycle'
 import type { LifecycleStatus } from '#/lib/lifecycle'
 import { ListFilter } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Which lifecycle statuses a listing shows. Filters server-side wherever it is
@@ -21,14 +22,17 @@ export function StatusFilter({
   value: LifecycleStatus[]
   onChange: (statuses: LifecycleStatus[]) => void
 }) {
+  const { t } = useTranslation()
+  const lifecycleStatusOptions = useLifecycleStatusOptions()
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label="Filter by status"
+        aria-label={t('lifecycle.filter')}
         render={<Button variant="outline" />}
       >
         <ListFilter />
-        Status
+        {t('lifecycle.label')}
         <span className="text-muted-foreground">{value.length}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-auto">

@@ -15,13 +15,14 @@ import {
   FieldSeparator,
   FieldSet,
 } from '#/components/ui/field'
-import { mountingOptions, poeStandardOptions } from '#/lib/device-models'
+import { useMountingOptions, usePoeStandardOptions } from '#/lib/device-models'
 import { websiteSchema } from '#/lib/website'
 import { wholeNumberSchema } from '#/lib/whole-number'
 import type { DeviceModelFormValues } from '#/lib/device-models'
 import { useForm } from '@tanstack/react-form'
 import { Link } from '@tanstack/react-router'
 import type { ReactElement } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import * as zod from 'zod'
 
 const requiredChoice = (message: string) => zod.string().min(1, { message })
@@ -29,15 +30,10 @@ const requiredChoice = (message: string) => zod.string().min(1, { message })
 const positiveWholeNumber = wholeNumberSchema()
 const rackUnitsNumber = wholeNumberSchema({ max: 32767 })
 
-const standardOptions = poeStandardOptions.map(([value, label]) => ({
-  value,
-  label,
-}))
-
-const dimensionLabels = {
-  widthMm: 'Width',
-  heightMm: 'Height',
-  depthMm: 'Depth',
+const dimensionKeys = {
+  widthMm: 'fields.width',
+  heightMm: 'fields.height',
+  depthMm: 'fields.depth',
 } as const
 
 /**
@@ -63,6 +59,12 @@ export function DeviceModelForm({
   cancel: ReactElement
   onSubmit: (values: DeviceModelFormValues) => Promise<void>
 }) {
+  const { t } = useTranslation(['deviceModels', 'common'])
+  const mountingOptions = useMountingOptions()
+  const standardOptions = usePoeStandardOptions().map(([value, label]) => ({
+    value,
+    label,
+  }))
   const { data: types } = useListDeviceTypes()
   const { data: manufacturers } = useListManufacturers()
 
@@ -98,28 +100,28 @@ export function DeviceModelForm({
       >
         <FieldGroup>
           <FieldSet>
-            <FieldLegend>Model</FieldLegend>
+            <FieldLegend>{t('fields.model')}</FieldLegend>
             <FieldGroup>
               <form.Field
                 name="manufacturerId"
                 validators={{
-                  onChange: requiredChoice('Pick a manufacturer'),
-                  onSubmit: requiredChoice('Pick a manufacturer'),
+                  onChange: requiredChoice(t('form.pickManufacturer')),
+                  onSubmit: requiredChoice(t('form.pickManufacturer')),
                 }}
                 children={(field) => (
                   <SelectField
                     field={field}
-                    label="Manufacturer"
-                    emptyLabel="Pick a manufacturer"
+                    label={t('fields.manufacturer')}
+                    emptyLabel={t('form.pickManufacturer')}
                     options={manufacturerOptions}
                     description={
-                      <>
-                        Not listed?{' '}
-                        <Link to="/devices/manufacturers/new">
-                          Add a manufacturer
-                        </Link>{' '}
-                        first.
-                      </>
+                      <Trans
+                        t={t}
+                        i18nKey="form.notListed"
+                        components={{
+                          link: <Link to="/devices/manufacturers/new" />,
+                        }}
+                      />
                     }
                   />
                 )}
@@ -134,7 +136,7 @@ export function DeviceModelForm({
                   children={(field) => (
                     <TextField
                       field={field}
-                      label="Name"
+                      label={t('fields.name')}
                       placeholder="CRS326-24G-2S+RM"
                       autoComplete="off"
                     />
@@ -145,7 +147,7 @@ export function DeviceModelForm({
                   children={(field) => (
                     <TextField
                       field={field}
-                      label="Variant"
+                      label={t('fields.variant')}
                       placeholder="rev2, EU…"
                       autoComplete="off"
                     />
@@ -155,14 +157,14 @@ export function DeviceModelForm({
               <form.Field
                 name="deviceTypeId"
                 validators={{
-                  onChange: requiredChoice('Pick a device type'),
-                  onSubmit: requiredChoice('Pick a device type'),
+                  onChange: requiredChoice(t('form.pickType')),
+                  onSubmit: requiredChoice(t('form.pickType')),
                 }}
                 children={(field) => (
                   <SelectField
                     field={field}
-                    label="Type"
-                    emptyLabel="Pick a device type"
+                    label={t('fields.type')}
+                    emptyLabel={t('form.pickType')}
                     options={typeOptions}
                   />
                 )}
@@ -172,8 +174,8 @@ export function DeviceModelForm({
                 children={(field) => (
                   <TextField
                     field={field}
-                    label="Part number"
-                    placeholder="Optional"
+                    label={t('fields.partNumber')}
+                    placeholder={t('common:states.optional')}
                     autoComplete="off"
                   />
                 )}
@@ -184,7 +186,7 @@ export function DeviceModelForm({
                 children={(field) => (
                   <TextField
                     field={field}
-                    label="Product page"
+                    label={t('fields.productPage')}
                     inputMode="url"
                     placeholder="https://www.example.com/products/…"
                     autoComplete="off"
@@ -203,7 +205,7 @@ export function DeviceModelForm({
           <FieldSeparator />
 
           <FieldSet>
-            <FieldLegend>Physical</FieldLegend>
+            <FieldLegend>{t('fields.physical')}</FieldLegend>
             <FieldGroup>
               <div className="grid gap-4 sm:grid-cols-3">
                 {(['widthMm', 'heightMm', 'depthMm'] as const).map((name) => (
@@ -214,7 +216,7 @@ export function DeviceModelForm({
                     children={(field) => (
                       <NumberField
                         field={field}
-                        label={dimensionLabels[name]}
+                        label={t(dimensionKeys[name])}
                         placeholder="mm"
                         autoComplete="off"
                       />
@@ -228,8 +230,8 @@ export function DeviceModelForm({
                   children={(field) => (
                     <SelectField
                       field={field}
-                      label="Mounting"
-                      emptyLabel="Not specified"
+                      label={t('fields.mounting')}
+                      emptyLabel={t('common:states.notSpecified')}
                       allowEmpty
                       options={mountingOptions.map(([value, label]) => ({
                         value,
@@ -244,7 +246,7 @@ export function DeviceModelForm({
                   children={(field) => (
                     <NumberField
                       field={field}
-                      label="Rack units"
+                      label={t('fields.rackUnits')}
                       placeholder="U"
                       autoComplete="off"
                     />
@@ -257,7 +259,7 @@ export function DeviceModelForm({
           <FieldSeparator />
 
           <FieldSet>
-            <FieldLegend>Power</FieldLegend>
+            <FieldLegend>{t('fields.power')}</FieldLegend>
             <FieldGroup>
               <form.Field
                 name="powerWattsMax"
@@ -265,7 +267,7 @@ export function DeviceModelForm({
                 children={(field) => (
                   <NumberField
                     field={field}
-                    label="Maximum power draw"
+                    label={t('fields.maxPowerDraw')}
                     placeholder="W"
                     autoComplete="off"
                   />
@@ -276,8 +278,8 @@ export function DeviceModelForm({
                 children={(field) => (
                   <CheckboxField
                     field={field}
-                    label="Powered over Ethernet"
-                    description="The model can run from a PoE port."
+                    label={t('fields.poeIn')}
+                    description={t('form.poeInDescription')}
                   />
                 )}
               />
@@ -292,8 +294,8 @@ export function DeviceModelForm({
                       children={(field) => (
                         <SelectField
                           field={field}
-                          label="Standard it needs"
-                          emptyLabel="Unknown"
+                          label={t('fields.poeInStandard')}
+                          emptyLabel={t('common:states.unknown')}
                           allowEmpty
                           options={standardOptions}
                         />
@@ -307,8 +309,8 @@ export function DeviceModelForm({
                 children={(field) => (
                   <CheckboxField
                     field={field}
-                    label="Supplies PoE"
-                    description="The model can power other devices over Ethernet."
+                    label={t('fields.poeOut')}
+                    description={t('form.poeOutDescription')}
                   />
                 )}
               />
@@ -322,8 +324,8 @@ export function DeviceModelForm({
                         children={(field) => (
                           <SelectField
                             field={field}
-                            label="Highest standard supplied"
-                            emptyLabel="Unknown"
+                            label={t('fields.poeOutStandard')}
+                            emptyLabel={t('common:states.unknown')}
                             allowEmpty
                             options={standardOptions}
                           />
@@ -335,8 +337,8 @@ export function DeviceModelForm({
                         children={(field) => (
                           <NumberField
                             field={field}
-                            label="PoE budget"
-                            placeholder="W, all ports together"
+                            label={t('fields.poeBudget')}
+                            placeholder={t('form.poeBudgetPlaceholder')}
                             autoComplete="off"
                           />
                         )}
@@ -355,8 +357,8 @@ export function DeviceModelForm({
             children={(field) => (
               <TextareaField
                 field={field}
-                label="Notes"
-                placeholder="Firmware quirks, accessories, where the manual lives…"
+                label={t('fields.notes')}
+                placeholder={t('form.notesPlaceholder')}
                 rows={4}
               />
             )}

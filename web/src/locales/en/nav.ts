@@ -9,4 +9,16 @@ export default {
   commandPalette: 'Command palette',
   account: 'Account',
   manageUsers: 'Manage users',
+  users: 'Users',
+  palette: {
+    placeholder: 'Go to…',
+    empty: 'Nothing found.',
+    goTo: 'Go to',
+    create: 'Create',
+    newLocation: 'New location',
+    newBuilding: 'New building',
+    newManufacturer: 'New manufacturer',
+    newDeviceModel: 'New device model',
+    newUser: 'New user',
+  },
 }

@@ -1,6 +1,7 @@
 import type { MultiPolygon } from '#/api/model'
 import { Button } from '#/components/ui/button'
 import { Field, FieldLabel } from '#/components/ui/field'
+import { useTranslation } from 'react-i18next'
 
 /**
  * A building's footprint, which unlike a location's boundary is required: the
@@ -17,20 +18,22 @@ export function FootprintField({
   mode: 'draw' | 'reshape'
   onClear: () => void
 }) {
+  const { t } = useTranslation(['form', 'common'])
   const parts = polygon?.coordinates.length ?? 0
 
   return (
     <Field>
-      <FieldLabel>Footprint</FieldLabel>
+      <FieldLabel>{t('footprint.label')}</FieldLabel>
       <div className="flex items-center justify-between gap-2 rounded-lg border p-2 text-sm">
         {parts > 0 ? (
           <span>
-            {parts} {parts === 1 ? 'part' : 'parts'}
-            {mode === 'reshape' ? ' — drag a point to reshape' : ' drawn'}
+            {mode === 'reshape'
+              ? t('shape.parts', { count: parts }) + t('footprint.reshape')
+              : t('shape.partsDrawn', { count: parts })}
           </span>
         ) : (
           <span className="text-muted-foreground">
-            Click on the map to draw
+            {t('shape.clickToDraw')}
           </span>
         )}
         <Button
@@ -40,7 +43,7 @@ export function FootprintField({
           disabled={parts === 0}
           onClick={onClear}
         >
-          Clear
+          {t('common:actions.clear')}
         </Button>
       </div>
     </Field>

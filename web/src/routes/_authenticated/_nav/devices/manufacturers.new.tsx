@@ -20,6 +20,7 @@ import {
   redirect,
   useNavigate,
 } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute(
   '/_authenticated/_nav/devices/manufacturers/new',
@@ -33,6 +34,7 @@ export const Route = createFileRoute(
 })
 
 function NewManufacturer() {
+  const { t } = useTranslation(['manufacturers', 'common'])
   const createManufacturer = useCreateManufacturer()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -56,8 +58,8 @@ function NewManufacturer() {
         if (res.status !== 201) {
           toast.add({
             type: 'error',
-            title: 'Could not create the manufacturer',
-            description: res.data.detail ?? 'The manufacturer was not created',
+            title: t('new.couldNotCreate'),
+            description: res.data.detail ?? t('new.notCreated'),
           })
           return
         }
@@ -67,7 +69,7 @@ function NewManufacturer() {
         })
         toast.add({
           type: 'success',
-          description: `${res.data.name} was created`,
+          description: t('new.created', { name: res.data.name }),
         })
         navigate({
           to: '/devices/manufacturers/$manufacturerId',
@@ -77,8 +79,8 @@ function NewManufacturer() {
       } catch {
         toast.add({
           type: 'error',
-          title: 'Could not create the manufacturer',
-          description: 'The request failed, check your connection and retry',
+          title: t('new.couldNotCreate'),
+          description: t('common:errors.requestFailed'),
         })
       }
     },
@@ -86,9 +88,9 @@ function NewManufacturer() {
 
   return (
     <Panel
-      title="New manufacturer"
+      title={t('new.title')}
       back={<Link to="/devices/manufacturers" />}
-      backLabel="Back to manufacturers"
+      backLabel={t('detail.back')}
     >
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
         <form
@@ -105,7 +107,7 @@ function NewManufacturer() {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Name"
+                  label={t('fields.name')}
                   placeholder="MikroTik"
                   autoComplete="off"
                   autoFocus
@@ -118,7 +120,7 @@ function NewManufacturer() {
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Website"
+                  label={t('fields.website')}
                   inputMode="url"
                   placeholder="https://www.example.com"
                   autoComplete="off"
@@ -130,8 +132,8 @@ function NewManufacturer() {
               children={(field) => (
                 <TextareaField
                   field={field}
-                  label="Notes"
-                  placeholder="Support contacts, distributor, warranty terms…"
+                  label={t('fields.notes')}
+                  placeholder={t('fields.notesPlaceholder')}
                   rows={4}
                 />
               )}
@@ -144,8 +146,8 @@ function NewManufacturer() {
           children={([canSubmit, isSubmitting]) => (
             <FormActions
               formId="new-manufacturer-form"
-              submit="Create manufacturer"
-              submitting="Creating…"
+              submit={t('new.submit')}
+              submitting={t('new.submitting')}
               isSubmitting={isSubmitting}
               disabled={!canSubmit}
               cancel={<Link to="/devices/manufacturers" />}

@@ -23,6 +23,7 @@ import {
   redirect,
   useNavigate,
 } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute(
   '/_authenticated/_nav/devices/manufacturers/$manufacturerId_/edit',
@@ -39,6 +40,7 @@ export const Route = createFileRoute(
 })
 
 function EditManufacturer() {
+  const { t } = useTranslation('manufacturers')
   const { manufacturerId } = Route.useParams()
   const { data, isPending } = useGetManufacturer(manufacturerId)
 
@@ -48,7 +50,7 @@ function EditManufacturer() {
     return (
       <PanelPending
         back={<Link to="/devices/manufacturers" />}
-        backLabel="Back to manufacturers"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -56,9 +58,9 @@ function EditManufacturer() {
   if (!manufacturer) {
     return (
       <PanelNotFound
-        noun="manufacturer"
+        description={t('detail.notFound')}
         back={<Link to="/devices/manufacturers" />}
-        backLabel="Back to manufacturers"
+        backLabel={t('detail.back')}
       />
     )
   }
@@ -73,6 +75,7 @@ function EditManufacturerForm({
 }: {
   manufacturer: ManufacturerResponse
 }) {
+  const { t } = useTranslation(['manufacturers', 'common'])
   const updateManufacturer = useUpdateManufacturer()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -97,8 +100,8 @@ function EditManufacturerForm({
         if (res.status !== 200) {
           toast.add({
             type: 'error',
-            title: 'Could not save',
-            description: res.data.detail ?? 'The manufacturer was not updated',
+            title: t('common:errors.couldNotSave'),
+            description: res.data.detail ?? t('edit.notUpdated'),
           })
           return
         }
@@ -111,7 +114,7 @@ function EditManufacturerForm({
             queryKey: getGetManufacturerQueryKey(manufacturer.id),
           }),
         ])
-        toast.add({ type: 'success', description: 'Manufacturer updated' })
+        toast.add({ type: 'success', description: t('edit.updated') })
         navigate({
           to: '/devices/manufacturers/$manufacturerId',
           params: { manufacturerId: manufacturer.id },
@@ -120,8 +123,8 @@ function EditManufacturerForm({
       } catch {
         toast.add({
           type: 'error',
-          title: 'Could not save',
-          description: 'The request failed, check your connection and retry',
+          title: t('common:errors.couldNotSave'),
+          description: t('common:errors.requestFailed'),
         })
       }
     },
@@ -129,14 +132,14 @@ function EditManufacturerForm({
 
   return (
     <Panel
-      title={`Edit ${manufacturer.name}`}
+      title={t('edit.title', { name: manufacturer.name })}
       back={
         <Link
           to="/devices/manufacturers/$manufacturerId"
           params={{ manufacturerId: manufacturer.id }}
         />
       }
-      backLabel="Back to manufacturer"
+      backLabel={t('detail.backToManufacturer')}
     >
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
         <form
@@ -153,7 +156,7 @@ function EditManufacturerForm({
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Name"
+                  label={t('fields.name')}
                   placeholder="MikroTik"
                   autoComplete="off"
                 />
@@ -165,7 +168,7 @@ function EditManufacturerForm({
               children={(field) => (
                 <TextField
                   field={field}
-                  label="Website"
+                  label={t('fields.website')}
                   inputMode="url"
                   placeholder="https://www.example.com"
                   autoComplete="off"
@@ -177,8 +180,8 @@ function EditManufacturerForm({
               children={(field) => (
                 <TextareaField
                   field={field}
-                  label="Notes"
-                  placeholder="Support contacts, distributor, warranty terms…"
+                  label={t('fields.notes')}
+                  placeholder={t('fields.notesPlaceholder')}
                   rows={4}
                 />
               )}
@@ -191,8 +194,8 @@ function EditManufacturerForm({
           children={([canSubmit, isSubmitting]) => (
             <FormActions
               formId="edit-manufacturer-form"
-              submit="Save changes"
-              submitting="Saving…"
+              submit={t('common:actions.saveChanges')}
+              submitting={t('common:actions.saving')}
               isSubmitting={isSubmitting}
               disabled={!canSubmit}
               cancel={
