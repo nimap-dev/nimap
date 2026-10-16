@@ -3,8 +3,11 @@ import '#/lib/i18n'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from '@tanstack/react-router'
 import { getRouter } from './router'
+import { registerServiceWorker } from '#/lib/pwa'
 
 const router = getRouter()
+
+registerServiceWorker(router)
 
 const rootElement = document.getElementById('app')!
 

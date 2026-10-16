@@ -61,8 +61,12 @@ func RegisterFrontend(r chi.Router) {
 			return
 		}
 
-		// Anything else Vite drops at the root of dist: favicons, robots.txt.
+		// Anything else Vite drops at the root of dist: favicons, robots.txt,
+		// and the service worker with its manifest. Those keep their names
+		// across builds, so the browser has to revalidate them; a cached sw.js
+		// would keep serving the previous deploy from its precache.
 		if isBuildFile(p) {
+			w.Header().Set("Cache-Control", "no-cache")
 			fileServer.ServeHTTP(w, req)
 			return
 		}
