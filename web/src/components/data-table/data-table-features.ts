@@ -15,9 +15,12 @@ import {
 export interface DataTableColumnMeta {
   /** Fixed track width, e.g. "7.5rem". Columns without one split what's left. */
   width?: string
+  minWidth?: string
   /** Extra classes for this column's <th> and <td>. */
   className?: string
 }
+
+export const DEFAULT_MIN_COLUMN_WIDTH = '10rem'
 
 // New in v9: declare the features this table uses — anything you don't
 // register is tree-shaken out of the bundle.

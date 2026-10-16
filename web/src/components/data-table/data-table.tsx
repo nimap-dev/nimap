@@ -19,7 +19,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-import { features } from './data-table-features'
+import { DEFAULT_MIN_COLUMN_WIDTH, features } from './data-table-features'
 import type { DataTableFeatures } from './data-table-features'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -70,6 +70,14 @@ export function DataTable<TData extends RowData>({
     },
   })
 
+  const minTableWidth = `calc(${table
+    .getVisibleLeafColumns()
+    .map(
+      ({ columnDef: { meta } }) =>
+        meta?.width ?? meta?.minWidth ?? DEFAULT_MIN_COLUMN_WIDTH,
+    )
+    .join(' + ')})`
+
   const column = searchColumn ? table.getColumn(searchColumn) : undefined
   const search =
     controlledSearch ??
@@ -96,7 +104,7 @@ export function DataTable<TData extends RowData>({
         </div>
       )}
       <div className="rounded-md border">
-        <Table className="table-fixed">
+        <Table className="table-fixed" style={{ minWidth: minTableWidth }}>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
