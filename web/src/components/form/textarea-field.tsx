@@ -10,6 +10,7 @@ import type { StringField } from '#/components/form/text-field'
 export function TextareaField({
   field,
   label,
+  hideLabel = false,
   ...textarea
 }: Omit<
   ComponentProps<typeof Textarea>,
@@ -17,12 +18,22 @@ export function TextareaField({
 > & {
   field: StringField
   label: string
+  /**
+   * Keeps the label for screen readers only, for a textarea that is the whole
+   * of a section already headed with the same word.
+   */
+  hideLabel?: boolean
 }) {
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
 
   return (
     <Field data-invalid={isInvalid}>
-      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+      <FieldLabel
+        htmlFor={field.name}
+        className={hideLabel ? 'sr-only' : undefined}
+      >
+        {label}
+      </FieldLabel>
       <Textarea
         id={field.name}
         name={field.name}

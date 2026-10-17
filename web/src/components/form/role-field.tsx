@@ -17,13 +17,25 @@ type RoleFieldApi = {
 }
 
 // The role picker as a form field.
-export function RoleField({ field }: { field: RoleFieldApi }) {
+export function RoleField({
+  field,
+  hideLabel = false,
+}: {
+  field: RoleFieldApi
+  /** Keeps the label for screen readers only, under a section already named Role. */
+  hideLabel?: boolean
+}) {
   const { t } = useTranslation()
   const roleLabels = useRoleLabels()
 
   return (
     <Field>
-      <FieldLabel htmlFor={field.name}>{t('roles.label')}</FieldLabel>
+      <FieldLabel
+        htmlFor={field.name}
+        className={hideLabel ? 'sr-only' : undefined}
+      >
+        {t('roles.label')}
+      </FieldLabel>
       <Select
         items={roleLabels}
         value={field.state.value}

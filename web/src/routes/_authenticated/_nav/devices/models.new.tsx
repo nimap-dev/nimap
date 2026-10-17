@@ -131,11 +131,6 @@ function NewDeviceModelForm({
       back={<Link to="/devices/models" />}
       backLabel={t('detail.back')}
     >
-      {copiedFrom && (
-        <p className="mx-auto w-full max-w-2xl text-sm text-muted-foreground">
-          {t('new.copyNote')}
-        </p>
-      )}
       <DeviceModelForm
         formId="new-device-model-form"
         defaultValues={defaultValues}
@@ -143,6 +138,7 @@ function NewDeviceModelForm({
         submit={t('new.submit')}
         submitting={t('new.submitting')}
         cancel={<Link to="/devices/models" />}
+        intro={copiedFrom && t('new.copyNote')}
         onSubmit={handleSubmit}
       />
     </Panel>

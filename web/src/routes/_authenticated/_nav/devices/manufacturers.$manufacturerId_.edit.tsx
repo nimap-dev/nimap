@@ -1,4 +1,3 @@
-import { UpdateManufacturerBody } from '#/api/endpoints/manufacturers/manufacturers.zod'
 import {
   getGetManufacturerQueryKey,
   getListManufacturersQueryKey,
@@ -6,16 +5,15 @@ import {
   useUpdateManufacturer,
 } from '#/api/manufacturers/manufacturers'
 import type { ManufacturerResponse } from '#/api/model'
-import { FormActions } from '#/components/form/form-actions'
-import { TextField } from '#/components/form/text-field'
-import { TextareaField } from '#/components/form/textarea-field'
+import {
+  ManufacturerForm,
+  manufacturerToValues,
+} from '#/components/manufacturer-form'
+import type { ManufacturerFormValues } from '#/components/manufacturer-form'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
-import { FieldGroup } from '#/components/ui/field'
 import { toast } from '#/components/ui/toast'
 import { can } from '#/lib/auth'
-import { websiteSchema } from '#/lib/website'
 import { optional } from '#/lib/utils'
-import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   createFileRoute,
@@ -80,134 +78,70 @@ function EditManufacturerForm({
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
-  const form = useForm({
-    defaultValues: {
-      name: manufacturer.name,
-      website: manufacturer.website ?? '',
-      notes: manufacturer.notes ?? '',
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        const res = await updateManufacturer.mutateAsync({
-          id: manufacturer.id,
-          data: {
-            name: value.name,
-            website: optional(value.website),
-            notes: optional(value.notes),
-          },
-        })
+  async function handleSubmit(value: ManufacturerFormValues) {
+    try {
+      const res = await updateManufacturer.mutateAsync({
+        id: manufacturer.id,
+        data: {
+          name: value.name,
+          website: optional(value.website),
+          notes: optional(value.notes),
+        },
+      })
 
-        if (res.status !== 200) {
-          toast.add({
-            type: 'error',
-            title: t('common:errors.couldNotSave'),
-            description: res.data.detail ?? t('edit.notUpdated'),
-          })
-          return
-        }
-
-        await Promise.all([
-          queryClient.invalidateQueries({
-            queryKey: getListManufacturersQueryKey(),
-          }),
-          queryClient.invalidateQueries({
-            queryKey: getGetManufacturerQueryKey(manufacturer.id),
-          }),
-        ])
-        toast.add({ type: 'success', description: t('edit.updated') })
-        navigate({
-          to: '/devices/manufacturers/$manufacturerId',
-          params: { manufacturerId: manufacturer.id },
-          replace: true,
-        })
-      } catch {
+      if (res.status !== 200) {
         toast.add({
           type: 'error',
           title: t('common:errors.couldNotSave'),
-          description: t('common:errors.requestFailed'),
+          description: res.data.detail ?? t('edit.notUpdated'),
         })
+        return
       }
-    },
-  })
+
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getListManufacturersQueryKey(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getGetManufacturerQueryKey(manufacturer.id),
+        }),
+      ])
+      toast.add({ type: 'success', description: t('edit.updated') })
+      navigate({
+        to: '/devices/manufacturers/$manufacturerId',
+        params: { manufacturerId: manufacturer.id },
+        replace: true,
+      })
+    } catch {
+      toast.add({
+        type: 'error',
+        title: t('common:errors.couldNotSave'),
+        description: t('common:errors.requestFailed'),
+      })
+    }
+  }
+
+  const backToDetail = (
+    <Link
+      to="/devices/manufacturers/$manufacturerId"
+      params={{ manufacturerId: manufacturer.id }}
+    />
+  )
 
   return (
     <Panel
       title={t('edit.title', { name: manufacturer.name })}
-      back={
-        <Link
-          to="/devices/manufacturers/$manufacturerId"
-          params={{ manufacturerId: manufacturer.id }}
-        />
-      }
+      back={backToDetail}
       backLabel={t('detail.backToManufacturer')}
     >
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-        <form
-          id="edit-manufacturer-form"
-          onSubmit={(e) => {
-            e.preventDefault()
-            form.handleSubmit()
-          }}
-        >
-          <FieldGroup>
-            <form.Field
-              name="name"
-              validators={{ onChange: UpdateManufacturerBody.shape.name }}
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('fields.name')}
-                  placeholder="MikroTik"
-                  autoComplete="off"
-                />
-              )}
-            />
-            <form.Field
-              name="website"
-              validators={{ onChange: websiteSchema }}
-              children={(field) => (
-                <TextField
-                  field={field}
-                  label={t('fields.website')}
-                  inputMode="url"
-                  placeholder="https://www.example.com"
-                  autoComplete="off"
-                />
-              )}
-            />
-            <form.Field
-              name="notes"
-              children={(field) => (
-                <TextareaField
-                  field={field}
-                  label={t('fields.notes')}
-                  placeholder={t('fields.notesPlaceholder')}
-                  rows={4}
-                />
-              )}
-            />
-          </FieldGroup>
-        </form>
-
-        <form.Subscribe
-          selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-          children={([canSubmit, isSubmitting]) => (
-            <FormActions
-              formId="edit-manufacturer-form"
-              submit={t('common:actions.saveChanges')}
-              submitting={t('common:actions.saving')}
-              isSubmitting={isSubmitting}
-              disabled={!canSubmit}
-              cancel={
-                <Link
-                  to="/devices/manufacturers/$manufacturerId"
-                  params={{ manufacturerId: manufacturer.id }}
-                />
-              }
-            />
-          )}
-        />
-      </div>
+      <ManufacturerForm
+        formId="edit-manufacturer-form"
+        defaultValues={manufacturerToValues(manufacturer)}
+        submit={t('common:actions.saveChanges')}
+        submitting={t('common:actions.saving')}
+        cancel={backToDetail}
+        onSubmit={handleSubmit}
+      />
     </Panel>
   )
 }

@@ -1,5 +1,6 @@
 export default {
   fields: {
+    name: 'Name',
     placement: 'Placement',
     address: 'Address',
     parent: 'Inside',
@@ -20,8 +21,27 @@ export default {
     showInside: 'Show what is inside {{name}}',
     hideInside: 'Hide what is inside {{name}}',
   },
+  form: {
+    location: 'Location',
+    map: 'On the map',
+    notesPlaceholder: 'Access, contacts, where the keys are…',
+  },
+  new: {
+    title: 'New location',
+    submit: 'Create location',
+    submitting: 'Creating…',
+    couldNotCreate: 'Could not create the location',
+    notCreated: 'The location was not created',
+    created: '{{name}} was created',
+  },
+  edit: {
+    title: 'Edit {{name}}',
+    notUpdated: 'The location was not updated',
+    updated: 'Location updated',
+  },
   detail: {
     back: 'Back to locations',
+    backToLocation: 'Back to location',
     notFound: "This location doesn't exist, or you don't have access to it.",
     edit: 'Edit location',
     frame: 'Show on the map',

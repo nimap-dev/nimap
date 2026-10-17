@@ -52,7 +52,7 @@ export default {
     notListed: 'Not listed? <link>Add a manufacturer</link> first.',
     poeInDescription: 'The model can run from a PoE port.',
     poeOutDescription: 'The model can power other devices over Ethernet.',
-    poeBudgetPlaceholder: 'W, all ports together',
+    poeBudgetPlaceholder: 'W, all ports',
     notesPlaceholder: 'Firmware quirks, accessories, where the manual lives…',
   },
   list: {

@@ -2,21 +2,14 @@ import {
   getListLocationsQueryKey,
   useCreateLocation,
 } from '#/api/locations/locations'
-import { CreateLocationBody } from '#/api/endpoints/locations/locations.zod'
-import { CreateLocationRequestStatus } from '#/api/model'
-import type { MultiPolygon, Point } from '#/api/model'
-import { AddressFields } from '#/components/form/address-fields'
-import { AreaField } from '#/components/form/area-field'
-import { LocationSelect } from '#/components/form/location-select'
-import { RepresentativePointField } from '#/components/form/representative-point-field'
-import { FormActions } from '#/components/form/form-actions'
-import { StatusField } from '#/components/form/status-field'
-import { TextField } from '#/components/form/text-field'
-import { FieldGroup } from '#/components/ui/field'
+import { emptyLocationValues, LocationForm } from '#/components/location-form'
+import type { LocationFormValues } from '#/components/location-form'
+import { Panel } from '#/components/panel'
 import { toast } from '#/components/ui/toast'
-import { addressToRequest, emptyAddress } from '#/lib/address'
+import { addressToRequest } from '#/lib/address'
+import { can } from '#/lib/auth'
 import { useWorldMap } from '#/lib/map'
-import { useForm } from '@tanstack/react-form'
+import { optional } from '#/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   createFileRoute,
@@ -25,9 +18,7 @@ import {
   useNavigate,
 } from '@tanstack/react-router'
 import { useEffect } from 'react'
-import { Panel } from '#/components/panel'
-import { can } from '#/lib/auth'
-import { optional } from '#/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute('/_authenticated/_map/locations/new')({
   beforeLoad: ({ context }) => {
@@ -39,31 +30,17 @@ export const Route = createFileRoute('/_authenticated/_map/locations/new')({
 })
 
 function NewLocation() {
-  const {
-    drawPolygon,
-    cancelDrawing,
-    polygon,
-    isDrawing,
-    pickPoint,
-    cancelPicking,
-    point,
-    isPicking,
-  } = useWorldMap()
+  const { t } = useTranslation(['locations', 'common'])
+  const { cancelDrawing, cancelPicking } = useWorldMap()
   const createLocation = useCreateLocation()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
-  const form = useForm({
-    defaultValues: {
-      parentId: undefined as string | undefined,
-      name: '',
-      address: emptyAddress,
-      notes: '',
-      status: CreateLocationRequestStatus.active as CreateLocationRequestStatus,
-      area: undefined as MultiPolygon | undefined,
-      representativePoint: undefined as Point | undefined,
-    },
-    onSubmit: async ({ value }) => {
+  useEffect(() => cancelDrawing, [cancelDrawing])
+  useEffect(() => cancelPicking, [cancelPicking])
+
+  async function handleSubmit(value: LocationFormValues) {
+    try {
       const res = await createLocation.mutateAsync({
         data: {
           parentId: value.parentId,
@@ -79,7 +56,8 @@ function NewLocation() {
       if (res.status !== 201) {
         toast.add({
           type: 'error',
-          description: res.data.detail ?? 'Could not create the location',
+          title: t('new.couldNotCreate'),
+          description: res.data.detail ?? t('new.notCreated'),
         })
         return
       }
@@ -87,119 +65,39 @@ function NewLocation() {
       await queryClient.invalidateQueries({
         queryKey: getListLocationsQueryKey(),
       })
-      toast.add({ type: 'success', description: 'Location created' })
+      toast.add({
+        type: 'success',
+        description: t('new.created', { name: res.data.name }),
+      })
       navigate({
         to: '/locations/$locationId',
         params: { locationId: res.data.id },
         replace: true,
       })
-    },
-  })
-
-  useEffect(() => cancelDrawing, [cancelDrawing])
-  useEffect(() => cancelPicking, [cancelPicking])
-
-  useEffect(() => {
-    form.setFieldValue('area', polygon)
-  }, [form, polygon])
-
-  useEffect(() => {
-    form.setFieldValue('representativePoint', point)
-  }, [form, point])
+    } catch {
+      toast.add({
+        type: 'error',
+        title: t('new.couldNotCreate'),
+        description: t('common:errors.requestFailed'),
+      })
+    }
+  }
 
   return (
     <Panel
-      title="New location"
+      title={t('new.title')}
       back={<Link to="/locations" />}
-      backLabel="Back to locations"
+      backLabel={t('detail.back')}
     >
-      <form
-        id="new-location-form"
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
-      >
-        <FieldGroup>
-          <form.Field
-            name="name"
-            validators={{ onChange: CreateLocationBody.shape.name }}
-            children={(field) => (
-              <TextField
-                field={field}
-                label="Name"
-                placeholder="Areál Sever"
-                autoFocus
-              />
-            )}
-          />
-
-          <form.Field
-            name="parentId"
-            children={(field) => (
-              <LocationSelect
-                id="new-location-parent"
-                value={field.state.value}
-                onChange={field.handleChange}
-                suggestFor={polygon}
-              />
-            )}
-          />
-
-          <form.Field
-            name="status"
-            validators={{ onChange: CreateLocationBody.shape.status }}
-            children={(field) => <StatusField field={field} />}
-          />
-
-          <form.Field
-            name="address"
-            children={(field) => (
-              <AddressFields
-                idPrefix="new-location-address"
-                value={field.state.value}
-                onChange={field.handleChange}
-              />
-            )}
-          />
-
-          <form.Field
-            name="notes"
-            children={(field) => (
-              <TextField field={field} label="Notes" placeholder="Optional" />
-            )}
-          />
-
-          <AreaField
-            polygon={polygon}
-            isDrawing={isDrawing}
-            isSuspended={isPicking}
-            onDraw={() => drawPolygon()}
-            onStop={cancelDrawing}
-          />
-
-          <RepresentativePointField
-            point={point}
-            isPicking={isPicking}
-            hasArea={Boolean(polygon)}
-            onPick={() => pickPoint()}
-            onClear={cancelPicking}
-          />
-        </FieldGroup>
-      </form>
-
-      <form.Subscribe
-        selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-        children={([canSubmit, isSubmitting]) => (
-          <FormActions
-            formId="new-location-form"
-            submit="Create location"
-            submitting="Creating…"
-            isSubmitting={isSubmitting}
-            disabled={!canSubmit}
-            cancel={<Link to="/locations" />}
-          />
-        )}
+      <LocationForm
+        formId="new-location-form"
+        defaultValues={emptyLocationValues}
+        withStatus
+        autoFocus
+        submit={t('new.submit')}
+        submitting={t('new.submitting')}
+        cancel={<Link to="/locations" />}
+        onSubmit={handleSubmit}
       />
     </Panel>
   )

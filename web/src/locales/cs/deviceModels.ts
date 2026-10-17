@@ -50,7 +50,7 @@ export default {
     notListed: 'Není v seznamu? Nejdřív <link>přidejte výrobce</link>.',
     poeInDescription: 'Model lze napájet z PoE portu.',
     poeOutDescription: 'Model umí napájet další zařízení přes Ethernet.',
-    poeBudgetPlaceholder: 'W, všechny porty dohromady',
+    poeBudgetPlaceholder: 'W, všechny porty',
     notesPlaceholder: 'Zvláštnosti firmwaru, příslušenství, kde je manuál…',
   },
   list: {

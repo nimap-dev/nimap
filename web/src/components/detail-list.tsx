@@ -148,3 +148,13 @@ export function DetailGrid({ children }: { children: ReactNode }) {
     </div>
   )
 }
+
+/**
+ * One column of a `DetailGrid` that stacks its own sections. Sections of very
+ * different heights side by side leave a hole under the shorter one, row after
+ * row; two columns stacking independently close those holes, and on a narrow
+ * screen they simply follow one another.
+ */
+export function DetailColumn({ children }: { children: ReactNode }) {
+  return <div className="grid content-start gap-5">{children}</div>
+}

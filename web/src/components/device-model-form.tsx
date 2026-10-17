@@ -9,21 +9,17 @@ import { StatusField } from '#/components/form/status-field'
 import { NumberField } from '#/components/form/number-field'
 import { TextField } from '#/components/form/text-field'
 import { TextareaField } from '#/components/form/textarea-field'
-import {
-  FieldGroup,
-  FieldLegend,
-  FieldSeparator,
-  FieldSet,
-} from '#/components/ui/field'
 import { useMountingOptions, usePoeStandardOptions } from '#/lib/device-models'
 import { websiteSchema } from '#/lib/website'
 import { wholeNumberSchema } from '#/lib/whole-number'
 import type { DeviceModelFormValues } from '#/lib/device-models'
 import { useForm } from '@tanstack/react-form'
 import { Link } from '@tanstack/react-router'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import * as zod from 'zod'
+import { DetailColumn, DetailGrid } from '#/components/detail-list'
+import { FormRow, FormSection } from '#/components/form-section'
 
 const requiredChoice = (message: string) => zod.string().min(1, { message })
 
@@ -49,6 +45,7 @@ export function DeviceModelForm({
   submit,
   submitting,
   cancel,
+  intro,
   onSubmit,
 }: {
   formId: string
@@ -57,6 +54,8 @@ export function DeviceModelForm({
   submit: string
   submitting: string
   cancel: ReactElement
+  /** Said above the sections, across the whole form (what a copy keeps). */
+  intro?: ReactNode
   onSubmit: (values: DeviceModelFormValues) => Promise<void>
 }) {
   const { t } = useTranslation(['deviceModels', 'common'])
@@ -90,7 +89,7 @@ export function DeviceModelForm({
   })
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+    <>
       <form
         id={formId}
         onSubmit={(e) => {
@@ -98,10 +97,15 @@ export function DeviceModelForm({
           form.handleSubmit()
         }}
       >
-        <FieldGroup>
-          <FieldSet>
-            <FieldLegend>{t('fields.model')}</FieldLegend>
-            <FieldGroup>
+        <DetailGrid>
+          {intro && (
+            <p className="col-span-full px-1 text-sm text-muted-foreground">
+              {intro}
+            </p>
+          )}
+
+          <DetailColumn>
+            <FormSection title={t('fields.model')}>
               <form.Field
                 name="manufacturerId"
                 validators={{
@@ -126,7 +130,7 @@ export function DeviceModelForm({
                   />
                 )}
               />
-              <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+              <FormRow className="@sm/section:grid-cols-[2fr_1fr]">
                 <form.Field
                   name="name"
                   validators={{
@@ -153,7 +157,7 @@ export function DeviceModelForm({
                     />
                   )}
                 />
-              </div>
+              </FormRow>
               <form.Field
                 name="deviceTypeId"
                 validators={{
@@ -169,6 +173,15 @@ export function DeviceModelForm({
                   />
                 )}
               />
+              {withStatus && (
+                <form.Field
+                  name="status"
+                  children={(field) => <StatusField field={field} />}
+                />
+              )}
+            </FormSection>
+
+            <FormSection title={t('fields.identification')}>
               <form.Field
                 name="partNumber"
                 children={(field) => (
@@ -193,21 +206,25 @@ export function DeviceModelForm({
                   />
                 )}
               />
-              {withStatus && (
-                <form.Field
-                  name="status"
-                  children={(field) => <StatusField field={field} />}
-                />
-              )}
-            </FieldGroup>
-          </FieldSet>
-
-          <FieldSeparator />
-
-          <FieldSet>
-            <FieldLegend>{t('fields.physical')}</FieldLegend>
-            <FieldGroup>
-              <div className="grid gap-4 sm:grid-cols-3">
+            </FormSection>
+            <FormSection title={t('fields.notes')}>
+              <form.Field
+                name="notes"
+                children={(field) => (
+                  <TextareaField
+                    field={field}
+                    label={t('fields.notes')}
+                    hideLabel
+                    placeholder={t('form.notesPlaceholder')}
+                    rows={4}
+                  />
+                )}
+              />
+            </FormSection>
+          </DetailColumn>
+          <DetailColumn>
+            <FormSection title={t('fields.physical')}>
+              <FormRow columns={3}>
                 {(['widthMm', 'heightMm', 'depthMm'] as const).map((name) => (
                   <form.Field
                     key={name}
@@ -223,8 +240,8 @@ export function DeviceModelForm({
                     )}
                   />
                 ))}
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              </FormRow>
+              <FormRow>
                 <form.Field
                   name="mounting"
                   children={(field) => (
@@ -252,15 +269,10 @@ export function DeviceModelForm({
                     />
                   )}
                 />
-              </div>
-            </FieldGroup>
-          </FieldSet>
+              </FormRow>
+            </FormSection>
 
-          <FieldSeparator />
-
-          <FieldSet>
-            <FieldLegend>{t('fields.power')}</FieldLegend>
-            <FieldGroup>
+            <FormSection title={t('fields.power')}>
               <form.Field
                 name="powerWattsMax"
                 validators={{ onChange: positiveWholeNumber }}
@@ -283,8 +295,6 @@ export function DeviceModelForm({
                   />
                 )}
               />
-              {/* The details only appear once the box is ticked; leaving them
-                  empty records PoE with the standard still unknown. */}
               <form.Subscribe
                 selector={(state) => state.values.poeIn}
                 children={(poeIn) =>
@@ -318,7 +328,7 @@ export function DeviceModelForm({
                 selector={(state) => state.values.poeOut}
                 children={(poeOut) =>
                   poeOut && (
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <FormRow>
                       <form.Field
                         name="poeOutStandard"
                         children={(field) => (
@@ -343,27 +353,13 @@ export function DeviceModelForm({
                           />
                         )}
                       />
-                    </div>
+                    </FormRow>
                   )
                 }
               />
-            </FieldGroup>
-          </FieldSet>
-
-          <FieldSeparator />
-
-          <form.Field
-            name="notes"
-            children={(field) => (
-              <TextareaField
-                field={field}
-                label={t('fields.notes')}
-                placeholder={t('form.notesPlaceholder')}
-                rows={4}
-              />
-            )}
-          />
-        </FieldGroup>
+            </FormSection>
+          </DetailColumn>
+        </DetailGrid>
       </form>
 
       <form.Subscribe
@@ -379,6 +375,6 @@ export function DeviceModelForm({
           />
         )}
       />
-    </div>
+    </>
   )
 }

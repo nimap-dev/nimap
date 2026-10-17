@@ -4,18 +4,15 @@ import {
   useGetLocation,
   useUpdateLocation,
 } from '#/api/locations/locations'
-import { UpdateLocationBody } from '#/api/endpoints/locations/locations.zod'
 import type { LocationResponse } from '#/api/model'
-import { AddressFields } from '#/components/form/address-fields'
-import { AreaField } from '#/components/form/area-field'
-import { LocationSelect } from '#/components/form/location-select'
-import { RepresentativePointField } from '#/components/form/representative-point-field'
-import { FormActions } from '#/components/form/form-actions'
-import { TextField } from '#/components/form/text-field'
+import { LocationForm, locationToValues } from '#/components/location-form'
+import type { LocationFormValues } from '#/components/location-form'
+import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import { toast } from '#/components/ui/toast'
-import { addressToRequest, addressToValue } from '#/lib/address'
+import { addressToRequest } from '#/lib/address'
+import { can } from '#/lib/auth'
 import { multiPolygonBounds, useWorldMap } from '#/lib/map'
-import { useForm } from '@tanstack/react-form'
+import { optional } from '#/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   createFileRoute,
@@ -25,10 +22,6 @@ import {
 } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
-import { can } from '#/lib/auth'
-import { optional } from '#/lib/utils'
-import { FieldGroup } from '#/components/ui/field'
 
 export const Route = createFileRoute(
   '/_authenticated/_map/locations/$locationId_/edit',
@@ -71,37 +64,40 @@ function EditLocation() {
 }
 
 function EditLocationForm({ location }: { location: LocationResponse }) {
-  const {
-    fitBounds,
-    drawPolygon,
-    cancelDrawing,
-    polygon,
-    isDrawing,
-    pickPoint,
-    cancelPicking,
-    seedPoint,
-    point,
-    isPicking,
-  } = useWorldMap()
+  const { t } = useTranslation(['locations', 'common'])
+  const { fitBounds, drawPolygon, cancelDrawing, cancelPicking, seedPoint } =
+    useWorldMap()
   const updateLocation = useUpdateLocation()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
-  const form = useForm({
-    defaultValues: {
-      parentId: location.parentId,
-      name: location.name,
-      address: addressToValue(location.address),
-      notes: location.notes ?? '',
-      area: location.area,
-      // Only a point somebody placed by hand is an edit to keep. A derived one
-      // must stay out of the form, or saving would freeze it into an override
-      // that stops following the boundary.
-      representativePoint: location.representativePointManual
-        ? location.representativePoint
-        : undefined,
-    },
-    onSubmit: async ({ value }) => {
+  // Seed the map with the boundary as it stood when the page opened. Reading it
+  // from a ref keeps a background refetch from wiping edits in progress. A
+  // location with no boundary starts with drawing off, same as a new one.
+  const initialArea = useRef(location.area)
+  useEffect(() => {
+    if (initialArea.current) drawPolygon(initialArea.current)
+    return () => cancelDrawing()
+  }, [drawPolygon, cancelDrawing])
+
+  const initialPoint = useRef(
+    location.representativePointManual
+      ? location.representativePoint
+      : undefined,
+  )
+  useEffect(() => {
+    seedPoint(initialPoint.current)
+    return () => cancelPicking()
+  }, [seedPoint, cancelPicking])
+
+  useEffect(() => {
+    const bounds =
+      initialArea.current && multiPolygonBounds(initialArea.current)
+    if (bounds) fitBounds(bounds)
+  }, [fitBounds])
+
+  async function handleSubmit(value: LocationFormValues) {
+    try {
       const res = await updateLocation.mutateAsync({
         id: location.id,
         data: {
@@ -117,8 +113,8 @@ function EditLocationForm({ location }: { location: LocationResponse }) {
       if (res.status !== 200) {
         toast.add({
           type: 'error',
-          title: 'Could not save',
-          description: res.data.detail ?? 'The location was not updated',
+          title: t('common:errors.couldNotSave'),
+          description: res.data.detail ?? t('edit.notUpdated'),
         })
         return
       }
@@ -129,138 +125,39 @@ function EditLocationForm({ location }: { location: LocationResponse }) {
           queryKey: getGetLocationQueryKey(location.id),
         }),
       ])
-      toast.add({ type: 'success', description: 'Location updated' })
+      toast.add({ type: 'success', description: t('edit.updated') })
       navigate({
         to: '/locations/$locationId',
         params: { locationId: location.id },
         replace: true,
       })
-    },
-  })
+    } catch {
+      toast.add({
+        type: 'error',
+        title: t('common:errors.couldNotSave'),
+        description: t('common:errors.requestFailed'),
+      })
+    }
+  }
 
-  // Seed the map with the boundary as it stood when the page opened. Reading it
-  // from a ref keeps a background refetch from wiping edits in progress. A
-  // location with no boundary starts with drawing off, same as a new one.
-  const initialArea = useRef(location.area)
-  useEffect(() => {
-    if (initialArea.current) drawPolygon(initialArea.current)
-    return () => cancelDrawing()
-  }, [drawPolygon, cancelDrawing])
-
-  useEffect(() => {
-    form.setFieldValue('area', polygon)
-  }, [form, polygon])
-
-  const initialPoint = useRef(
-    location.representativePointManual
-      ? location.representativePoint
-      : undefined,
+  const backToDetail = (
+    <Link to="/locations/$locationId" params={{ locationId: location.id }} />
   )
-  useEffect(() => {
-    seedPoint(initialPoint.current)
-    return () => cancelPicking()
-  }, [seedPoint, cancelPicking])
-
-  useEffect(() => {
-    form.setFieldValue('representativePoint', point)
-  }, [form, point])
-
-  useEffect(() => {
-    const bounds =
-      initialArea.current && multiPolygonBounds(initialArea.current)
-    if (bounds) fitBounds(bounds)
-  }, [fitBounds])
 
   return (
     <Panel
-      title={location.name}
-      back={
-        <Link
-          to="/locations/$locationId"
-          params={{ locationId: location.id }}
-        />
-      }
-      backLabel="Back to location"
+      title={t('edit.title', { name: location.name })}
+      back={backToDetail}
+      backLabel={t('detail.backToLocation')}
     >
-      <form
-        id="edit-location-form"
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
-      >
-        <FieldGroup>
-          <form.Field
-            name="name"
-            validators={{ onChange: UpdateLocationBody.shape.name }}
-            children={(field) => <TextField field={field} label="Name" />}
-          />
-
-          <form.Field
-            name="parentId"
-            children={(field) => (
-              <LocationSelect
-                id="edit-location-parent"
-                value={field.state.value}
-                onChange={field.handleChange}
-                excludeSubtreeOf={location.id}
-              />
-            )}
-          />
-
-          <form.Field
-            name="address"
-            children={(field) => (
-              <AddressFields
-                idPrefix="edit-location-address"
-                value={field.state.value}
-                onChange={field.handleChange}
-              />
-            )}
-          />
-
-          <form.Field
-            name="notes"
-            children={(field) => (
-              <TextField field={field} label="Notes" placeholder="Optional" />
-            )}
-          />
-
-          <AreaField
-            polygon={polygon}
-            isDrawing={isDrawing}
-            isSuspended={isPicking}
-            onDraw={() => drawPolygon()}
-            onStop={cancelDrawing}
-          />
-
-          <RepresentativePointField
-            point={point}
-            isPicking={isPicking}
-            hasArea={Boolean(polygon)}
-            onPick={() => pickPoint()}
-            onClear={cancelPicking}
-          />
-        </FieldGroup>
-      </form>
-
-      <form.Subscribe
-        selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-        children={([canSubmit, isSubmitting]) => (
-          <FormActions
-            formId="edit-location-form"
-            submit="Save changes"
-            submitting="Saving…"
-            isSubmitting={isSubmitting}
-            disabled={!canSubmit}
-            cancel={
-              <Link
-                to="/locations/$locationId"
-                params={{ locationId: location.id }}
-              />
-            }
-          />
-        )}
+      <LocationForm
+        formId="edit-location-form"
+        defaultValues={locationToValues(location)}
+        excludeSubtreeOf={location.id}
+        submit={t('common:actions.saveChanges')}
+        submitting={t('common:actions.saving')}
+        cancel={backToDetail}
+        onSubmit={handleSubmit}
       />
     </Panel>
   )

@@ -28,7 +28,6 @@ import { ChoiceField } from '#/components/form/choice-field'
 import { SelectField } from '#/components/form/select-field'
 import { TextField } from '#/components/form/text-field'
 import { Button } from '#/components/ui/button'
-import { FieldGroup } from '#/components/ui/field'
 import { toast } from '#/components/ui/toast'
 import {
   browserTimezone,
@@ -152,7 +151,7 @@ function AccountForm({ user }: { user: User }) {
           form.handleSubmit()
         }}
       >
-        <FieldGroup>
+        <div className="grid gap-4">
           <form.Field
             name="username"
             children={(field) => (
@@ -185,7 +184,7 @@ function AccountForm({ user }: { user: User }) {
               />
             )}
           />
-        </FieldGroup>
+        </div>
       </form>
     </FormSection>
   )
@@ -306,7 +305,7 @@ function PreferencesForm({
           form.handleSubmit()
         }}
       >
-        <FieldGroup>
+        <div className="grid gap-4">
           <form.Field
             name="language"
             children={(field) => (
@@ -364,7 +363,7 @@ function PreferencesForm({
               />
             )}
           />
-        </FieldGroup>
+        </div>
       </form>
     </FormSection>
   )
@@ -445,7 +444,7 @@ function PasswordForm() {
           form.handleSubmit()
         }}
       >
-        <FieldGroup>
+        <div className="grid gap-4">
           <form.Field
             name="currentPassword"
             children={(field) => (
@@ -479,7 +478,7 @@ function PasswordForm() {
               />
             )}
           />
-        </FieldGroup>
+        </div>
       </form>
     </FormSection>
   )

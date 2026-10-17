@@ -13,7 +13,7 @@ import {
 } from '#/api/endpoints/admin/admin.zod'
 import type { User } from '#/api/model'
 import { TextField } from '#/components/form/text-field'
-import { DetailGrid, DetailMeta } from '#/components/detail-list'
+import { DetailColumn, DetailGrid, DetailMeta } from '#/components/detail-list'
 import { FormSection } from '#/components/form-section'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import {
@@ -29,7 +29,6 @@ import {
   AlertDialogTrigger,
 } from '#/components/ui/alert-dialog'
 import { Button } from '#/components/ui/button'
-import { FieldGroup } from '#/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -150,9 +149,13 @@ function ManageUserDetail({ user }: { user: User }) {
             <OwnAccountNotice />
           ) : (
             <>
-              <UserAccountForm user={user} />
-              <UserRoleSection user={user} />
-              <UserPasswordForm user={user} />
+              <DetailColumn>
+                <UserAccountForm user={user} />
+              </DetailColumn>
+              <DetailColumn>
+                <UserRoleSection user={user} />
+                <UserPasswordForm user={user} />
+              </DetailColumn>
             </>
           )}
 
@@ -277,7 +280,7 @@ function UserAccountForm({ user }: { user: User }) {
           form.handleSubmit()
         }}
       >
-        <FieldGroup>
+        <div className="grid gap-4">
           <form.Field
             name="username"
             children={(field) => (
@@ -299,7 +302,7 @@ function UserAccountForm({ user }: { user: User }) {
               />
             )}
           />
-        </FieldGroup>
+        </div>
       </form>
     </FormSection>
   )
@@ -444,7 +447,7 @@ function UserPasswordForm({ user }: { user: User }) {
           form.handleSubmit()
         }}
       >
-        <FieldGroup>
+        <div className="grid gap-4">
           <form.Field
             name="newPassword"
             children={(field) => (
@@ -467,7 +470,7 @@ function UserPasswordForm({ user }: { user: User }) {
               />
             )}
           />
-        </FieldGroup>
+        </div>
       </form>
     </FormSection>
   )

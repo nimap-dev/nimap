@@ -4,20 +4,14 @@ import {
   useGetBuilding,
   useUpdateBuilding,
 } from '#/api/buildings/buildings'
-import { UpdateBuildingBody } from '#/api/endpoints/buildings/buildings.zod'
 import type { BuildingResponse } from '#/api/model'
-import { AddressFields } from '#/components/form/address-fields'
-import { FootprintField } from '#/components/form/footprint-field'
-import { FormActions } from '#/components/form/form-actions'
-import { LocationSelect } from '#/components/form/location-select'
-import { TextField } from '#/components/form/text-field'
+import { BuildingForm, buildingToValues } from '#/components/building-form'
+import type { BuildingFormValues } from '#/components/building-form'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import { Button } from '#/components/ui/button'
-import { FieldGroup } from '#/components/ui/field'
 import { toast } from '#/components/ui/toast'
-import { addressToRequest, addressToValue } from '#/lib/address'
+import { addressToRequest } from '#/lib/address'
 import { useWorldMap } from '#/lib/map'
-import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   createFileRoute,
@@ -70,28 +64,32 @@ function EditBuilding() {
     )
   }
 
-  // Mounted only once the building is loaded, so the form can take its default
-  // values straight from it, `useForm` captures those on first render.
   return <EditBuildingForm building={building} />
 }
 
 function EditBuildingForm({ building }: { building: BuildingResponse }) {
-  const { flyTo, drawPolygon, cancelDrawing, polygon } = useWorldMap()
+  const { t } = useTranslation(['buildings', 'common'])
+  const { flyTo, drawPolygon, cancelDrawing } = useWorldMap()
   const updateBuilding = useUpdateBuilding()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
   const [longitude, latitude] = building.representativePoint.coordinates
 
-  const form = useForm({
-    defaultValues: {
-      name: building.name,
-      locationId: building.locationId,
-      address: addressToValue(building.address),
-      notes: building.notes ?? '',
-      footprint: building.footprint,
-    },
-    onSubmit: async ({ value }) => {
+  useEffect(() => {
+    flyTo(longitude, latitude, BUILDING_ZOOM)
+  }, [flyTo, longitude, latitude])
+
+  const initialFootprint = useRef(building.footprint)
+  useEffect(() => {
+    drawPolygon(initialFootprint.current)
+    return () => cancelDrawing()
+  }, [drawPolygon, cancelDrawing])
+
+  async function handleSubmit(value: BuildingFormValues) {
+    if (!value.footprint) return
+
+    try {
       const res = await updateBuilding.mutateAsync({
         id: building.id,
         data: {
@@ -106,8 +104,8 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
       if (res.status !== 200) {
         toast.add({
           type: 'error',
-          title: 'Could not save',
-          description: res.data.detail ?? 'The building was not updated',
+          title: t('common:errors.couldNotSave'),
+          description: res.data.detail ?? t('edit.notUpdated'),
         })
         return
       }
@@ -118,123 +116,50 @@ function EditBuildingForm({ building }: { building: BuildingResponse }) {
           queryKey: getGetBuildingQueryKey(building.id),
         }),
       ])
-      toast.add({ type: 'success', description: 'Building updated' })
+      toast.add({ type: 'success', description: t('edit.updated') })
       navigate({
         to: '/buildings/$buildingId',
         params: { buildingId: building.id },
         replace: true,
       })
-    },
-  })
+    } catch {
+      toast.add({
+        type: 'error',
+        title: t('common:errors.couldNotSave'),
+        description: t('common:errors.requestFailed'),
+      })
+    }
+  }
 
-  useEffect(() => {
-    flyTo(longitude, latitude, BUILDING_ZOOM)
-  }, [flyTo, longitude, latitude])
-
-  // Seed the map with the footprint as it was when the page opened. Reading it
-  // from a ref keeps a background refetch from wiping edits in progress.
-  const initialFootprint = useRef(building.footprint)
-  useEffect(() => {
-    drawPolygon(initialFootprint.current)
-    return () => cancelDrawing()
-  }, [drawPolygon, cancelDrawing])
-
-  useEffect(() => {
-    if (!polygon) return
-    form.setFieldValue('footprint', polygon)
-  }, [form, polygon])
+  const backToDetail = (
+    <Link to="/buildings/$buildingId" params={{ buildingId: building.id }} />
+  )
 
   return (
     <Panel
-      title={building.name}
-      back={
-        <Link
-          to="/buildings/$buildingId"
-          params={{ buildingId: building.id }}
-        />
-      }
-      backLabel="Back to building"
+      title={t('edit.title', { name: building.name })}
+      back={backToDetail}
+      backLabel={t('detail.backToBuilding')}
       action={
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Recentre map"
+          aria-label={t('detail.frame')}
+          title={t('detail.frame')}
           onClick={() => flyTo(longitude, latitude, BUILDING_ZOOM)}
         >
           <Crosshair />
         </Button>
       }
     >
-      <form
-        id="edit-building-form"
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
-      >
-        <FieldGroup>
-          <form.Field
-            name="name"
-            validators={{ onChange: UpdateBuildingBody.shape.name }}
-            children={(field) => <TextField field={field} label="Name" />}
-          />
-
-          <form.Field
-            name="locationId"
-            children={(field) => (
-              <LocationSelect
-                id="edit-building-location"
-                value={field.state.value}
-                onChange={field.handleChange}
-                label="Location"
-                emptyLabel="Not placed yet"
-              />
-            )}
-          />
-
-          <form.Field
-            name="address"
-            children={(field) => (
-              <AddressFields
-                idPrefix="edit-building-address"
-                value={field.state.value}
-                onChange={field.handleChange}
-              />
-            )}
-          />
-
-          <form.Field
-            name="notes"
-            children={(field) => (
-              <TextField field={field} label="Notes" placeholder="Optional" />
-            )}
-          />
-
-          <FootprintField
-            polygon={polygon}
-            mode="reshape"
-            onClear={() => drawPolygon()}
-          />
-        </FieldGroup>
-      </form>
-
-      <form.Subscribe
-        selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-        children={([canSubmit, isSubmitting]) => (
-          <FormActions
-            formId="edit-building-form"
-            submit="Save changes"
-            submitting="Saving…"
-            isSubmitting={isSubmitting}
-            disabled={!canSubmit || !polygon}
-            cancel={
-              <Link
-                to="/buildings/$buildingId"
-                params={{ buildingId: building.id }}
-              />
-            }
-          />
-        )}
+      <BuildingForm
+        formId="edit-building-form"
+        defaultValues={buildingToValues(building)}
+        mode="edit"
+        submit={t('common:actions.saveChanges')}
+        submitting={t('common:actions.saving')}
+        cancel={backToDetail}
+        onSubmit={handleSubmit}
       />
     </Panel>
   )

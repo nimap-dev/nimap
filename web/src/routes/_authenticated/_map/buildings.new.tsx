@@ -2,20 +2,14 @@ import {
   getListBuildingsQueryKey,
   useCreateBuilding,
 } from '#/api/buildings/buildings'
-import { CreateBuildingBody } from '#/api/endpoints/buildings/buildings.zod'
-import { CreateBuildingRequestStatus } from '#/api/model'
-import type { MultiPolygon } from '#/api/model'
-import { AddressFields } from '#/components/form/address-fields'
-import { FootprintField } from '#/components/form/footprint-field'
-import { FormActions } from '#/components/form/form-actions'
-import { LocationSelect } from '#/components/form/location-select'
-import { StatusField } from '#/components/form/status-field'
-import { TextField } from '#/components/form/text-field'
-import { FieldGroup } from '#/components/ui/field'
+import { BuildingForm, emptyBuildingValues } from '#/components/building-form'
+import type { BuildingFormValues } from '#/components/building-form'
+import { Panel } from '#/components/panel'
 import { toast } from '#/components/ui/toast'
-import { addressToRequest, emptyAddress } from '#/lib/address'
+import { addressToRequest } from '#/lib/address'
+import { can } from '#/lib/auth'
 import { useWorldMap } from '#/lib/map'
-import { useForm } from '@tanstack/react-form'
+import { optional } from '#/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   createFileRoute,
@@ -24,9 +18,7 @@ import {
   useNavigate,
 } from '@tanstack/react-router'
 import { useEffect } from 'react'
-import { Panel } from '#/components/panel'
-import { can } from '#/lib/auth'
-import { optional } from '#/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute('/_authenticated/_map/buildings/new')({
   beforeLoad: ({ context }) => {
@@ -38,23 +30,21 @@ export const Route = createFileRoute('/_authenticated/_map/buildings/new')({
 })
 
 function NewBuilding() {
-  const { drawPolygon, cancelDrawing, polygon } = useWorldMap()
+  const { t } = useTranslation(['buildings', 'common'])
+  const { drawPolygon, cancelDrawing } = useWorldMap()
   const createBuilding = useCreateBuilding()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
-  const form = useForm({
-    defaultValues: {
-      name: '',
-      locationId: undefined as string | undefined,
-      address: emptyAddress,
-      notes: '',
-      status: CreateBuildingRequestStatus.active as CreateBuildingRequestStatus,
-      footprint: undefined as MultiPolygon | undefined,
-    },
-    onSubmit: async ({ value }) => {
-      if (!value.footprint) return
+  useEffect(() => {
+    drawPolygon()
+    return () => cancelDrawing()
+  }, [drawPolygon, cancelDrawing])
 
+  async function handleSubmit(value: BuildingFormValues) {
+    if (!value.footprint) return
+
+    try {
       const res = await createBuilding.mutateAsync({
         data: {
           name: value.name,
@@ -69,7 +59,8 @@ function NewBuilding() {
       if (res.status !== 201) {
         toast.add({
           type: 'error',
-          description: res.data.detail ?? 'Could not create the building',
+          title: t('new.couldNotCreate'),
+          description: res.data.detail ?? t('new.notCreated'),
         })
         return
       }
@@ -77,111 +68,39 @@ function NewBuilding() {
       await queryClient.invalidateQueries({
         queryKey: getListBuildingsQueryKey(),
       })
-      toast.add({ type: 'success', description: 'Building created' })
+      toast.add({
+        type: 'success',
+        description: t('new.created', { name: res.data.name }),
+      })
       navigate({
         to: '/buildings/$buildingId',
         params: { buildingId: res.data.id },
         replace: true,
       })
-    },
-  })
-
-  // Drawing is on for as long as this page is open, and anything left unsaved
-  // is discarded on the way out.
-  useEffect(() => {
-    drawPolygon()
-    return () => cancelDrawing()
-  }, [drawPolygon, cancelDrawing])
-
-  useEffect(() => {
-    form.setFieldValue('footprint', polygon)
-  }, [form, polygon])
+    } catch {
+      toast.add({
+        type: 'error',
+        title: t('new.couldNotCreate'),
+        description: t('common:errors.requestFailed'),
+      })
+    }
+  }
 
   return (
     <Panel
-      title="New building"
+      title={t('new.title')}
       back={<Link to="/buildings" />}
-      backLabel="Back to buildings"
+      backLabel={t('detail.back')}
     >
-      <form
-        id="new-building-form"
-        onSubmit={(e) => {
-          e.preventDefault()
-          form.handleSubmit()
-        }}
-      >
-        <FieldGroup>
-          <form.Field
-            name="name"
-            validators={{ onChange: CreateBuildingBody.shape.name }}
-            children={(field) => (
-              <TextField
-                field={field}
-                label="Name"
-                placeholder="Prague 1"
-                autoFocus
-              />
-            )}
-          />
-
-          <form.Field
-            name="locationId"
-            children={(field) => (
-              <LocationSelect
-                id="new-building-location"
-                value={field.state.value}
-                onChange={field.handleChange}
-                label="Location"
-                emptyLabel="Not placed yet"
-                suggestFor={polygon}
-              />
-            )}
-          />
-
-          <form.Field
-            name="status"
-            validators={{ onChange: CreateBuildingBody.shape.status }}
-            children={(field) => <StatusField field={field} />}
-          />
-
-          <form.Field
-            name="address"
-            children={(field) => (
-              <AddressFields
-                idPrefix="new-building-address"
-                value={field.state.value}
-                onChange={field.handleChange}
-              />
-            )}
-          />
-
-          <form.Field
-            name="notes"
-            children={(field) => (
-              <TextField field={field} label="Notes" placeholder="Optional" />
-            )}
-          />
-
-          <FootprintField
-            polygon={polygon}
-            mode="draw"
-            onClear={() => drawPolygon()}
-          />
-        </FieldGroup>
-      </form>
-
-      <form.Subscribe
-        selector={(state) => [state.canSubmit, state.isSubmitting] as const}
-        children={([canSubmit, isSubmitting]) => (
-          <FormActions
-            formId="new-building-form"
-            submit="Create building"
-            submitting="Creating…"
-            isSubmitting={isSubmitting}
-            disabled={!canSubmit || !polygon}
-            cancel={<Link to="/buildings" />}
-          />
-        )}
+      <BuildingForm
+        formId="new-building-form"
+        defaultValues={emptyBuildingValues}
+        mode="create"
+        autoFocus
+        submit={t('new.submit')}
+        submitting={t('new.submitting')}
+        cancel={<Link to="/buildings" />}
+        onSubmit={handleSubmit}
       />
     </Panel>
   )

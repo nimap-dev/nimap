@@ -1,5 +1,6 @@
 export default {
   fields: {
+    name: 'Název',
     placement: 'Umístění',
     address: 'Adresa',
     parent: 'Patří pod',
@@ -20,8 +21,27 @@ export default {
     showInside: 'Zobrazit, co je uvnitř {{name}}',
     hideInside: 'Skrýt, co je uvnitř {{name}}',
   },
+  form: {
+    location: 'Lokalita',
+    map: 'Na mapě',
+    notesPlaceholder: 'Přístup, kontakty, kde jsou klíče…',
+  },
+  new: {
+    title: 'Nová lokalita',
+    submit: 'Vytvořit lokalitu',
+    submitting: 'Vytvářím…',
+    couldNotCreate: 'Lokalitu se nepodařilo vytvořit',
+    notCreated: 'Lokalita nebyla vytvořena',
+    created: 'Lokalita {{name}} byla vytvořena',
+  },
+  edit: {
+    title: 'Upravit {{name}}',
+    notUpdated: 'Lokalita nebyla upravena',
+    updated: 'Lokalita upravena',
+  },
   detail: {
     back: 'Zpět na lokality',
+    backToLocation: 'Zpět na lokalitu',
     notFound: 'Tato lokalita neexistuje, nebo k ní nemáte přístup.',
     edit: 'Upravit lokalitu',
     frame: 'Ukázat na mapě',

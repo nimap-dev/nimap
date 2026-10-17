@@ -115,7 +115,7 @@ function makeColumns(
     columnHelper.accessor((row) => row.location.updatedAt, {
       id: 'updatedAt',
       header: () => t('list.updated'),
-      meta: { width: '7.5rem' },
+      meta: { width: '9rem' },
       cell: ({ getValue }) => (
         <span
           className="text-muted-foreground"

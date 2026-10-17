@@ -2,6 +2,7 @@
 export default {
   fields: {
     name: 'Name',
+    manufacturer: 'Manufacturer',
     website: 'Website',
     contact: 'Contact',
     notes: 'Notes',

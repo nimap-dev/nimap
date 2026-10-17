@@ -21,6 +21,10 @@ export default {
     couldNotCreate: 'Uživatele se nepodařilo vytvořit',
     notCreated: 'Účet nebyl vytvořen',
     created: 'Uživatel vytvořen',
+    roleDescription:
+      'Co smí uživatel dělat. Později ji můžete změnit na jeho stránce.',
+    passwordDescription:
+      'Alespoň 8 znaků. Předejte ho uživateli, heslo si pak může změnit v nastavení účtu.',
   },
   delete: {
     label: 'Smazat uživatele',

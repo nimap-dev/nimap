@@ -80,7 +80,7 @@ function useColumns() {
           ),
           sortFn: 'datetime',
           sortDescFirst: true,
-          meta: { width: '7.5rem' },
+          meta: { width: '9rem' },
           cell: ({ getValue }) => (
             <span
               className="text-muted-foreground"

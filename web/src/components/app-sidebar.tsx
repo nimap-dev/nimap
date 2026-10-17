@@ -208,6 +208,7 @@ export function MapPanel({
         inert={!open}
         className={cn(
           '[--map-panel-width:min(20rem,85vw)] md:[--map-panel-width:var(--sidebar-width)]',
+          '[--panel-bg:var(--color-sidebar)]',
           'fixed top-0 right-0 bottom-16 z-20 shrink-0 overflow-hidden bg-sidebar text-sidebar-foreground shadow-lg transition-[width] duration-200 ease-linear',
           'md:static md:h-svh md:border-l md:shadow-none',
           open ? 'w-(--map-panel-width)' : 'w-0',

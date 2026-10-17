@@ -1,5 +1,6 @@
 export default {
   fields: {
+    name: 'Název',
     placement: 'Umístění',
     location: 'Lokalita',
     address: 'Adresa',
@@ -15,8 +16,28 @@ export default {
     city: 'Město',
     updated: 'Upraveno',
   },
+  form: {
+    building: 'Budova',
+    map: 'Na mapě',
+    notPlaced: 'Zatím neumístěná',
+    notesPlaceholder: 'Vstup, kontakty, kde jsou klíče…',
+  },
+  new: {
+    title: 'Nová budova',
+    submit: 'Vytvořit budovu',
+    submitting: 'Vytvářím…',
+    couldNotCreate: 'Budovu se nepodařilo vytvořit',
+    notCreated: 'Budova nebyla vytvořena',
+    created: 'Budova {{name}} byla vytvořena',
+  },
+  edit: {
+    title: 'Upravit {{name}}',
+    notUpdated: 'Budova nebyla upravena',
+    updated: 'Budova upravena',
+  },
   detail: {
     back: 'Zpět na budovy',
+    backToBuilding: 'Zpět na budovu',
     notFound: 'Tato budova neexistuje, nebo k ní nemáte přístup.',
     edit: 'Upravit budovu',
     frame: 'Ukázat na mapě',

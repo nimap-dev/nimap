@@ -1,6 +1,7 @@
 export default {
   fields: {
     name: 'Název',
+    manufacturer: 'Výrobce',
     website: 'Web',
     contact: 'Kontakt',
     notes: 'Poznámky',

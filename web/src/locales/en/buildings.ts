@@ -1,5 +1,6 @@
 export default {
   fields: {
+    name: 'Name',
     placement: 'Placement',
     location: 'Location',
     address: 'Address',
@@ -15,8 +16,28 @@ export default {
     city: 'City',
     updated: 'Updated',
   },
+  form: {
+    building: 'Building',
+    map: 'On the map',
+    notPlaced: 'Not placed yet',
+    notesPlaceholder: 'Entrance, contacts, where the keys are…',
+  },
+  new: {
+    title: 'New building',
+    submit: 'Create building',
+    submitting: 'Creating…',
+    couldNotCreate: 'Could not create the building',
+    notCreated: 'The building was not created',
+    created: '{{name}} was created',
+  },
+  edit: {
+    title: 'Edit {{name}}',
+    notUpdated: 'The building was not updated',
+    updated: 'Building updated',
+  },
   detail: {
     back: 'Back to buildings',
+    backToBuilding: 'Back to building',
     notFound: "This building doesn't exist, or you don't have access to it.",
     edit: 'Edit building',
     frame: 'Show on the map',

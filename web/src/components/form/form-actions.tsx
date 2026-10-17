@@ -29,13 +29,15 @@ export function FormActions({
   const { t } = useTranslation()
 
   return (
-    <div className="flex items-center gap-2">
-      <Button type="submit" form={formId} disabled={disabled || isSubmitting}>
-        {isSubmitting ? submitting : submit}
-      </Button>
-      <Button variant="ghost" render={cancel} nativeButton={false}>
-        {t('actions.cancel')}
-      </Button>
+    <div className="sticky bottom-0 -mx-3 -mb-3 mt-auto border-t bg-(--panel-bg,var(--color-background)) px-3 py-2">
+      <div className="mx-auto flex w-full max-w-4xl items-center gap-2">
+        <Button type="submit" form={formId} disabled={disabled || isSubmitting}>
+          {isSubmitting ? submitting : submit}
+        </Button>
+        <Button variant="ghost" render={cancel} nativeButton={false}>
+          {t('actions.cancel')}
+        </Button>
+      </div>
     </div>
   )
 }

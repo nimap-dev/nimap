@@ -22,6 +22,10 @@ export default {
     couldNotCreate: 'Could not create user',
     notCreated: 'The account was not created',
     created: 'User created',
+    roleDescription:
+      'What the user may do. You can change it later on their page.',
+    passwordDescription:
+      'At least 8 characters. Hand it to the user; they can change it in their account settings.',
   },
   delete: {
     label: 'Delete user',
