@@ -1,0 +1,30 @@
+---
+title: nimap
+description: Dokumentujte fyzickou síť a technickou infrastrukturu na mapě.
+template: splash
+banner:
+  content: nimap je v rané fázi vývoje. Dokumentace se připravuje.
+hero:
+  tagline: Přehled o tom, kde každé zařízení fyzicky stojí a kudy k němu vede kabel.
+  image:
+    file: ../../../assets/logo.svg
+  actions:
+    - text: Začínáme
+      link: getting-started/introduction/
+      icon: right-arrow
+    - text: Projekt na GitHubu
+      link: https://github.com/nimap-dev/nimap
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<CardGrid>
+	<LinkCard title="Uživatelská příručka" description="Práce s mapou, lokalitami, budovami a katalogem zařízení." href="user/overview/" />
+	<LinkCard title="Administrace" description="Instalace, konfigurace a provoz vlastní instance." href="admin/overview/" />
+	<LinkCard title="Reference" description="Role a oprávnění, konfigurace, CLI a slovník pojmů." href="reference/overview/" />
+	<Card title="Open source" icon="github">
+		nimap je licencovaný pod AGPL-3.0.
+	</Card>
+</CardGrid>

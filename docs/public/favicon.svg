@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="a" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 445.81 445.81">
+  <defs>
+    <linearGradient id="b" x1="222.9" y1="0" x2="222.9" y2="271.61" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1e9cd7"/>
+      <stop offset=".44" stop-color="#0075be"/>
+      <stop offset=".99" stop-color="#005b97"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <rect y="308.94" width="445.81" height="136.86" rx="18.39" ry="18.39" style="fill: #0f172a;"/>
+    <rect x="350.3" y="333.97" width="64.31" height="86.81" rx="12.58" ry="12.58" style="fill: #334155;"/>
+    <rect x="275.91" y="333.97" width="64.31" height="86.81" rx="12.58" ry="12.58" style="fill: #334155;"/>
+    <rect x="201.53" y="333.97" width="64.31" height="86.81" rx="12.58" ry="12.58" style="fill: #334155;"/>
+    <circle cx="89.16" cy="377.38" r="16.42" style="fill: #009245;"/>
+    <circle cx="46.23" cy="377.38" r="16.42" style="fill: #009245;"/>
+    <circle cx="132.09" cy="377.38" r="16.42" style="fill: #f7931e;"/>
+  </g>
+  <path d="M222.9,0c-51.81,0-93.8,42-93.8,93.8,0,88.88,93.8,177.81,93.8,177.81,0,0,93.8-91.34,93.8-177.81C316.71,42,274.71,0,222.9,0ZM222.9,137.01c-23.86,0-43.21-19.34-43.21-43.21s19.34-43.21,43.21-43.21,43.21,19.34,43.21,43.21-19.34,43.21-43.21,43.21Z" style="fill: url(#b);"/>
+</svg>

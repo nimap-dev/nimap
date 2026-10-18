@@ -1,0 +1,30 @@
+---
+title: nimap
+description: Document your physical network and technical infrastructure on a map.
+template: splash
+banner:
+  content: nimap is in early development. The documentation is being written.
+hero:
+  tagline: Know where every device physically is and which route its cable takes.
+  image:
+    file: ../../assets/logo.svg
+  actions:
+    - text: Get started
+      link: getting-started/introduction/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/nimap-dev/nimap
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<CardGrid>
+	<LinkCard title="User guide" description="Work with the map, locations, buildings and the device catalog." href="user/overview/" />
+	<LinkCard title="Administration" description="Install, configure and run your own instance." href="admin/overview/" />
+	<LinkCard title="Reference" description="Roles and permissions, configuration, CLI and glossary." href="reference/overview/" />
+	<Card title="Open source" icon="github">
+		nimap is licensed under AGPL-3.0.
+	</Card>
+</CardGrid>

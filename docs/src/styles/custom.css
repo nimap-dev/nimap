@@ -1,0 +1,13 @@
+/* Accent colors matched to the app's primary palette (web/src/styles.css). */
+
+:root {
+  --sl-color-accent-low: oklch(0.3 0.07 245);
+  --sl-color-accent: oklch(0.656 0.134 235.9);
+  --sl-color-accent-high: oklch(0.85 0.07 233);
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: oklch(0.95 0.017 230.9);
+  --sl-color-accent: oklch(0.546 0.143 246.7);
+  --sl-color-accent-high: oklch(0.459 0.121 247.3);
+}
