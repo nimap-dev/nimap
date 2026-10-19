@@ -1,0 +1,113 @@
+---
+title: Installation
+description: Run nimap with Docker Compose and create the first administrator.
+sidebar:
+  order: 2
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+nimap ships as a single Docker image that serves both the web application and the API. It stores its data in PostgreSQL with PostGIS and keeps uploaded files in a directory on disk.
+
+<Aside type="caution">
+nimap is in early development. The data model still changes and there are no release versions yet, so the image tag below follows the `main` branch.
+</Aside>
+
+## Requirements
+
+- Docker with the Compose plugin (`docker compose`).
+- PostgreSQL **18** with PostGIS. Version 18 is a hard minimum, older versions will not work. The Compose file below starts a suitable database for you.
+- HTTPS in front of nimap for production use. See [`SERVICE_ENV`](../../reference/configuration/#service_env).
+
+## Installation
+
+<Steps>
+
+1. Create a directory for the installation and a `.env` file with a database password. Docker Compose reads `.env` automatically.
+
+   ```sh
+   mkdir nimap && cd nimap
+   echo "DB_PASSWORD=$(openssl rand -hex 24)" > .env
+   ```
+
+   The password is also used inside a connection URL, so stick to letters and digits.
+
+2. Create `compose.yaml`:
+
+   ```yaml title="compose.yaml"
+   services:
+     db:
+       image: postgis/postgis:18-3.6-alpine
+       restart: unless-stopped
+       environment:
+         POSTGRES_USER: nimap
+         POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+         POSTGRES_DB: nimap
+       volumes:
+         - db-data:/var/lib/postgresql/18/docker
+       healthcheck:
+         test: ["CMD-SHELL", "pg_isready -U nimap -d nimap"]
+         interval: 5s
+         timeout: 5s
+         retries: 10
+
+     nimap:
+       image: ghcr.io/nimap-dev/nimap:main
+       restart: unless-stopped
+       environment:
+         SERVICE_ENV: production
+         SERVICE_PORT: 8080
+         SERVICE_DATABASE_URL: postgres://nimap:${DB_PASSWORD}@db:5432/nimap?sslmode=disable
+         SERVICE_MEDIA_DIR: /data/media
+         SERVICE_LOG_LEVEL: info
+         SERVICE_LOG_FORMAT: json
+         SERVICE_AUTO_MIGRATE: true
+       ports:
+         - "8080:8080"
+       volumes:
+         - media:/data/media
+       healthcheck:
+         test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+         interval: 10s
+         timeout: 3s
+         retries: 5
+       depends_on:
+         db:
+           condition: service_healthy
+
+   volumes:
+     db-data:
+     media:
+   ```
+
+   The database is reachable only from the nimap container. Its data lives in the `db-data` volume, uploaded files in the `media` volume. Back up both together. All settings are described in [Configuration](../../reference/configuration/).
+
+3. Start nimap:
+
+   ```sh
+   docker compose up -d
+   ```
+
+   On the first start nimap creates the database schema. Check that both containers are `healthy`:
+
+   ```sh
+   docker compose ps
+   ```
+
+   If the `nimap` container keeps restarting, its log says why:
+
+   ```sh
+   docker compose logs nimap
+   ```
+
+4. Create the first administrator. The command asks for the password, which must be at least 8 characters long.
+
+   ```sh
+   docker compose exec nimap /nimap new-user --username admin --email admin@example.com --role admin
+   ```
+
+   Further accounts can be created in the application by the administrator.
+
+5. Open nimap in the browser and sign in with the new account.
+
+</Steps>

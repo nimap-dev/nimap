@@ -3,10 +3,21 @@
 [![ci](https://github.com/nimap-dev/nimap/actions/workflows/ci.yml/badge.svg)](https://github.com/nimap-dev/nimap/actions/workflows/ci.yml)
 [![go](https://img.shields.io/github/go-mod/go-version/nimap-dev/nimap)](go.mod)
 [![license](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+[![docs](https://img.shields.io/badge/docs-nimap--dev.github.io%2Fnimap-blue)](https://nimap-dev.github.io/nimap/)
 
 nimap is a map-oriented system for documenting physical network and technical
 infrastructure. The goal is to answer two questions: where a device physically
 is, and which route the cable to it takes.
+
+## Documentation
+
+User and administrator documentation is at
+**[nimap-dev.github.io/nimap](https://nimap-dev.github.io/nimap/)**:
+
+- [Installation](https://nimap-dev.github.io/nimap/admin/installation/): running
+  nimap with Docker Compose and creating the first administrator
+- [Configuration](https://nimap-dev.github.io/nimap/reference/configuration/):
+  all `SERVICE_*` environment variables
 
 ## Status
 
@@ -49,21 +60,6 @@ PostgreSQL 18 with PostGIS. 18 is a hard minimum: the schema uses the built-in
 
 Building from source additionally needs Go 1.26 and Node 26 with pnpm.
 
-## Running
-
-```bash
-docker compose up
-```
-
-The application is on http://localhost:8080, the database on 5432. Migrations
-run on startup.
-
-Create the first account:
-
-```bash
-docker compose exec nimap /nimap new-user --username admin --email admin@example.com --role admin
-```
-
 ## Development
 
 See [Requirements](#requirements) for versions. `goose` and `sqlc` are only
@@ -87,22 +83,6 @@ pnpm --dir web dev
 ```
 
 The dev frontend is on http://localhost:3000.
-
-## Configuration
-
-All settings are environment variables with a `SERVICE_` prefix, or flags on
-the binary. See `.env.example` for the full list and `nimap --help` for the
-authoritative version.
-
-| Variable               | Default        | Meaning                                                 |
-| ---------------------- | -------------- | ------------------------------------------------------- |
-| `SERVICE_DATABASE_URL` | required       | PostgreSQL connection string                            |
-| `SERVICE_PORT`         | `8080`         | HTTP port                                               |
-| `SERVICE_ENV`          | `development`  | `development` or `production`, controls cookie security |
-| `SERVICE_MEDIA_DIR`    | `./data/media` | directory for uploaded files                            |
-| `SERVICE_LOG_LEVEL`    | `info`         | `debug`, `info`, `warn`, `error`                        |
-| `SERVICE_LOG_FORMAT`   | `text`         | `text` or `json`                                        |
-| `SERVICE_AUTO_MIGRATE` | `true`         | run pending migrations on startup                       |
 
 ## Generated code
 

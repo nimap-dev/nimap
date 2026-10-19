@@ -1,0 +1,113 @@
+---
+title: Instalace
+description: Spuštění nimapu přes Docker Compose a vytvoření prvního administrátora.
+sidebar:
+  order: 2
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+nimap se distribuuje jako jeden Docker image, který obsluhuje webovou aplikaci i API. Data ukládá do PostgreSQL s PostGIS a nahrané soubory drží v adresáři na disku.
+
+<Aside type="caution">
+nimap je v rané fázi vývoje. Datový model se ještě mění a zatím neexistují vydané verze, proto tag image níže sleduje větev `main`.
+</Aside>
+
+## Požadavky
+
+- Docker s pluginem Compose (`docker compose`).
+- PostgreSQL **18** s PostGIS. Verze 18 je nutné minimum, starší verze nefungují. Compose soubor níže vhodnou databázi spustí za vás.
+- HTTPS před nimapem pro produkční provoz. Viz [`SERVICE_ENV`](../../reference/configuration/#service_env).
+
+## Instalace
+
+<Steps>
+
+1. Vytvořte adresář pro instalaci a soubor `.env` s heslem k databázi. Docker Compose `.env` načte automaticky.
+
+   ```sh
+   mkdir nimap && cd nimap
+   echo "DB_PASSWORD=$(openssl rand -hex 24)" > .env
+   ```
+
+   Heslo se používá i v URL pro připojení k databázi, proto v něm používejte jen písmena a číslice.
+
+2. Vytvořte `compose.yaml`:
+
+   ```yaml title="compose.yaml"
+   services:
+     db:
+       image: postgis/postgis:18-3.6-alpine
+       restart: unless-stopped
+       environment:
+         POSTGRES_USER: nimap
+         POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+         POSTGRES_DB: nimap
+       volumes:
+         - db-data:/var/lib/postgresql/18/docker
+       healthcheck:
+         test: ["CMD-SHELL", "pg_isready -U nimap -d nimap"]
+         interval: 5s
+         timeout: 5s
+         retries: 10
+
+     nimap:
+       image: ghcr.io/nimap-dev/nimap:main
+       restart: unless-stopped
+       environment:
+         SERVICE_ENV: production
+         SERVICE_PORT: 8080
+         SERVICE_DATABASE_URL: postgres://nimap:${DB_PASSWORD}@db:5432/nimap?sslmode=disable
+         SERVICE_MEDIA_DIR: /data/media
+         SERVICE_LOG_LEVEL: info
+         SERVICE_LOG_FORMAT: json
+         SERVICE_AUTO_MIGRATE: true
+       ports:
+         - "8080:8080"
+       volumes:
+         - media:/data/media
+       healthcheck:
+         test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+         interval: 10s
+         timeout: 3s
+         retries: 5
+       depends_on:
+         db:
+           condition: service_healthy
+
+   volumes:
+     db-data:
+     media:
+   ```
+
+   Databáze je dostupná jen z kontejneru nimapu. Její data jsou ve volume `db-data`, nahrané soubory ve volume `media`. Zálohujte je vždy společně. Všechna nastavení popisuje stránka [Konfigurace](../../reference/configuration/).
+
+3. Spusťte nimap:
+
+   ```sh
+   docker compose up -d
+   ```
+
+   Při prvním spuštění nimap vytvoří schéma databáze. Ověřte, že oba kontejnery jsou `healthy`:
+
+   ```sh
+   docker compose ps
+   ```
+
+   Pokud se kontejner `nimap` stále restartuje, důvod najdete v jeho logu:
+
+   ```sh
+   docker compose logs nimap
+   ```
+
+4. Vytvořte prvního administrátora. Příkaz se zeptá na heslo, které musí mít alespoň 8 znaků.
+
+   ```sh
+   docker compose exec nimap /nimap new-user --username admin --email admin@example.com --role admin
+   ```
+
+   Další účty už administrátor vytváří přímo v aplikaci.
+
+5. Otevřete nimap v prohlížeči a přihlaste se novým účtem.
+
+</Steps>

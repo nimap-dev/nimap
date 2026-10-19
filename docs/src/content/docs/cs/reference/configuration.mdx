@@ -1,0 +1,60 @@
+---
+title: Konfigurace
+description: Proměnné prostředí, kterými se nastavuje instance nimapu.
+sidebar:
+  order: 3
+---
+
+nimap se konfiguruje proměnnými prostředí v sekci `environment` souboru `compose.yaml` (viz [Instalace](../../admin/installation/)). Po změně je použijte příkazem `docker compose up -d`.
+
+| Proměnná | Výchozí hodnota | Popis |
+| --- | --- | --- |
+| [`SERVICE_DATABASE_URL`](#service_database_url) | **povinná** | Připojení k PostgreSQL |
+| [`SERVICE_ENV`](#service_env) | `production` | Prostředí běhu |
+| [`SERVICE_PORT`](#service_port) | `8080` | HTTP port uvnitř kontejneru |
+| [`SERVICE_MEDIA_DIR`](#service_media_dir) | `./data/media` | Adresář pro nahrané soubory |
+| [`SERVICE_AUTO_MIGRATE`](#service_auto_migrate) | `true` | Aktualizace schématu databáze při startu |
+| [`SERVICE_LOG_LEVEL`](#service_log_level) | `info` | Podrobnost logování |
+| [`SERVICE_LOG_FORMAT`](#service_log_format) | `text` | Formát logů |
+
+## `SERVICE_DATABASE_URL`
+
+Připojovací řetězec k PostgreSQL 18 s PostGIS ve tvaru `postgres://uzivatel:heslo@host:port/databaze?sslmode=disable`. Bez něj se nimap nespustí. Speciální znaky v hesle musí být zakódované pro URL.
+
+Pokud databáze běží na jiném stroji, použijte `sslmode=require`.
+
+## `SERVICE_ENV`
+
+`production` nebo `development`. Výchozí: `production`.
+
+V režimu `production` je session cookie označená jako zabezpečená a prohlížeč ji posílá jen přes HTTPS. Přes čisté HTTP ji prohlížeč zahodí, takže přihlášení nefunguje. Výjimkou je `http://localhost`, který prohlížeče považují za zabezpečený.
+
+`development` používejte jen pro vyzkoušení nimapu v lokální síti bez HTTPS.
+
+## `SERVICE_PORT`
+
+Port, na kterém nimap naslouchá uvnitř kontejneru, `1`–`65535`. Výchozí: `8080`.
+
+Pokud chcete nimap vystavit na jiném portu hostitele, změňte jen levou stranu `ports` v `compose.yaml`, například `"80:8080"`. Když změníte `SERVICE_PORT`, upravte i pravou stranu `ports` a port v `healthcheck`.
+
+## `SERVICE_MEDIA_DIR`
+
+Adresář pro nahrané fotky, dokumenty a vygenerované náhledy. Výchozí: `./data/media`. V [Compose instalaci](../../admin/installation/) je to `/data/media` ve volume `media`.
+
+Do adresáře musí mít právo zápisu uživatel kontejneru (`1001`). Jinak se nimap při startu zastaví s hláškou `media directory is not writable`. Nový Docker volume dostane správného vlastníka automaticky; adresář připojený z hostitele musí patřit uživateli `1001`.
+
+Zálohujte ho spolu s databází, protože databáze na soubory jen odkazuje.
+
+## `SERVICE_AUTO_MIGRATE`
+
+`true` nebo `false`. Výchozí: `true`.
+
+Když je zapnutá, nimap při každém startu aktualizuje schéma databáze, i po přechodu na novější image. Vypněte ji jen tehdy, když chcete migrace spouštět ručně příkazem `/nimap migrate up`.
+
+## `SERVICE_LOG_LEVEL`
+
+`debug`, `info`, `warn` nebo `error`. Výchozí: `info`.
+
+## `SERVICE_LOG_FORMAT`
+
+`text` nebo `json`. Výchozí: `text`. `json` se hodí, když logy sbírá agregátor logů.

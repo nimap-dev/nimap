@@ -1,0 +1,60 @@
+---
+title: Configuration
+description: Environment variables that configure a nimap instance.
+sidebar:
+  order: 3
+---
+
+nimap is configured with environment variables, set in the `environment` section of `compose.yaml` (see [Installation](../../admin/installation/)). After changing them, apply the change with `docker compose up -d`.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| [`SERVICE_DATABASE_URL`](#service_database_url) | **required** | PostgreSQL connection string |
+| [`SERVICE_ENV`](#service_env) | `production` | Runtime environment |
+| [`SERVICE_PORT`](#service_port) | `8080` | HTTP port inside the container |
+| [`SERVICE_MEDIA_DIR`](#service_media_dir) | `./data/media` | Directory for uploaded files |
+| [`SERVICE_AUTO_MIGRATE`](#service_auto_migrate) | `true` | Update the database schema on start |
+| [`SERVICE_LOG_LEVEL`](#service_log_level) | `info` | How much to log |
+| [`SERVICE_LOG_FORMAT`](#service_log_format) | `text` | Log format |
+
+## `SERVICE_DATABASE_URL`
+
+Connection string for PostgreSQL 18 with PostGIS, in the form `postgres://user:password@host:port/database?sslmode=disable`. nimap does not start without it. Special characters in the password must be URL-encoded.
+
+Use `sslmode=require` when the database runs on another machine.
+
+## `SERVICE_ENV`
+
+`production` or `development`. Default: `production`.
+
+In `production` the session cookie is marked as secure and browsers only send it over HTTPS. Over plain HTTP the browser drops the session cookie, so signing in does not work. `http://localhost` is the exception, because browsers treat it as secure.
+
+Use `development` only for trying nimap out on a local network without HTTPS.
+
+## `SERVICE_PORT`
+
+Port nimap listens on inside the container, `1`–`65535`. Default: `8080`.
+
+To expose nimap on a different port on the host, change only the left side of `ports` in `compose.yaml`, for example `"80:8080"`. If you change `SERVICE_PORT`, update the right side of `ports` and the port in the `healthcheck` too.
+
+## `SERVICE_MEDIA_DIR`
+
+Directory for uploaded photos, documents and generated thumbnails. Default: `./data/media`. In the [Compose installation](../../admin/installation/) it is `/data/media`, backed by the `media` volume.
+
+The directory must be writable by the container user (`1001`). If it is not, nimap stops on start with `media directory is not writable`. A new Docker volume gets the right owner automatically; a directory mounted from the host has to be owned by `1001`.
+
+Back it up together with the database, as the database only references the files.
+
+## `SERVICE_AUTO_MIGRATE`
+
+`true` or `false`. Default: `true`.
+
+When enabled, nimap brings the database schema up to date on every start, including after an update to a newer image. Turn it off only if you want to run migrations manually with `/nimap migrate up`.
+
+## `SERVICE_LOG_LEVEL`
+
+`debug`, `info`, `warn` or `error`. Default: `info`.
+
+## `SERVICE_LOG_FORMAT`
+
+`text` or `json`. Default: `text`. Use `json` when logs are collected by a log aggregator.

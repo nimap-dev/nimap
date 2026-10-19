@@ -33,6 +33,8 @@ FROM alpine:3.24 AS runner
 RUN addgroup --system --gid 1001 gorun
 RUN adduser --system --uid 1001 gorun
 
+RUN mkdir -p /data/media && chown gorun:gorun /data/media
+
 COPY --from=build --chown=gorun:gorun /src/nimap /nimap
 
 USER gorun
