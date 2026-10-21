@@ -30,6 +30,61 @@ type User struct {
 	Permissions []string      `json:"permissions"`
 	CreatedAt   time.Time     `json:"createdAt"`
 	UpdatedAt   time.Time     `json:"updatedAt"`
+	HasPassword bool          `json:"hasPassword" doc:"Whether the account has a password; single sign-on accounts may have none"`
+	Identities  []Identity    `json:"identities" doc:"Single sign-on accounts linked to this user"`
+}
+
+// Identity is an account at an OIDC provider that logs in as a user.
+type Identity struct {
+	ID          uuid.UUID `json:"id"`
+	Issuer      string    `json:"issuer" doc:"OIDC issuer the account belongs to"`
+	Subject     string    `json:"subject" doc:"The account's stable id at the issuer"`
+	Email       *string   `json:"email,omitempty" doc:"Email the issuer reported at the last login"`
+	LinkedAt    time.Time `json:"linkedAt" doc:"When the account was first used to log in"`
+	LastLoginAt time.Time `json:"lastLoginAt" doc:"When the account last logged in"`
+}
+
+// userIdentities loads the identities linked to one user, never nil so the
+// field always encodes as a list.
+func userIdentities(ctx context.Context, q *gen.Queries, userID uuid.UUID) ([]Identity, error) {
+	rows, err := q.ListUserIdentities(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]Identity, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, Identity{
+			ID:          row.ID,
+			Issuer:      row.Issuer,
+			Subject:     row.Subject,
+			Email:       row.Email,
+			LinkedAt:    row.CreatedAt,
+			LastLoginAt: row.LastLoginAt,
+		})
+	}
+	return out, nil
+}
+
+// identitiesByUser loads every identity at once, grouped by user, for lists.
+func identitiesByUser(ctx context.Context, q *gen.Queries) (map[uuid.UUID][]Identity, error) {
+	rows, err := q.ListAllUserIdentities(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make(map[uuid.UUID][]Identity)
+	for _, row := range rows {
+		out[row.UserID] = append(out[row.UserID], Identity{
+			ID:          row.ID,
+			Issuer:      row.Issuer,
+			Subject:     row.Subject,
+			Email:       row.Email,
+			LinkedAt:    row.CreatedAt,
+			LastLoginAt: row.LastLoginAt,
+		})
+	}
+	return out, nil
 }
 
 // permissionStrings renders a role's grants for the wire.
@@ -55,7 +110,7 @@ type LoginInput struct {
 // UpdatePasswordInput is the request body for PATCH /api/auth/account/password.
 type UpdatePasswordInput struct {
 	Body struct {
-		CurrentPassword string `json:"currentPassword" minLength:"1" doc:"Current account password"`
+		CurrentPassword string `json:"currentPassword" required:"false" doc:"Current account password; omitted when the account has none yet"`
 		NewPassword     string `json:"newPassword" minLength:"8" doc:"New account password"`
 	}
 }
@@ -63,12 +118,13 @@ type UpdatePasswordInput struct {
 // UpdateAccountInput is the request body for PUT /api/auth/account. It asks for
 // the current password again because changing the email is by itself enough to
 // take the account over, and a session left open on an unattended machine
-// should not be enough to do that.
+// should not be enough to do that. A single sign-on account without a password
+// has nothing to confirm with, so for it the session is enough.
 type UpdateAccountInput struct {
 	Body struct {
 		Username        string `json:"username" minLength:"3" example:"admin" doc:"New account username"`
 		Email           string `json:"email" format:"email" doc:"New account email address"`
-		CurrentPassword string `json:"currentPassword" minLength:"1" doc:"Current account password, confirming the change"`
+		CurrentPassword string `json:"currentPassword" required:"false" doc:"Current account password, confirming the change; omitted when the account has none"`
 	}
 }
 
@@ -115,7 +171,12 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 			return nil, huma.Error500InternalServerError("login failed")
 		}
 
-		match, needsRehash, err := auth.VerifyPassword(in.Body.Password, user.PasswordHash)
+		// Single sign-on users have no password
+		if user.PasswordHash == nil {
+			return nil, huma.Error401Unauthorized("invalid credentials")
+		}
+
+		match, needsRehash, err := auth.VerifyPassword(in.Body.Password, *user.PasswordHash)
 		if err != nil || !match {
 			return nil, huma.Error401Unauthorized("invalid credentials")
 		}
@@ -125,7 +186,7 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 			if fresh, herr := auth.HashPassword(in.Body.Password); herr == nil {
 				_ = q.UpdateUserPasswordHash(ctx, gen.UpdateUserPasswordHashParams{
 					ID:           user.ID,
-					PasswordHash: fresh,
+					PasswordHash: &fresh,
 				})
 			}
 		}
@@ -135,6 +196,11 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 		}
 		sm.Put(ctx, sessionUserIDKey, user.ID.String())
 
+		identities, err := userIdentities(ctx, q, user.ID)
+		if err != nil {
+			return nil, huma.Error500InternalServerError("could not load user")
+		}
+
 		return &UserOutput{Body: User{
 			ID:          user.ID,
 			Username:    user.Username,
@@ -143,6 +209,8 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
+			HasPassword: true,
+			Identities:  identities,
 		}}, nil
 	})
 
@@ -166,6 +234,11 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 			return nil, huma.Error500InternalServerError("could not load user")
 		}
 
+		identities, err := userIdentities(ctx, q, user.ID)
+		if err != nil {
+			return nil, huma.Error500InternalServerError("could not load user")
+		}
+
 		return &UserOutput{Body: User{
 			ID:          user.ID,
 			Username:    user.Username,
@@ -174,6 +247,8 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
+			HasPassword: user.HasPassword,
+			Identities:  identities,
 		}}, nil
 	})
 
@@ -219,7 +294,7 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 
 		if err := q.UpdateUserPasswordHash(ctx, gen.UpdateUserPasswordHashParams{
 			ID:           id,
-			PasswordHash: hash,
+			PasswordHash: &hash,
 		}); err != nil {
 			return nil, huma.Error500InternalServerError(
 				"could not change password",
@@ -268,6 +343,11 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 			)
 		}
 
+		identities, err := userIdentities(ctx, q, user.ID)
+		if err != nil {
+			return nil, huma.Error500InternalServerError("could not load user")
+		}
+
 		return &UserOutput{Body: User{
 			ID:          user.ID,
 			Username:    user.Username,
@@ -276,6 +356,8 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
+			HasPassword: user.HasPassword,
+			Identities:  identities,
 		}}, nil
 	})
 
@@ -362,7 +444,13 @@ func verifyCurrentPassword(
 		return huma.Error500InternalServerError("could not load user")
 	}
 
-	match, _, err := auth.VerifyPassword(password, hash)
+	// A single sign-on account without a password has nothing to re-check;
+	// the session it logged in with is all the proof there is.
+	if hash == nil {
+		return nil
+	}
+
+	match, _, err := auth.VerifyPassword(password, *hash)
 	if err != nil || !match {
 		return huma.Error401Unauthorized("current password is incorrect")
 	}

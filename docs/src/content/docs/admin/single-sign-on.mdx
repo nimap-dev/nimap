@@ -1,0 +1,109 @@
+---
+title: Single sign-on
+description: Let users log in through an OpenID Connect provider such as Authentik, Keycloak, Entra ID or Google.
+sidebar:
+  order: 3
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+nimap can let users log in through one OpenID Connect (OIDC) provider, next to the usual username and password. The login page then shows a "Log in with …" button. Password login stays available.
+
+## How it works
+
+On the first single sign-on login nimap looks for a nimap user that belongs to the provider account:
+
+1. **Already linked.** The provider account was used before, so the user it belongs to logs in. Changing the email at the provider does not break the link.
+2. **Same email.** A nimap user with the same email exists. With [`SERVICE_OIDC_LINK_BY_EMAIL`](../../reference/configuration/#service_oidc_link_by_email) enabled and the email marked as verified by the provider, the provider account is linked to that user. Otherwise the login is refused.
+3. **New user.** No user has the email. If the email domain is allowed by [`SERVICE_OIDC_ALLOWED_DOMAINS`](../../reference/configuration/#service_oidc_allowed_domains), nimap creates a new user with the **viewer** role and no password. Otherwise the login is refused.
+
+The username of a new user is the provider's `preferred_username`, or the part of the email before `@`. If it is taken, nimap appends `-2`, `-3` and so on. The user can change it in their account settings, and an administrator can raise their role.
+
+A user without a password can change their username and email without confirming a password, and can set a password in their account settings to also log in with it.
+
+<Aside type="caution">
+With linking by email enabled, whoever controls an email at the provider gets into the nimap account with that email, administrators included. Use it only with a provider whose emails you trust, typically one you run yourself.
+</Aside>
+
+## Setting it up
+
+<Steps>
+
+1. Register nimap as an application at the provider:
+
+   - **Client type**: confidential, with a client secret.
+   - **Grant type**: authorization code. nimap uses PKCE.
+   - **Redirect URI**: your public address followed by `/api/auth/oidc/callback`, for example `https://nimap.example.com/api/auth/oidc/callback`. The provider compares it exactly, scheme and port included.
+   - **Scopes**: `openid`, `email` and `profile`.
+
+2. Add the settings to the `environment` section of the `nimap` service in `compose.yaml`:
+
+   ```yaml title="compose.yaml" ins={4-9}
+     nimap:
+       environment:
+         # ...
+         SERVICE_BASE_URL: https://nimap.example.com
+         SERVICE_OIDC_ISSUER: https://auth.example.com/application/o/nimap/
+         SERVICE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}
+         SERVICE_OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+         SERVICE_OIDC_NAME: Company account
+         SERVICE_OIDC_ALLOWED_DOMAINS: example.com
+   ```
+
+   Keep the client ID and secret in `.env` next to `DB_PASSWORD`:
+
+   ```sh title=".env"
+   OIDC_CLIENT_ID=...
+   OIDC_CLIENT_SECRET=...
+   ```
+
+   [`SERVICE_BASE_URL`](../../reference/configuration/#service_base_url) has to be the address users open, the one the redirect URI was built from. All variables are described in [Configuration](../../reference/configuration/#single-sign-on).
+
+3. Apply the change:
+
+   ```sh
+   docker compose up -d
+   ```
+
+   The log confirms the setup and shows the redirect URI nimap uses:
+
+   ```sh
+   docker compose logs nimap | grep "single sign-on"
+   ```
+
+   `single sign-on enabled` means it works. `single sign-on disabled` comes with the reason, usually an unreachable provider or an issuer that does not match.
+
+4. Open the login page and use the new button.
+
+</Steps>
+
+## What the provider has to send
+
+- **`sub`** identifies the account. It is the only thing a link relies on.
+- **`email`** is required, either in the ID token or from the userinfo endpoint. Without it the login fails.
+- **`email_verified`** as a JSON boolean (`true`, not `"true"`). It only matters for linking by email; a missing value counts as not verified.
+- **`preferred_username`** is optional and only proposes the username of a new user.
+
+## Managing linked accounts
+
+Users see their linked provider accounts in their account settings. Administrators see them on the user's page in **Users**, and the user list shows how each user logs in.
+
+An administrator can **unlink** a provider account there. The user can then no longer log in with it. Logging in with it again is treated as a first login: it may be linked again by email, or refused. Neither unlinking nor deleting the account keeps someone out for good: after a deletion, their next login creates a new viewer if their email domain is allowed. To take away access, remove it at the provider.
+
+## Troubleshooting
+
+A failed login sends the user back to the login page with a short message. The reason is in the nimap log as `oidc login failed`:
+
+```sh
+docker compose logs nimap | grep "oidc login failed"
+```
+
+| `reason` | What to check |
+| --- | --- |
+| `no login in progress` | The browser came back without the session cookie. Open nimap at exactly the address in `SERVICE_BASE_URL`; `localhost` and `127.0.0.1` are different sites to a browser. In `production` the cookie also needs HTTPS. |
+| `state does not match` | The login was started twice, for example in two tabs. Try again in one tab. |
+| `code exchange failed` with `invalid_client` | Wrong client ID or secret, or a public client at the provider. |
+| `code exchange failed` with `invalid_grant` | The redirect URI at the provider differs from the one nimap logs on start. |
+| `code exchange failed` with `verify id token` | The ID token is not signed with a key the provider publishes, or the issuer differs. |
+| `no user for this login` with `email belongs to a user that may not be linked` | A user with that email exists, but linking by email is disabled or the email is not verified. |
+| `no user for this login` with `email domain may not sign up` | The domain is not in `SERVICE_OIDC_ALLOWED_DOMAINS`. |

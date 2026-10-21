@@ -72,9 +72,32 @@ func main() {
 			// the container healthcheck down with it.
 			httpapi.RegisterHealth(router, pool, config.Version)
 
+			// Single sign-on is optional: if discovery fails, nimap still starts
+			// and offers only password login.
+			var oidcProvider *auth.OIDCProvider
+			if cfg.OIDCEnabled() {
+				oidcProvider, err = auth.NewOIDCProvider(ctx, auth.OIDCOptions{
+					Issuer:         cfg.OIDCIssuer,
+					ClientID:       cfg.OIDCClientID,
+					ClientSecret:   cfg.OIDCClientSecret,
+					RedirectURL:    cfg.OIDCRedirectURL(),
+					Name:           cfg.OIDCName,
+					Scopes:         cfg.OIDCScopeList(),
+					AllowedDomains: cfg.OIDCAllowedDomainList(),
+					LinkByEmail:    cfg.OIDCLinkByEmail,
+				})
+				if err != nil {
+					slog.Error("single sign-on disabled", "issuer", cfg.OIDCIssuer, "error", err)
+					oidcProvider = nil
+				} else {
+					slog.Info("single sign-on enabled", "issuer", cfg.OIDCIssuer, "redirect_url", cfg.OIDCRedirectURL())
+				}
+			}
+
 			router.Group(func(r chi.Router) {
 				r.Use(sessions.LoadAndSave)
-				httpapi.NewAPI(r, config.Version, pool, sessions, store)
+				httpapi.RegisterOIDC(r, oidcProvider, pool, sessions)
+				httpapi.NewAPI(r, config.Version, pool, sessions, store, oidcProvider)
 			})
 
 			// Must stay last: RegisterFrontend claims "/*" and answers anything

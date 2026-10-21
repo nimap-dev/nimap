@@ -1,4 +1,4 @@
-import { DetailGrid, DetailMeta } from '#/components/detail-list'
+import { DetailColumn, DetailGrid, DetailMeta } from '#/components/detail-list'
 import { FormSection } from '#/components/form-section'
 import { Skeleton } from '#/components/ui/skeleton'
 import { currentUserQueryOptions, useAuth } from '#/lib/auth'
@@ -21,6 +21,7 @@ import {
   UpdateAccountPreferencesBody,
   UpdatePasswordBody,
 } from '#/api/endpoints/auth/auth.zod'
+import { IdentityList } from '#/components/identity-list'
 import { Panel } from '#/components/panel'
 import { RoleBadge } from '#/components/role-badge'
 import { asRole } from '#/lib/roles'
@@ -70,9 +71,14 @@ function Account() {
         ) : (
           user && (
             <>
-              <AccountForm user={user} />
-              <PasswordForm />
-              <Preferences />
+              <DetailColumn>
+                <AccountForm user={user} />
+                <PasswordForm user={user} />
+              </DetailColumn>
+              <DetailColumn>
+                <IdentityList identities={user.identities} hideEmpty />
+                <Preferences />
+              </DetailColumn>
               <DetailMeta
                 id={user.id}
                 createdAt={user.createdAt}
@@ -86,6 +92,20 @@ function Account() {
   )
 }
 
+function hasCurrentPassword(hasPassword: boolean) {
+  return (value: { currentPassword: string }) =>
+    !hasPassword || value.currentPassword !== ''
+}
+
+const currentPasswordRequired = {
+  error: () => i18n.t('common:validation.currentPasswordRequired'),
+  path: ['currentPassword'],
+}
+
+const AccountFormBody = UpdateAccountBody.extend({
+  currentPassword: zod.string(),
+})
+
 function AccountForm({ user }: { user: User }) {
   const updateAccount = useUpdateAccount()
   const queryClient = useQueryClient()
@@ -97,9 +117,19 @@ function AccountForm({ user }: { user: User }) {
       email: user.email,
       currentPassword: '',
     },
-    validators: { onSubmit: UpdateAccountBody },
+    validators: {
+      onSubmit: AccountFormBody.refine(
+        hasCurrentPassword(user.hasPassword),
+        currentPasswordRequired,
+      ),
+    },
     onSubmit: async ({ value }) => {
-      const res = await updateAccount.mutateAsync({ data: value })
+      const res = await updateAccount.mutateAsync({
+        data: {
+          ...value,
+          currentPassword: user.hasPassword ? value.currentPassword : undefined,
+        },
+      })
 
       if (res.status !== 200) {
         toast.add({
@@ -125,7 +155,11 @@ function AccountForm({ user }: { user: User }) {
   return (
     <FormSection
       title={t('account.title')}
-      description={t('account.description')}
+      description={
+        user.hasPassword
+          ? t('account.description')
+          : t('account.descriptionNoPassword')
+      }
       footer={
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting] as const}
@@ -173,17 +207,19 @@ function AccountForm({ user }: { user: User }) {
               />
             )}
           />
-          <form.Field
-            name="currentPassword"
-            children={(field) => (
-              <TextField
-                field={field}
-                label={t('account.currentPassword')}
-                type="password"
-                autoComplete="current-password"
-              />
-            )}
-          />
+          {user.hasPassword && (
+            <form.Field
+              name="currentPassword"
+              children={(field) => (
+                <TextField
+                  field={field}
+                  label={t('account.currentPassword')}
+                  type="password"
+                  autoComplete="current-password"
+                />
+              )}
+            />
+          )}
         </div>
       </form>
     </FormSection>
@@ -278,7 +314,6 @@ function PreferencesForm({
   return (
     <FormSection
       title={t('preferences.title')}
-      className="@3xl/grid:col-span-2"
       description={t('preferences.description')}
       footer={
         <form.Subscribe
@@ -370,7 +405,7 @@ function PreferencesForm({
 }
 
 function PreferencesSkeleton() {
-  return <FormSectionSkeleton fields={5} className="@3xl/grid:col-span-2" />
+  return <FormSectionSkeleton fields={5} />
 }
 
 /**
@@ -378,15 +413,20 @@ function PreferencesSkeleton() {
  * browser
  */
 const PasswordFormBody = UpdatePasswordBody.extend({
+  currentPassword: zod.string(),
   confirmPassword: zod.string(),
 }).refine((value) => value.newPassword === value.confirmPassword, {
   error: () => i18n.t('common:validation.passwordsMismatch'),
   path: ['confirmPassword'],
 })
 
-function PasswordForm() {
+function PasswordForm({ user }: { user: User }) {
   const updatePassword = useUpdatePassword()
+  const queryClient = useQueryClient()
   const { t } = useTranslation('account')
+  // An account created through single sign-on sets its first password
+  // without confirming an old one.
+  const texts = user.hasPassword ? 'password' : 'setPassword'
 
   const form = useForm({
     defaultValues: {
@@ -394,11 +434,16 @@ function PasswordForm() {
       newPassword: '',
       confirmPassword: '',
     },
-    validators: { onSubmit: PasswordFormBody },
+    validators: {
+      onSubmit: PasswordFormBody.refine(
+        hasCurrentPassword(user.hasPassword),
+        currentPasswordRequired,
+      ),
+    },
     onSubmit: async ({ value }) => {
       const res = await updatePassword.mutateAsync({
         data: {
-          currentPassword: value.currentPassword,
+          currentPassword: user.hasPassword ? value.currentPassword : undefined,
           newPassword: value.newPassword,
         },
       })
@@ -406,21 +451,26 @@ function PasswordForm() {
       if (res.status !== 204) {
         toast.add({
           type: 'error',
-          title: t('password.couldNotChange'),
-          description: res.data.detail ?? t('password.notChanged'),
+          title: t(`${texts}.couldNotChange`),
+          description: res.data.detail ?? t(`${texts}.notChanged`),
         })
         return
       }
 
       form.reset()
-      toast.add({ type: 'success', description: t('password.changed') })
+      toast.add({ type: 'success', description: t(`${texts}.changed`) })
+      if (!user.hasPassword) {
+        void queryClient.invalidateQueries({
+          queryKey: currentUserQueryOptions.queryKey,
+        })
+      }
     },
   })
 
   return (
     <FormSection
-      title={t('password.title')}
-      description={t('password.description')}
+      title={t(`${texts}.title`)}
+      description={t(`${texts}.description`)}
       footer={
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting] as const}
@@ -431,7 +481,7 @@ function PasswordForm() {
               form="password-form"
               disabled={!canSubmit || isSubmitting}
             >
-              {isSubmitting ? t('password.submitting') : t('password.submit')}
+              {isSubmitting ? t(`${texts}.submitting`) : t(`${texts}.submit`)}
             </Button>
           )}
         />
@@ -445,17 +495,19 @@ function PasswordForm() {
         }}
       >
         <div className="grid gap-4">
-          <form.Field
-            name="currentPassword"
-            children={(field) => (
-              <TextField
-                field={field}
-                label={t('password.currentPassword')}
-                type="password"
-                autoComplete="current-password"
-              />
-            )}
-          />
+          {user.hasPassword && (
+            <form.Field
+              name="currentPassword"
+              children={(field) => (
+                <TextField
+                  field={field}
+                  label={t('password.currentPassword')}
+                  type="password"
+                  autoComplete="current-password"
+                />
+              )}
+            />
+          )}
           <form.Field
             name="newPassword"
             children={(field) => (

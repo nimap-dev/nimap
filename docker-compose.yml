@@ -28,6 +28,11 @@ services:
       - SERVICE_LOG_LEVEL=debug
       - SERVICE_LOG_FORMAT=text
       - SERVICE_AUTO_MIGRATE=true
+      - SERVICE_BASE_URL=http://localhost:8080
+      # Single sign-on, see .env.example
+      # - SERVICE_OIDC_ISSUER=
+      # - SERVICE_OIDC_CLIENT_ID=
+      # - SERVICE_OIDC_CLIENT_SECRET=
     ports:
       - "8080:8080"
     volumes:

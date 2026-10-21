@@ -24,6 +24,7 @@ type Querier interface {
 	CreateLocationAssetAttachment(ctx context.Context, arg CreateLocationAssetAttachmentParams) (AssetAttachment, error)
 	CreateManufacturer(ctx context.Context, arg CreateManufacturerParams) (Manufacturer, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
+	CreateUserIdentity(ctx context.Context, arg CreateUserIdentityParams) error
 	DeleteAsset(ctx context.Context, id uuid.UUID) (string, error)
 	DeleteAssetAttachment(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 	DeleteBuilding(ctx context.Context, id uuid.UUID) (int64, error)
@@ -31,16 +32,20 @@ type Querier interface {
 	DeleteLocation(ctx context.Context, id uuid.UUID) (int64, error)
 	DeleteManufacturer(ctx context.Context, id uuid.UUID) (int64, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) (int64, error)
+	DeleteUserIdentity(ctx context.Context, arg DeleteUserIdentityParams) (int64, error)
 	GetAsset(ctx context.Context, id uuid.UUID) (Asset, error)
 	GetBuilding(ctx context.Context, id uuid.UUID) (GetBuildingRow, error)
 	GetDeviceModel(ctx context.Context, id uuid.UUID) (GetDeviceModelRow, error)
 	GetLocation(ctx context.Context, id uuid.UUID) (GetLocationRow, error)
 	GetManufacturer(ctx context.Context, id uuid.UUID) (Manufacturer, error)
+	GetUserByEmail(ctx context.Context, lower string) (GetUserByEmailRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
+	GetUserByIdentity(ctx context.Context, arg GetUserByIdentityParams) (GetUserByIdentityRow, error)
 	GetUserByUsername(ctx context.Context, lower string) (GetUserByUsernameRow, error)
-	GetUserPasswordHashByID(ctx context.Context, id uuid.UUID) (string, error)
+	GetUserPasswordHashByID(ctx context.Context, id uuid.UUID) (*string, error)
 	GetUserPreferences(ctx context.Context, id uuid.UUID) (GetUserPreferencesRow, error)
 	GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error)
+	ListAllUserIdentities(ctx context.Context) ([]ListAllUserIdentitiesRow, error)
 	ListAssetStoragePaths(ctx context.Context) ([]string, error)
 	ListBuildingAssets(ctx context.Context, buildingID *uuid.UUID) ([]ListBuildingAssetsRow, error)
 	ListBuildings(ctx context.Context, arg ListBuildingsParams) ([]ListBuildingsRow, error)
@@ -52,6 +57,7 @@ type Querier interface {
 	ListLocations(ctx context.Context, statuses []string) ([]ListLocationsRow, error)
 	ListManufacturers(ctx context.Context) ([]Manufacturer, error)
 	ListUnreferencedAssets(ctx context.Context) ([]ListUnreferencedAssetsRow, error)
+	ListUserIdentities(ctx context.Context, userID uuid.UUID) ([]ListUserIdentitiesRow, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	// Picks the location whose area a footprint overlaps the most, so a building
 	// drawn inside a campus lands in the campus rather than in whichever location
@@ -60,6 +66,7 @@ type Querier interface {
 	// front, where the GIST index can use it, instead of leaving it to
 	// ST_Intersects returning NULL.
 	SuggestLocationForFootprint(ctx context.Context, footprint string) (SuggestLocationForFootprintRow, error)
+	TouchUserIdentity(ctx context.Context, arg TouchUserIdentityParams) error
 	UpdateAssetDimensions(ctx context.Context, arg UpdateAssetDimensionsParams) error
 	UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) (UpdateBuildingRow, error)
 	UpdateBuildingStatus(ctx context.Context, arg UpdateBuildingStatusParams) (UpdateBuildingStatusRow, error)
@@ -74,6 +81,7 @@ type Querier interface {
 	UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) error
 	UpdateUserPreferences(ctx context.Context, arg UpdateUserPreferencesParams) (UpdateUserPreferencesRow, error)
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (UpdateUserRoleRow, error)
+	UsernameExists(ctx context.Context, lower string) (bool, error)
 }
 
 var _ Querier = (*Queries)(nil)

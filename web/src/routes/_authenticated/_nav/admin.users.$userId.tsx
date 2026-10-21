@@ -4,6 +4,7 @@ import {
   useDeleteUser,
   useGetUser,
   useResetUserPassword,
+  useUnlinkUserIdentity,
   useUpdateUser,
   useUpdateUserRole,
 } from '#/api/admin/admin'
@@ -11,10 +12,11 @@ import {
   ResetUserPasswordBody,
   UpdateUserBody,
 } from '#/api/endpoints/admin/admin.zod'
-import type { User } from '#/api/model'
+import type { Identity, User } from '#/api/model'
 import { TextField } from '#/components/form/text-field'
 import { DetailColumn, DetailGrid, DetailMeta } from '#/components/detail-list'
 import { FormSection } from '#/components/form-section'
+import { IdentityList } from '#/components/identity-list'
 import { Panel, PanelNotFound, PanelPending } from '#/components/panel'
 import {
   AlertDialog,
@@ -43,7 +45,7 @@ import type { Role } from '#/lib/roles'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Unlink } from 'lucide-react'
 import { useState } from 'react'
 import * as zod from 'zod'
 import { useTranslation } from 'react-i18next'
@@ -155,6 +157,12 @@ function ManageUserDetail({ user }: { user: User }) {
               <DetailColumn>
                 <UserRoleSection user={user} />
                 <UserPasswordForm user={user} />
+                <IdentityList
+                  identities={user.identities}
+                  action={(identity) => (
+                    <UnlinkIdentityButton user={user} identity={identity} />
+                  )}
+                />
               </DetailColumn>
             </>
           )}
@@ -191,6 +199,95 @@ function ManageUserDetail({ user }: { user: User }) {
             {deleteUser.isPending
               ? t('common:actions.deleting')
               : t('delete.submit')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
+function UnlinkIdentityButton({
+  user,
+  identity,
+}: {
+  user: User
+  identity: Identity
+}) {
+  const unlink = useUnlinkUserIdentity()
+  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false)
+  const { t } = useTranslation(['admin', 'common'])
+
+  const lastWayIn = !user.hasPassword && user.identities.length === 1
+
+  async function handleUnlink() {
+    try {
+      const res = await unlink.mutateAsync({
+        id: user.id,
+        identityId: identity.id,
+      })
+
+      if (res.status !== 204) {
+        toast.add({
+          type: 'error',
+          title: t('unlink.couldNotUnlink'),
+          description: res.data.detail ?? t('unlink.notUnlinked'),
+        })
+        return
+      }
+    } catch {
+      toast.add({
+        type: 'error',
+        title: t('unlink.couldNotUnlink'),
+        description: t('delete.requestFailed'),
+      })
+      return
+    }
+
+    setOpen(false)
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: getGetUserQueryKey(user.id) }),
+      queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() }),
+    ])
+    toast.add({
+      type: 'success',
+      description: t('unlink.unlinked', { username: user.username }),
+    })
+  }
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger
+        render={<Button variant="outline" size="sm" />}
+        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+      >
+        <Unlink />
+        {t('unlink.label')}
+      </AlertDialogTrigger>
+      <AlertDialogContent size="sm">
+        <AlertDialogHeader>
+          <AlertDialogMedia>
+            <Unlink />
+          </AlertDialogMedia>
+          <AlertDialogTitle>
+            {t('unlink.title', { username: user.username })}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {lastWayIn
+              ? t('unlink.descriptionLastWayIn')
+              : t('unlink.description')}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel variant="outline" disabled={unlink.isPending}>
+            {t('common:actions.cancel')}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            disabled={unlink.isPending}
+            onClick={handleUnlink}
+          >
+            {unlink.isPending ? t('unlink.submitting') : t('unlink.submit')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

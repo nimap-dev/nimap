@@ -1,3 +1,4 @@
+import { SignInBadges } from '#/components/identity-list'
 import { useListUsers } from '#/api/admin/admin'
 import type { User } from '#/api/model'
 import { DataTable } from '#/components/data-table/data-table'
@@ -71,6 +72,12 @@ function useColumns() {
           ),
           meta: { width: '8rem' },
           cell: ({ getValue }) => <RoleBadge role={asRole(getValue())} />,
+        }),
+        columnHelper.display({
+          id: 'signIn',
+          header: () => t('common:identities.signIn'),
+          meta: { width: '8rem' },
+          cell: ({ row }) => <SignInBadges user={row.original} />,
         }),
         columnHelper.accessor('updatedAt', {
           header: ({ column }) => (

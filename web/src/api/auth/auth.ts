@@ -24,6 +24,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AuthProviders,
   ErrorModel,
   LoginInputBody,
   Preferences,
@@ -806,6 +807,132 @@ export function useGetCurrentUser<TData = Awaited<ReturnType<typeof getCurrentUs
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetCurrentUserQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type listAuthProvidersResponse200 = {
+  data: AuthProviders
+  status: 200
+}
+
+export type listAuthProvidersResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 200>
+}
+
+export type listAuthProvidersResponseSuccess = (listAuthProvidersResponse200) & {
+  headers: Headers;
+};
+export type listAuthProvidersResponseError = (listAuthProvidersResponseDefault) & {
+  headers: Headers;
+};
+
+export type listAuthProvidersResponse = (listAuthProvidersResponseSuccess | listAuthProvidersResponseError)
+
+export const getListAuthProvidersUrl = () => {
+
+
+
+
+  return `/api/auth/providers`
+}
+
+/**
+ * @summary List the available login methods
+ */
+export const listAuthProviders = async ( options?: RequestInit): Promise<listAuthProvidersResponse> => {
+
+  const res = await fetch(getListAuthProvidersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listAuthProvidersResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listAuthProvidersResponse
+}
+
+
+
+
+
+export const getListAuthProvidersQueryKey = () => {
+    return [
+    `/api/auth/providers`
+    ] as const;
+    }
+
+
+export const getListAuthProvidersQueryOptions = <TData = Awaited<ReturnType<typeof listAuthProviders>>, TError = ErrorModel>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAuthProviders>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAuthProvidersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAuthProviders>>> = ({ signal }) => listAuthProviders({ signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAuthProviders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAuthProvidersQueryResult = NonNullable<Awaited<ReturnType<typeof listAuthProviders>>>
+export type ListAuthProvidersQueryError = ErrorModel
+
+
+export function useListAuthProviders<TData = Awaited<ReturnType<typeof listAuthProviders>>, TError = ErrorModel>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAuthProviders>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAuthProviders>>,
+          TError,
+          Awaited<ReturnType<typeof listAuthProviders>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAuthProviders<TData = Awaited<ReturnType<typeof listAuthProviders>>, TError = ErrorModel>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAuthProviders>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAuthProviders>>,
+          TError,
+          Awaited<ReturnType<typeof listAuthProviders>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAuthProviders<TData = Awaited<ReturnType<typeof listAuthProviders>>, TError = ErrorModel>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAuthProviders>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the available login methods
+ */
+
+export function useListAuthProviders<TData = Awaited<ReturnType<typeof listAuthProviders>>, TError = ErrorModel>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAuthProviders>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAuthProvidersQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

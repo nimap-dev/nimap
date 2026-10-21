@@ -36,6 +36,19 @@ export default {
     requestFailed: 'Požadavek selhal, zkontrolujte připojení a zkuste to znovu',
     deleted: 'Uživatel {{username}} byl smazán',
   },
+  unlink: {
+    label: 'Odpojit',
+    title: 'Odpojit jednotné přihlášení od {{username}}?',
+    description:
+      'S tímto účtem u poskytovatele se už nepřihlásí. Při dalším pokusu se to bere jako první přihlášení: účet se znovu propojí podle ověřeného e-mailu, nebo bude odmítnut.',
+    descriptionLastWayIn:
+      'Je to jeho jediný způsob přihlášení, heslo nemá. Dokud mu heslo nenastavíte nebo se účet znovu nepropojí, nepřihlásí se.',
+    submit: 'Odpojit',
+    submitting: 'Odpojuji…',
+    couldNotUnlink: 'Odpojení se nezdařilo',
+    notUnlinked: 'Účet zůstal propojený',
+    unlinked: 'Jednotné přihlášení bylo od {{username}} odpojeno',
+  },
   self: {
     title: 'Toto je váš účet',
     description:

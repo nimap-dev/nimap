@@ -88,7 +88,7 @@ func runNewUser(ctx context.Context, cfg *config.Config, username, email, passwo
 	user, err := gen.New(pool).CreateUser(ctx, gen.CreateUserParams{
 		Username:     username,
 		Email:        email,
-		PasswordHash: hash,
+		PasswordHash: &hash,
 		RoleID:       roleID,
 	})
 	if err != nil {

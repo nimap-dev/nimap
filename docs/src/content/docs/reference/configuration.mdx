@@ -16,6 +16,14 @@ nimap is configured with environment variables, set in the `environment` section
 | [`SERVICE_AUTO_MIGRATE`](#service_auto_migrate) | `true` | Update the database schema on start |
 | [`SERVICE_LOG_LEVEL`](#service_log_level) | `info` | How much to log |
 | [`SERVICE_LOG_FORMAT`](#service_log_format) | `text` | Log format |
+| [`SERVICE_BASE_URL`](#service_base_url) | — | Public URL of the instance |
+| [`SERVICE_OIDC_ISSUER`](#service_oidc_issuer) | — | OIDC provider; empty disables single sign-on |
+| [`SERVICE_OIDC_CLIENT_ID`](#service_oidc_client_id) | — | OIDC client ID |
+| [`SERVICE_OIDC_CLIENT_SECRET`](#service_oidc_client_secret) | — | OIDC client secret |
+| [`SERVICE_OIDC_NAME`](#service_oidc_name) | `SSO` | Name on the login button |
+| [`SERVICE_OIDC_SCOPES`](#service_oidc_scopes) | `openid,email,profile` | Scopes requested from the provider |
+| [`SERVICE_OIDC_ALLOWED_DOMAINS`](#service_oidc_allowed_domains) | — | Email domains allowed to sign up |
+| [`SERVICE_OIDC_LINK_BY_EMAIL`](#service_oidc_link_by_email) | `true` | Link a first login to an existing user by email |
 
 ## `SERVICE_DATABASE_URL`
 
@@ -58,3 +66,54 @@ When enabled, nimap brings the database schema up to date on every start, includ
 ## `SERVICE_LOG_FORMAT`
 
 `text` or `json`. Default: `text`. Use `json` when logs are collected by a log aggregator.
+
+## `SERVICE_BASE_URL`
+
+The address users open nimap at, for example `https://nimap.example.com`. Required when single sign-on is enabled, optional otherwise.
+
+It has to be an absolute URL without a query or fragment. It has to use `https`, unless [`SERVICE_ENV`](#service_env) is `development`. A trailing slash does not matter. If nimap runs under a path, include it: `https://example.com/nimap`.
+
+The OIDC redirect URI is derived from it as `SERVICE_BASE_URL` + `/api/auth/oidc/callback`. Behind a reverse proxy use the public address, not the internal one.
+
+## Single sign-on
+
+The `SERVICE_OIDC_*` variables connect nimap to an OpenID Connect provider such as Authentik, Keycloak, Microsoft Entra ID or Google. Setting up the provider and how accounts are linked is described in [Single sign-on](../../admin/single-sign-on/).
+
+If any of them is invalid, nimap does not start and says which one. If the provider cannot be reached on start, nimap starts anyway with password login only and logs `single sign-on disabled`.
+
+### `SERVICE_OIDC_ISSUER`
+
+Issuer URL of the provider, for example `https://auth.example.com/application/o/nimap/`. nimap reads `/.well-known/openid-configuration` under it. It has to match the `issuer` the provider publishes there exactly, trailing slash included.
+
+Empty, the default, disables single sign-on. It has to use `https`, unless [`SERVICE_ENV`](#service_env) is `development`.
+
+### `SERVICE_OIDC_CLIENT_ID`
+
+Client ID of the application registered at the provider. Required when `SERVICE_OIDC_ISSUER` is set.
+
+### `SERVICE_OIDC_CLIENT_SECRET`
+
+Client secret of that application. Required when `SERVICE_OIDC_ISSUER` is set. nimap is a confidential client, so the provider has to issue a secret.
+
+### `SERVICE_OIDC_NAME`
+
+Text on the login button, which reads "Log in with …". Default: `SSO`. Use the name your users know, for example `Authentik` or `Company account`.
+
+### `SERVICE_OIDC_SCOPES`
+
+Comma-separated scopes requested from the provider. Default: `openid,email,profile`. It has to include `openid`. nimap needs the email, so keep `email` unless the provider sends it some other way.
+
+### `SERVICE_OIDC_ALLOWED_DOMAINS`
+
+Comma-separated email domains whose users may get a new account on their first login, for example `example.com,example.org`. Case does not matter, but each domain is matched exactly: `example.com` does not allow `sub.example.com`.
+
+Empty, the default, allows anyone the provider lets in. The list only limits new accounts; users who are already linked, or get linked by email, log in regardless of their domain.
+
+### `SERVICE_OIDC_LINK_BY_EMAIL`
+
+`true` or `false`. Default: `true`.
+
+When enabled, the first single sign-on login of someone whose email already belongs to a nimap user is linked to that user, but only if the provider marks the email as verified (`email_verified`). When disabled, or when the email is not verified, such a login is refused.
+
+Only enable it if you trust the provider's emails: whoever controls an email at the provider gets into the nimap account with that email.
+

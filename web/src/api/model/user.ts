@@ -4,6 +4,7 @@
  * nimap API
  * OpenAPI spec version: dev
  */
+import type { Identity } from './identity.ts';
 import type { UserRole } from './userRole.ts';
 
 export interface User {
@@ -11,7 +12,11 @@ export interface User {
   readonly $schema?: string;
   createdAt: string;
   email: string;
+  /** Whether the account has a password; single sign-on accounts may have none */
+  hasPassword: boolean;
   id: string;
+  /** Single sign-on accounts linked to this user */
+  identities: Identity[];
   permissions: string[];
   role: UserRole;
   updatedAt: string;

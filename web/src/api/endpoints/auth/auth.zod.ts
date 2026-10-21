@@ -10,13 +10,12 @@ import * as zod from 'zod';
 /**
  * @summary Update the current user's username and email
  */
-
 export const updateAccountBodyUsernameMin = 3;
 
 
 
 export const UpdateAccountBody = zod.object({
-  "currentPassword": zod.string().min(1).describe('Current account password, confirming the change'),
+  "currentPassword": zod.string().optional().describe('Current account password, confirming the change; omitted when the account has none'),
   "email": zod.email().describe('New account email address'),
   "username": zod.string().min(updateAccountBodyUsernameMin).describe('New account username')
 })
@@ -25,7 +24,16 @@ export const UpdateAccountResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
   "createdAt": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
+  "hasPassword": zod.boolean().describe('Whether the account has a password; single sign-on accounts may have none'),
   "id": zod.string(),
+  "identities": zod.array(zod.object({
+  "email": zod.string().optional().describe('Email the issuer reported at the last login'),
+  "id": zod.string(),
+  "issuer": zod.string().describe('OIDC issuer the account belongs to'),
+  "lastLoginAt": zod.iso.datetime({"offset":true}).describe('When the account last logged in'),
+  "linkedAt": zod.iso.datetime({"offset":true}).describe('When the account was first used to log in'),
+  "subject": zod.string().describe('The account\'s stable id at the issuer')
+})).describe('Single sign-on accounts linked to this user'),
   "permissions": zod.array(zod.string()),
   "role": zod.enum(['viewer', 'editor', 'admin']),
   "updatedAt": zod.iso.datetime({"offset":true}),
@@ -35,13 +43,12 @@ export const UpdateAccountResponse = zod.object({
 /**
  * @summary Change the current user's password
  */
-
 export const updatePasswordBodyNewPasswordMin = 8;
 
 
 
 export const UpdatePasswordBody = zod.object({
-  "currentPassword": zod.string().min(1).describe('Current account password'),
+  "currentPassword": zod.string().optional().describe('Current account password; omitted when the account has none yet'),
   "newPassword": zod.string().min(updatePasswordBodyNewPasswordMin).describe('New account password')
 })
 
@@ -96,7 +103,16 @@ export const LoginResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
   "createdAt": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
+  "hasPassword": zod.boolean().describe('Whether the account has a password; single sign-on accounts may have none'),
   "id": zod.string(),
+  "identities": zod.array(zod.object({
+  "email": zod.string().optional().describe('Email the issuer reported at the last login'),
+  "id": zod.string(),
+  "issuer": zod.string().describe('OIDC issuer the account belongs to'),
+  "lastLoginAt": zod.iso.datetime({"offset":true}).describe('When the account last logged in'),
+  "linkedAt": zod.iso.datetime({"offset":true}).describe('When the account was first used to log in'),
+  "subject": zod.string().describe('The account\'s stable id at the issuer')
+})).describe('Single sign-on accounts linked to this user'),
   "permissions": zod.array(zod.string()),
   "role": zod.enum(['viewer', 'editor', 'admin']),
   "updatedAt": zod.iso.datetime({"offset":true}),
@@ -115,10 +131,31 @@ export const GetCurrentUserResponse = zod.object({
   "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
   "createdAt": zod.iso.datetime({"offset":true}),
   "email": zod.string(),
+  "hasPassword": zod.boolean().describe('Whether the account has a password; single sign-on accounts may have none'),
   "id": zod.string(),
+  "identities": zod.array(zod.object({
+  "email": zod.string().optional().describe('Email the issuer reported at the last login'),
+  "id": zod.string(),
+  "issuer": zod.string().describe('OIDC issuer the account belongs to'),
+  "lastLoginAt": zod.iso.datetime({"offset":true}).describe('When the account last logged in'),
+  "linkedAt": zod.iso.datetime({"offset":true}).describe('When the account was first used to log in'),
+  "subject": zod.string().describe('The account\'s stable id at the issuer')
+})).describe('Single sign-on accounts linked to this user'),
   "permissions": zod.array(zod.string()),
   "role": zod.enum(['viewer', 'editor', 'admin']),
   "updatedAt": zod.iso.datetime({"offset":true}),
   "username": zod.string()
+})
+
+/**
+ * @summary List the available login methods
+ */
+export const ListAuthProvidersResponse = zod.object({
+  "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "oidc": zod.object({
+  "loginUrl": zod.string().describe('Path to navigate to, accepts ?next='),
+  "name": zod.string().describe('Label for the login button')
+}).optional().describe('Single sign-on, absent when disabled'),
+  "password": zod.boolean().describe('Username and password login is available')
 })
 

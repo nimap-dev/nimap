@@ -8,19 +8,29 @@ import {
 } from '#/components/ui/card'
 import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoginBody } from '#/api/endpoints/auth/auth.zod'
 import { toast } from '#/components/ui/toast'
-import { useLogin } from '#/api/auth/auth'
+import { getListAuthProvidersQueryOptions, useLogin } from '#/api/auth/auth'
 import { currentUserQueryOptions } from '#/lib/auth'
 import { TextField } from '#/components/form/text-field'
 import { Button } from '#/components/ui/button'
-import { Field, FieldGroup } from '#/components/ui/field'
+import { Field, FieldGroup, FieldSeparator } from '#/components/ui/field'
 import { applyLanguage, browserLanguage } from '#/lib/i18n'
 import { useTranslation } from 'react-i18next'
 
+/** The ?error= codes a failed single sign-on comes back with. */
+const ssoErrors = ['oidc', 'oidc_no_account'] as const
+type SsoError = (typeof ssoErrors)[number]
+
+type LoginSearch = { redirect?: string; error?: SsoError }
+
+const authProvidersQueryOptions = getListAuthProvidersQueryOptions({
+  query: { retry: false, staleTime: Infinity },
+})
+
 export const Route = createFileRoute('/auth/login')({
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
+  validateSearch: (search: Record<string, unknown>): LoginSearch => {
     const raw = search.redirect
 
     const path =
@@ -28,7 +38,12 @@ export const Route = createFileRoute('/auth/login')({
         ? raw
         : undefined
 
-    return path ? { redirect: path } : {}
+    const error = ssoErrors.find((code) => code === search.error)
+
+    return {
+      ...(path ? { redirect: path } : {}),
+      ...(error ? { error } : {}),
+    }
   },
   // Already logged in: there is nothing to show here.
   beforeLoad: async ({ context }) => {
@@ -50,6 +65,8 @@ function Login() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const search = Route.useSearch()
+  const { data: providers } = useQuery(authProvidersQueryOptions)
+  const sso = providers?.status === 200 ? providers.data.oidc : undefined
 
   const form = useForm({
     defaultValues: {
@@ -84,6 +101,11 @@ function Login() {
           <CardDescription>{t('login.description')}</CardDescription>
         </CardHeader>
         <CardContent>
+          {search.error && (
+            <p role="alert" className="mb-4 text-sm text-destructive">
+              {t(`login.ssoErrors.${search.error}`)}
+            </p>
+          )}
           <form
             id="login-form"
             onSubmit={(e) => {
@@ -119,11 +141,33 @@ function Login() {
           </form>
         </CardContent>
         <CardFooter>
-          <Field orientation="horizontal">
-            <Button type="submit" form="login-form">
-              {t('login.submit')}
-            </Button>
-          </Field>
+          <FieldGroup>
+            <Field orientation="horizontal">
+              <Button type="submit" form="login-form">
+                {t('login.submit')}
+              </Button>
+            </Field>
+            {sso && (
+              <>
+                <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
+                  {t('login.or')}
+                </FieldSeparator>
+                <Field>
+                  <Button
+                    variant="outline"
+                    nativeButton={false}
+                    render={
+                      <a
+                        href={`${sso.loginUrl}?next=${encodeURIComponent(search.redirect ?? '/')}`}
+                      />
+                    }
+                  >
+                    {t('login.sso', { name: sso.name })}
+                  </Button>
+                </Field>
+              </>
+            )}
+          </FieldGroup>
         </CardFooter>
       </Card>
     </div>

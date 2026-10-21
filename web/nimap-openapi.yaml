@@ -75,6 +75,25 @@ components:
         - byteSize
         - createdAt
       type: object
+    AuthProviders:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/AuthProviders.json
+          format: uri
+          readOnly: true
+          type: string
+        oidc:
+          $ref: "#/components/schemas/OIDCProviderInfo"
+          description: Single sign-on, absent when disabled
+        password:
+          description: Username and password login is available
+          type: boolean
+      required:
+        - password
+      type: object
     BuildingResponse:
       additionalProperties: false
       properties:
@@ -514,6 +533,35 @@ components:
           format: uri
           type: string
       type: object
+    Identity:
+      additionalProperties: false
+      properties:
+        email:
+          description: Email the issuer reported at the last login
+          type: string
+        id:
+          type: string
+        issuer:
+          description: OIDC issuer the account belongs to
+          type: string
+        lastLoginAt:
+          description: When the account last logged in
+          format: date-time
+          type: string
+        linkedAt:
+          description: When the account was first used to log in
+          format: date-time
+          type: string
+        subject:
+          description: The account's stable id at the issuer
+          type: string
+      required:
+        - id
+        - issuer
+        - subject
+        - linkedAt
+        - lastLoginAt
+      type: object
     LocationResponse:
       additionalProperties: false
       properties:
@@ -658,6 +706,23 @@ components:
       required:
         - type
         - coordinates
+      type: object
+    OIDCProviderInfo:
+      additionalProperties: false
+      properties:
+        loginUrl:
+          description: Path to navigate to, accepts ?next=
+          examples:
+            - /api/auth/oidc/login
+          type: string
+        name:
+          description: Label for the login button
+          examples:
+            - SSO
+          type: string
+      required:
+        - name
+        - loginUrl
       type: object
     Point:
       additionalProperties: false
@@ -861,8 +926,7 @@ components:
           readOnly: true
           type: string
         currentPassword:
-          description: Current account password, confirming the change
-          minLength: 1
+          description: Current account password, confirming the change; omitted when the account has none
           type: string
         email:
           description: New account email address
@@ -877,7 +941,6 @@ components:
       required:
         - username
         - email
-        - currentPassword
       type: object
     UpdateBuildingRequest:
       additionalProperties: false
@@ -1095,15 +1158,13 @@ components:
           readOnly: true
           type: string
         currentPassword:
-          description: Current account password
-          minLength: 1
+          description: Current account password; omitted when the account has none yet
           type: string
         newPassword:
           description: New account password
           minLength: 8
           type: string
       required:
-        - currentPassword
         - newPassword
       type: object
     UpdateUserInputBody:
@@ -1163,8 +1224,16 @@ components:
           type: string
         email:
           type: string
+        hasPassword:
+          description: Whether the account has a password; single sign-on accounts may have none
+          type: boolean
         id:
           type: string
+        identities:
+          description: Single sign-on accounts linked to this user
+          items:
+            $ref: "#/components/schemas/Identity"
+          type: array
         permissions:
           items:
             type: string
@@ -1188,6 +1257,8 @@ components:
         - permissions
         - createdAt
         - updatedAt
+        - hasPassword
+        - identities
       type: object
 info:
   title: nimap API
@@ -1312,6 +1383,33 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Updates the username and email of the account with the provided id
+      tags:
+        - admin
+  /api/admin/users/{id}/identities/{identityId}:
+    delete:
+      description: "The user can no longer log in with that account. Logging in with it again is treated as a first login: it may be linked anew by email, or refused."
+      operationId: unlink-user-identity
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: identityId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Unlinks a single sign-on account from the user
       tags:
         - admin
   /api/admin/users/{id}/password:
@@ -1665,6 +1763,25 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
       summary: Return the currently authenticated user
+      tags:
+        - auth
+  /api/auth/providers:
+    get:
+      operationId: list-auth-providers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthProviders"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: List the available login methods
       tags:
         - auth
   /api/buildings:

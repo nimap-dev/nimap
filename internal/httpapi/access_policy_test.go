@@ -16,6 +16,7 @@ type policy struct {
 var wantPolicy = map[string]policy{
 	// auth
 	"login":                      {public: true},
+	"list-auth-providers":        {public: true},
 	"logout":                     {public: true},
 	"get-current-user":           {},
 	"update-password":            {},
@@ -47,13 +48,14 @@ var wantPolicy = map[string]policy{
 	"delete-asset-attachment": {permission: auth.WriteRecords},
 
 	// admin
-	"list-users":          {permission: auth.ManageUsers},
-	"get-user":            {permission: auth.ManageUsers},
-	"create-user":         {permission: auth.ManageUsers},
-	"update-user":         {permission: auth.ManageUsers},
-	"update-user-role":    {permission: auth.ManageUsers},
-	"reset-user-password": {permission: auth.ManageUsers},
-	"delete-user":         {permission: auth.ManageUsers},
+	"list-users":           {permission: auth.ManageUsers},
+	"get-user":             {permission: auth.ManageUsers},
+	"create-user":          {permission: auth.ManageUsers},
+	"update-user":          {permission: auth.ManageUsers},
+	"update-user-role":     {permission: auth.ManageUsers},
+	"reset-user-password":  {permission: auth.ManageUsers},
+	"delete-user":          {permission: auth.ManageUsers},
+	"unlink-user-identity": {permission: auth.ManageUsers},
 
 	// device types
 	"list-device-types": {permission: auth.ReadRecords},
@@ -133,7 +135,7 @@ func describe(p policy) string {
 }
 
 func operations(t *testing.T) map[string]*huma.Operation {
-	api := NewAPI(chi.NewMux(), "test", nil, nil, nil)
+	api := NewAPI(chi.NewMux(), "test", nil, nil, nil, nil)
 	ops := map[string]*huma.Operation{}
 
 	for path, item := range api.OpenAPI().Paths {

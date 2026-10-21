@@ -4,14 +4,29 @@ FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
 WHERE lower(u.username) = lower($1);
 
--- name: GetUserByID :one
+-- name: GetUserByEmail :one
 SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
+FROM auth.users u
+JOIN auth.roles r ON r.id = u.role_id
+WHERE lower(u.email) = lower($1);
+
+-- name: UsernameExists :one
+SELECT EXISTS (
+  SELECT 1
+  FROM auth.users
+  WHERE lower(username) = lower($1)
+);
+
+-- name: GetUserByID :one
+SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role,
+       (u.password_hash IS NOT NULL)::boolean AS has_password
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
 WHERE u.id = $1;
 
 -- name: ListUsers :many
-SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
+SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role,
+       (u.password_hash IS NOT NULL)::boolean AS has_password
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
 ORDER BY lower(u.username);
@@ -19,7 +34,7 @@ ORDER BY lower(u.username);
 -- name: CreateUser :one
 INSERT INTO auth.users (username, email, password_hash, role_id)
 VALUES ($1, $2, $3, $4)
-RETURNING id, username, email, role_id, created_at, updated_at;
+RETURNING id, username, email, role_id, created_at, updated_at, (password_hash IS NOT NULL)::boolean AS has_password;
 
 -- name: UpdateUserPasswordHash :exec
 UPDATE auth.users
@@ -44,7 +59,7 @@ SET username = $2,
     updated_at = now()
 FROM auth.roles r
 WHERE u.id = $1 AND r.id = u.role_id
-RETURNING u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role;
+RETURNING u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role, (u.password_hash IS NOT NULL)::boolean AS has_password;
 
 -- name: UpdateUserRole :one
 UPDATE auth.users u
@@ -52,7 +67,7 @@ SET role_id = $2,
     updated_at = now()
 FROM auth.roles r
 WHERE u.id = $1 AND r.id = $2
-RETURNING u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role;
+RETURNING u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role, (u.password_hash IS NOT NULL)::boolean AS has_password;
 
 -- name: DeleteUser :execrows
 DELETE FROM auth.users

@@ -19,6 +19,11 @@ type UserIDInput struct {
 	ID uuid.UUID `path:"id"`
 }
 
+type UserIdentityInput struct {
+	ID         uuid.UUID `path:"id"`
+	IdentityID uuid.UUID `path:"identityId"`
+}
+
 type CreateUserInput struct {
 	Body struct {
 		Username string        `json:"username" minLength:"3" example:"admin" doc:"Account username"`
@@ -69,6 +74,11 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			return nil, huma.Error500InternalServerError("user list failed")
 		}
 
+		identities, err := identitiesByUser(ctx, q)
+		if err != nil {
+			return nil, huma.Error500InternalServerError("user list failed")
+		}
+
 		result := make([]User, 0, len(users))
 		for _, user := range users {
 			result = append(result, User{
@@ -79,6 +89,8 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 				Permissions: permissionStrings(user.RoleID),
 				CreatedAt:   user.CreatedAt,
 				UpdatedAt:   user.UpdatedAt,
+				HasPassword: user.HasPassword,
+				Identities:  orEmpty(identities[user.ID]),
 			})
 		}
 
@@ -101,6 +113,11 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			return nil, huma.Error500InternalServerError("could not load user")
 		}
 
+		identities, err := userIdentities(ctx, q, user.ID)
+		if err != nil {
+			return nil, huma.Error500InternalServerError("could not load user")
+		}
+
 		return &UserOutput{Body: User{
 			ID:          user.ID,
 			Username:    user.Username,
@@ -109,6 +126,8 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
+			HasPassword: user.HasPassword,
+			Identities:  identities,
 		}}, nil
 	})
 
@@ -134,7 +153,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 		user, err := q.CreateUser(ctx, gen.CreateUserParams{
 			Username:     strings.TrimSpace(in.Body.Username),
 			Email:        strings.TrimSpace(in.Body.Email),
-			PasswordHash: hash,
+			PasswordHash: &hash,
 			RoleID:       roleID,
 		})
 		if err != nil {
@@ -146,6 +165,11 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 
 		role, _ := auth.RoleName(user.RoleID)
 
+		identities, err := userIdentities(ctx, q, user.ID)
+		if err != nil {
+			return nil, huma.Error500InternalServerError("could not load user")
+		}
+
 		return &UserOutput{Body: User{
 			ID:          user.ID,
 			Username:    user.Username,
@@ -154,6 +178,8 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
+			HasPassword: user.HasPassword,
+			Identities:  identities,
 		}}, nil
 	})
 
@@ -186,6 +212,11 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			return nil, huma.Error500InternalServerError("user update failed")
 		}
 
+		identities, err := userIdentities(ctx, q, user.ID)
+		if err != nil {
+			return nil, huma.Error500InternalServerError("could not load user")
+		}
+
 		return &UserOutput{Body: User{
 			ID:          user.ID,
 			Username:    user.Username,
@@ -194,6 +225,8 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
+			HasPassword: user.HasPassword,
+			Identities:  identities,
 		}}, nil
 	})
 
@@ -236,6 +269,11 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			return nil, huma.Error500InternalServerError("role change failed")
 		}
 
+		identities, err := userIdentities(ctx, q, user.ID)
+		if err != nil {
+			return nil, huma.Error500InternalServerError("could not load user")
+		}
+
 		return &UserOutput{Body: User{
 			ID:          user.ID,
 			Username:    user.Username,
@@ -244,6 +282,8 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 			Permissions: permissionStrings(user.RoleID),
 			CreatedAt:   user.CreatedAt,
 			UpdatedAt:   user.UpdatedAt,
+			HasPassword: user.HasPassword,
+			Identities:  identities,
 		}}, nil
 	})
 
@@ -274,9 +314,38 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 
 		if err := q.UpdateUserPasswordHash(ctx, gen.UpdateUserPasswordHashParams{
 			ID:           in.ID,
-			PasswordHash: hash,
+			PasswordHash: &hash,
 		}); err != nil {
 			return nil, huma.Error500InternalServerError("password reset failed")
+		}
+
+		return nil, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "unlink-user-identity",
+		Method:        http.MethodDelete,
+		Path:          "/api/admin/users/{id}/identities/{identityId}",
+		Summary:       "Unlinks a single sign-on account from the user",
+		Description:   "The user can no longer log in with that account. Logging in with it again is treated as a first login: it may be linked anew by email, or refused.",
+		Tags:          []string{"admin"},
+		DefaultStatus: http.StatusNoContent,
+		Metadata:      map[string]any{requirePermissionMetaKey: auth.ManageUsers},
+	}, func(ctx context.Context, in *UserIdentityInput) (*struct{}, error) {
+		if err := forbidSelf(ctx, in.ID); err != nil {
+			return nil, err
+		}
+
+		affected, err := q.DeleteUserIdentity(ctx, gen.DeleteUserIdentityParams{
+			ID:     in.IdentityID,
+			UserID: in.ID,
+		})
+		if err != nil {
+			return nil, huma.Error500InternalServerError("unlinking failed")
+		}
+
+		if affected == 0 {
+			return nil, huma.Error404NotFound("identity not found")
 		}
 
 		return nil, nil
@@ -350,4 +419,12 @@ func keepLastAdmin(ctx context.Context, q *gen.Queries, target uuid.UUID) error 
 	}
 
 	return nil
+}
+
+// orEmpty keeps a nil list from encoding as null.
+func orEmpty[T any](list []T) []T {
+	if list == nil {
+		return []T{}
+	}
+	return list
 }

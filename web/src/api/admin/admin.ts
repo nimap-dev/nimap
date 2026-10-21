@@ -626,6 +626,105 @@ export const useUpdateUser = <TError = ErrorModel,
       > => {
       return useMutation(getUpdateUserMutationOptions(options), queryClient);
     }
+    export type unlinkUserIdentityResponse204 = {
+  data: void
+  status: 204
+}
+
+export type unlinkUserIdentityResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 204>
+}
+
+export type unlinkUserIdentityResponseSuccess = (unlinkUserIdentityResponse204) & {
+  headers: Headers;
+};
+export type unlinkUserIdentityResponseError = (unlinkUserIdentityResponseDefault) & {
+  headers: Headers;
+};
+
+export type unlinkUserIdentityResponse = (unlinkUserIdentityResponseSuccess | unlinkUserIdentityResponseError)
+
+export const getUnlinkUserIdentityUrl = (id: string,
+    identityId: string,) => {
+
+
+
+
+  return `/api/admin/users/${id}/identities/${identityId}`
+}
+
+/**
+ * The user can no longer log in with that account. Logging in with it again is treated as a first login: it may be linked anew by email, or refused.
+ * @summary Unlinks a single sign-on account from the user
+ */
+export const unlinkUserIdentity = async (id: string,
+    identityId: string, options?: RequestInit): Promise<unlinkUserIdentityResponse> => {
+
+  const res = await fetch(getUnlinkUserIdentityUrl(id,identityId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: unlinkUserIdentityResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as unlinkUserIdentityResponse
+}
+
+
+
+
+
+export const getUnlinkUserIdentityMutationOptions = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkUserIdentity>>, TError,{id: string;identityId: string}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof unlinkUserIdentity>>, TError,{id: string;identityId: string}, TContext> => {
+
+const mutationKey = ['unlinkUserIdentity'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unlinkUserIdentity>>, {id: string;identityId: string}> = (props) => {
+          const {id,identityId} = props ?? {};
+
+          return  unlinkUserIdentity(id,identityId,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnlinkUserIdentityMutationResult = NonNullable<Awaited<ReturnType<typeof unlinkUserIdentity>>>
+
+    export type UnlinkUserIdentityMutationError = ErrorModel
+
+    /**
+ * @summary Unlinks a single sign-on account from the user
+ */
+export const useUnlinkUserIdentity = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkUserIdentity>>, TError,{id: string;identityId: string}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unlinkUserIdentity>>,
+        TError,
+        {id: string;identityId: string},
+        TContext
+      > => {
+      return useMutation(getUnlinkUserIdentityMutationOptions(options), queryClient);
+    }
     export type resetUserPasswordResponse204 = {
   data: void
   status: 204

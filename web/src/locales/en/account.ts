@@ -7,6 +7,8 @@ export default {
       'Change your username and email. Confirm with your current password.',
     username: 'Username',
     email: 'Email',
+    descriptionNoPassword:
+      'Change your username and email. Your account signs in through single sign-on.',
     currentPassword: 'Current password',
     accountUpdated: 'Account updated',
     accountNotUpdated: 'Your account was not updated',
@@ -50,5 +52,15 @@ export default {
     changed: 'Password changed',
     couldNotChange: 'Could not change password',
     notChanged: 'Your password was not changed',
+  },
+  setPassword: {
+    title: 'Password',
+    description:
+      'You sign in through single sign-on. Set a password of at least 8 characters to also sign in with your username.',
+    submit: 'Set password',
+    submitting: 'Setting…',
+    changed: 'Password set',
+    couldNotChange: 'Could not set password',
+    notChanged: 'Your password was not set',
   },
 }

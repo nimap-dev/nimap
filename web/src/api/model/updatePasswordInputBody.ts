@@ -8,11 +8,8 @@
 export interface UpdatePasswordInputBody {
   /** A URL to the JSON Schema for this object. */
   readonly $schema?: string;
-  /**
-     * Current account password
-     * @minLength 1
-     */
-  currentPassword: string;
+  /** Current account password; omitted when the account has none yet */
+  currentPassword?: string;
   /**
      * New account password
      * @minLength 8

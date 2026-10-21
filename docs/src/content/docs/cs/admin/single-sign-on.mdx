@@ -1,0 +1,109 @@
+---
+title: Jednotné přihlášení
+description: Přihlašování přes poskytovatele OpenID Connect, jako je Authentik, Keycloak, Entra ID nebo Google.
+sidebar:
+  order: 3
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+nimap umožňuje přihlašovat se přes jednoho poskytovatele OpenID Connect (OIDC), vedle běžného uživatelského jména a hesla. Na přihlašovací stránce se pak objeví tlačítko „Přihlásit se přes …“. Přihlášení heslem zůstává dostupné.
+
+## Jak to funguje
+
+Při prvním přihlášení přes SSO nimap hledá uživatele, ke kterému účet u poskytovatele patří:
+
+1. **Už propojený.** Účet u poskytovatele už byl použit, takže se přihlásí uživatel, ke kterému patří. Změna e-mailu u poskytovatele propojení nezruší.
+2. **Stejný e-mail.** V nimapu existuje uživatel se stejným e-mailem. Když je zapnutá [`SERVICE_OIDC_LINK_BY_EMAIL`](../../reference/configuration/#service_oidc_link_by_email) a poskytovatel e-mail označí jako ověřený, účet se s tímto uživatelem propojí. Jinak se přihlášení odmítne.
+3. **Nový uživatel.** E-mail nikdo nemá. Pokud doménu e-mailu povoluje [`SERVICE_OIDC_ALLOWED_DOMAINS`](../../reference/configuration/#service_oidc_allowed_domains), nimap založí nového uživatele s rolí **viewer** a bez hesla. Jinak se přihlášení odmítne.
+
+Uživatelské jméno nového uživatele je `preferred_username` od poskytovatele, nebo část e-mailu před `@`. Pokud je obsazené, nimap připojí `-2`, `-3` a tak dál. Uživatel si ho může změnit v nastavení účtu a administrátor mu může zvýšit roli.
+
+Uživatel bez hesla může měnit uživatelské jméno a e-mail bez potvrzení heslem. V nastavení účtu si může heslo nastavit, aby se mohl přihlašovat i jím.
+
+<Aside type="caution">
+Při zapnutém propojování podle e-mailu se do účtu v nimapu s daným e-mailem dostane každý, kdo tento e-mail u poskytovatele ovládá, a to i do účtu administrátora. Používejte ho jen s poskytovatelem, jehož e-mailům věříte, typicky s vlastním.
+</Aside>
+
+## Nastavení
+
+<Steps>
+
+1. Zaregistrujte nimap u poskytovatele jako aplikaci:
+
+   - **Typ klienta**: důvěrný (confidential), s client secretem.
+   - **Grant type**: authorization code. nimap používá PKCE.
+   - **Redirect URI**: vaše veřejná adresa a za ní `/api/auth/oidc/callback`, například `https://nimap.example.com/api/auth/oidc/callback`. Poskytovatel ji porovnává přesně, včetně schématu a portu.
+   - **Scopes**: `openid`, `email` a `profile`.
+
+2. Přidejte nastavení do sekce `environment` služby `nimap` v `compose.yaml`:
+
+   ```yaml title="compose.yaml" ins={4-9}
+     nimap:
+       environment:
+         # ...
+         SERVICE_BASE_URL: https://nimap.example.com
+         SERVICE_OIDC_ISSUER: https://auth.example.com/application/o/nimap/
+         SERVICE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}
+         SERVICE_OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
+         SERVICE_OIDC_NAME: Firemní účet
+         SERVICE_OIDC_ALLOWED_DOMAINS: example.com
+   ```
+
+   Client ID a secret uložte do `.env` vedle `DB_PASSWORD`:
+
+   ```sh title=".env"
+   OIDC_CLIENT_ID=...
+   OIDC_CLIENT_SECRET=...
+   ```
+
+   [`SERVICE_BASE_URL`](../../reference/configuration/#service_base_url) musí být adresa, kterou uživatelé otevírají, tedy ta, ze které jste sestavili redirect URI. Všechny proměnné popisuje [Konfigurace](../../reference/configuration/#jednotné-přihlášení).
+
+3. Použijte změnu:
+
+   ```sh
+   docker compose up -d
+   ```
+
+   Log potvrdí nastavení a ukáže redirect URI, kterou nimap používá:
+
+   ```sh
+   docker compose logs nimap | grep "single sign-on"
+   ```
+
+   `single sign-on enabled` znamená, že vše funguje. `single sign-on disabled` uvádí důvod, obvykle nedostupného poskytovatele nebo nesouhlasící issuer.
+
+4. Otevřete přihlašovací stránku a použijte nové tlačítko.
+
+</Steps>
+
+## Co musí poskytovatel posílat
+
+- **`sub`** identifikuje účet. Jen na něm propojení stojí.
+- **`email`** je povinný, buď v ID tokenu, nebo z userinfo endpointu. Bez něj přihlášení selže.
+- **`email_verified`** jako JSON boolean (`true`, ne `"true"`). Záleží na něm jen u propojování podle e-mailu; chybějící hodnota se bere jako neověřený e-mail.
+- **`preferred_username`** je volitelný a jen navrhuje uživatelské jméno nového uživatele.
+
+## Správa propojených účtů
+
+Uživatelé vidí své propojené účty v nastavení účtu. Administrátoři je vidí na stránce uživatele v **Uživatelích** a seznam uživatelů ukazuje, jak se kdo přihlašuje.
+
+Administrátor tam může účet u poskytovatele **odpojit**. Uživatel se s ním pak už nepřihlásí. Další přihlášení s ním se bere jako první přihlášení: účet se může znovu propojit podle e-mailu, nebo bude odmítnut. Natrvalo přístup nevezme odpojení ani smazání účtu: po smazání mu další přihlášení založí nového uživatele s rolí viewer, pokud je jeho e-mailová doména povolená. Přístup mu odeberte u poskytovatele.
+
+## Řešení problémů
+
+Neúspěšné přihlášení vrátí uživatele na přihlašovací stránku s krátkou hláškou. Důvod je v logu nimapu jako `oidc login failed`:
+
+```sh
+docker compose logs nimap | grep "oidc login failed"
+```
+
+| `reason` | Co zkontrolovat |
+| --- | --- |
+| `no login in progress` | Prohlížeč se vrátil bez session cookie. Otevírejte nimap přesně na adrese ze `SERVICE_BASE_URL`; `localhost` a `127.0.0.1` jsou pro prohlížeč různé weby. V režimu `production` cookie potřebuje i HTTPS. |
+| `state does not match` | Přihlášení bylo spuštěné dvakrát, například ve dvou záložkách. Zkuste to znovu v jedné záložce. |
+| `code exchange failed` s `invalid_client` | Špatné client ID nebo secret, nebo veřejný (public) klient u poskytovatele. |
+| `code exchange failed` s `invalid_grant` | Redirect URI u poskytovatele se liší od té, kterou nimap loguje při startu. |
+| `code exchange failed` s `verify id token` | ID token není podepsaný klíčem, který poskytovatel zveřejňuje, nebo nesouhlasí issuer. |
+| `no user for this login` s `email belongs to a user that may not be linked` | Uživatel s tímto e-mailem existuje, ale propojování podle e-mailu je vypnuté nebo e-mail není ověřený. |
+| `no user for this login` s `email domain may not sign up` | Doména není v `SERVICE_OIDC_ALLOWED_DOMAINS`. |

@@ -28,23 +28,24 @@ func (q *Queries) CountUsersWithRole(ctx context.Context, roleID int16) (int64, 
 const createUser = `-- name: CreateUser :one
 INSERT INTO auth.users (username, email, password_hash, role_id)
 VALUES ($1, $2, $3, $4)
-RETURNING id, username, email, role_id, created_at, updated_at
+RETURNING id, username, email, role_id, created_at, updated_at, (password_hash IS NOT NULL)::boolean AS has_password
 `
 
 type CreateUserParams struct {
 	Username     string
 	Email        string
-	PasswordHash string
+	PasswordHash *string
 	RoleID       int16
 }
 
 type CreateUserRow struct {
-	ID        uuid.UUID
-	Username  string
-	Email     string
-	RoleID    int16
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          uuid.UUID
+	Username    string
+	Email       string
+	RoleID      int16
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	HasPassword bool
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
@@ -62,6 +63,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 		&i.RoleID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.HasPassword,
 	)
 	return i, err
 }
@@ -79,14 +81,14 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (int64, error) {
 	return result.RowsAffected(), nil
 }
 
-const getUserByID = `-- name: GetUserByID :one
+const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
-WHERE u.id = $1
+WHERE lower(u.email) = lower($1)
 `
 
-type GetUserByIDRow struct {
+type GetUserByEmailRow struct {
 	ID        uuid.UUID
 	Username  string
 	Email     string
@@ -94,6 +96,40 @@ type GetUserByIDRow struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Role      string
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, lower string) (GetUserByEmailRow, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, lower)
+	var i GetUserByEmailRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.RoleID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Role,
+	)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role,
+       (u.password_hash IS NOT NULL)::boolean AS has_password
+FROM auth.users u
+JOIN auth.roles r ON r.id = u.role_id
+WHERE u.id = $1
+`
+
+type GetUserByIDRow struct {
+	ID          uuid.UUID
+	Username    string
+	Email       string
+	RoleID      int16
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Role        string
+	HasPassword bool
 }
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error) {
@@ -107,6 +143,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Role,
+		&i.HasPassword,
 	)
 	return i, err
 }
@@ -122,7 +159,7 @@ type GetUserByUsernameRow struct {
 	ID           uuid.UUID
 	Username     string
 	Email        string
-	PasswordHash string
+	PasswordHash *string
 	RoleID       int16
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -151,9 +188,9 @@ FROM auth.users
 WHERE id = $1
 `
 
-func (q *Queries) GetUserPasswordHashByID(ctx context.Context, id uuid.UUID) (string, error) {
+func (q *Queries) GetUserPasswordHashByID(ctx context.Context, id uuid.UUID) (*string, error) {
 	row := q.db.QueryRow(ctx, getUserPasswordHashByID, id)
-	var password_hash string
+	var password_hash *string
 	err := row.Scan(&password_hash)
 	return password_hash, err
 }
@@ -199,20 +236,22 @@ func (q *Queries) GetUserRoleID(ctx context.Context, id uuid.UUID) (int16, error
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
+SELECT u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role,
+       (u.password_hash IS NOT NULL)::boolean AS has_password
 FROM auth.users u
 JOIN auth.roles r ON r.id = u.role_id
 ORDER BY lower(u.username)
 `
 
 type ListUsersRow struct {
-	ID        uuid.UUID
-	Username  string
-	Email     string
-	RoleID    int16
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Role      string
+	ID          uuid.UUID
+	Username    string
+	Email       string
+	RoleID      int16
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Role        string
+	HasPassword bool
 }
 
 func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
@@ -232,6 +271,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Role,
+			&i.HasPassword,
 		); err != nil {
 			return nil, err
 		}
@@ -250,7 +290,7 @@ SET username = $2,
     updated_at = now()
 FROM auth.roles r
 WHERE u.id = $1 AND r.id = u.role_id
-RETURNING u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
+RETURNING u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role, (u.password_hash IS NOT NULL)::boolean AS has_password
 `
 
 type UpdateUserAccountParams struct {
@@ -260,13 +300,14 @@ type UpdateUserAccountParams struct {
 }
 
 type UpdateUserAccountRow struct {
-	ID        uuid.UUID
-	Username  string
-	Email     string
-	RoleID    int16
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Role      string
+	ID          uuid.UUID
+	Username    string
+	Email       string
+	RoleID      int16
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Role        string
+	HasPassword bool
 }
 
 func (q *Queries) UpdateUserAccount(ctx context.Context, arg UpdateUserAccountParams) (UpdateUserAccountRow, error) {
@@ -280,6 +321,7 @@ func (q *Queries) UpdateUserAccount(ctx context.Context, arg UpdateUserAccountPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Role,
+		&i.HasPassword,
 	)
 	return i, err
 }
@@ -293,7 +335,7 @@ WHERE id = $1
 
 type UpdateUserPasswordHashParams struct {
 	ID           uuid.UUID
-	PasswordHash string
+	PasswordHash *string
 }
 
 func (q *Queries) UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) error {
@@ -356,7 +398,7 @@ SET role_id = $2,
     updated_at = now()
 FROM auth.roles r
 WHERE u.id = $1 AND r.id = $2
-RETURNING u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role
+RETURNING u.id, u.username, u.email, u.role_id, u.created_at, u.updated_at, r.name AS role, (u.password_hash IS NOT NULL)::boolean AS has_password
 `
 
 type UpdateUserRoleParams struct {
@@ -365,13 +407,14 @@ type UpdateUserRoleParams struct {
 }
 
 type UpdateUserRoleRow struct {
-	ID        uuid.UUID
-	Username  string
-	Email     string
-	RoleID    int16
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Role      string
+	ID          uuid.UUID
+	Username    string
+	Email       string
+	RoleID      int16
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	Role        string
+	HasPassword bool
 }
 
 func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (UpdateUserRoleRow, error) {
@@ -385,6 +428,22 @@ func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Role,
+		&i.HasPassword,
 	)
 	return i, err
+}
+
+const usernameExists = `-- name: UsernameExists :one
+SELECT EXISTS (
+  SELECT 1
+  FROM auth.users
+  WHERE lower(username) = lower($1)
+)
+`
+
+func (q *Queries) UsernameExists(ctx context.Context, lower string) (bool, error) {
+	row := q.db.QueryRow(ctx, usernameExists, lower)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

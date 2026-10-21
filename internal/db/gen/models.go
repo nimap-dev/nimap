@@ -669,7 +669,7 @@ type AuthUser struct {
 	ID           uuid.UUID
 	Username     string
 	Email        string
-	PasswordHash string
+	PasswordHash *string
 	RoleID       int16
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
@@ -678,6 +678,16 @@ type AuthUser struct {
 	DateFormat   AuthDateFormat
 	TimeFormat   AuthTimeFormat
 	Theme        AuthTheme
+}
+
+type AuthUserIdentity struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	Issuer      string
+	Subject     string
+	Email       *string
+	CreatedAt   time.Time
+	LastLoginAt time.Time
 }
 
 type Building struct {

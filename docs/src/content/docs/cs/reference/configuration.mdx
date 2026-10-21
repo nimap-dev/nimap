@@ -16,6 +16,14 @@ nimap se konfiguruje proměnnými prostředí v sekci `environment` souboru `com
 | [`SERVICE_AUTO_MIGRATE`](#service_auto_migrate) | `true` | Aktualizace schématu databáze při startu |
 | [`SERVICE_LOG_LEVEL`](#service_log_level) | `info` | Podrobnost logování |
 | [`SERVICE_LOG_FORMAT`](#service_log_format) | `text` | Formát logů |
+| [`SERVICE_BASE_URL`](#service_base_url) | — | Veřejná adresa instance |
+| [`SERVICE_OIDC_ISSUER`](#service_oidc_issuer) | — | OIDC poskytovatel; prázdná vypíná jednotné přihlášení |
+| [`SERVICE_OIDC_CLIENT_ID`](#service_oidc_client_id) | — | Client ID u poskytovatele |
+| [`SERVICE_OIDC_CLIENT_SECRET`](#service_oidc_client_secret) | — | Client secret u poskytovatele |
+| [`SERVICE_OIDC_NAME`](#service_oidc_name) | `SSO` | Název na přihlašovacím tlačítku |
+| [`SERVICE_OIDC_SCOPES`](#service_oidc_scopes) | `openid,email,profile` | Scopes vyžádané od poskytovatele |
+| [`SERVICE_OIDC_ALLOWED_DOMAINS`](#service_oidc_allowed_domains) | — | E-mailové domény, které si mohou založit účet |
+| [`SERVICE_OIDC_LINK_BY_EMAIL`](#service_oidc_link_by_email) | `true` | Propojit první přihlášení s existujícím uživatelem podle e-mailu |
 
 ## `SERVICE_DATABASE_URL`
 
@@ -58,3 +66,54 @@ Když je zapnutá, nimap při každém startu aktualizuje schéma databáze, i p
 ## `SERVICE_LOG_FORMAT`
 
 `text` nebo `json`. Výchozí: `text`. `json` se hodí, když logy sbírá agregátor logů.
+
+## `SERVICE_BASE_URL`
+
+Adresa, na které uživatelé nimap otevírají, například `https://nimap.example.com`. Povinná, když je zapnuté jednotné přihlášení, jinak volitelná.
+
+Musí to být absolutní URL bez query a fragmentu. Musí používat `https`, pokud [`SERVICE_ENV`](#service_env) není `development`. Na koncovém lomítku nezáleží. Pokud nimap běží pod cestou, uveďte ji: `https://example.com/nimap`.
+
+Z ní se odvozuje redirect URI pro OIDC jako `SERVICE_BASE_URL` + `/api/auth/oidc/callback`. Za reverzní proxy uveďte veřejnou adresu, ne interní.
+
+## Jednotné přihlášení
+
+Proměnné `SERVICE_OIDC_*` připojují nimap k poskytovateli OpenID Connect, jako je Authentik, Keycloak, Microsoft Entra ID nebo Google. Nastavení poskytovatele a propojování účtů popisuje stránka [Jednotné přihlášení](../../admin/single-sign-on/).
+
+Pokud je některá z nich neplatná, nimap se nespustí a napíše, která. Pokud poskytovatel při startu není dostupný, nimap se spustí jen s přihlášením heslem a zaloguje `single sign-on disabled`.
+
+### `SERVICE_OIDC_ISSUER`
+
+Issuer URL poskytovatele, například `https://auth.example.com/application/o/nimap/`. nimap pod ní čte `/.well-known/openid-configuration`. Musí přesně odpovídat hodnotě `issuer`, kterou tam poskytovatel uvádí, včetně koncového lomítka.
+
+Prázdná (výchozí) jednotné přihlášení vypíná. Musí používat `https`, pokud [`SERVICE_ENV`](#service_env) není `development`.
+
+### `SERVICE_OIDC_CLIENT_ID`
+
+Client ID aplikace zaregistrované u poskytovatele. Povinná, když je nastavená `SERVICE_OIDC_ISSUER`.
+
+### `SERVICE_OIDC_CLIENT_SECRET`
+
+Client secret té aplikace. Povinná, když je nastavená `SERVICE_OIDC_ISSUER`. nimap je důvěrný (confidential) klient, takže poskytovatel musí secret vydat.
+
+### `SERVICE_OIDC_NAME`
+
+Text na přihlašovacím tlačítku ve tvaru „Přihlásit se přes …“. Výchozí: `SSO`. Použijte název, který uživatelé znají, například `Authentik` nebo `firemní účet`.
+
+### `SERVICE_OIDC_SCOPES`
+
+Scopes vyžádané od poskytovatele, oddělené čárkou. Výchozí: `openid,email,profile`. Musí obsahovat `openid`. nimap potřebuje e-mail, takže `email` ponechte, pokud ho poskytovatel neposílá jinak.
+
+### `SERVICE_OIDC_ALLOWED_DOMAINS`
+
+E-mailové domény oddělené čárkou, jejichž uživatelé dostanou při prvním přihlášení nový účet, například `example.com,example.org`. Na velikosti písmen nezáleží, ale doména se porovnává přesně: `example.com` nepovolí `sub.example.com`.
+
+Prázdná (výchozí) povolí každého, koho pustí poskytovatel. Seznam omezuje jen zakládání nových účtů; uživatelé, kteří už jsou propojení nebo se propojí podle e-mailu, se přihlásí bez ohledu na doménu.
+
+### `SERVICE_OIDC_LINK_BY_EMAIL`
+
+`true` nebo `false`. Výchozí: `true`.
+
+Když je zapnutá, první přihlášení přes SSO s e-mailem, který už má uživatel v nimapu, se s tímto uživatelem propojí. Jen ale tehdy, když poskytovatel e-mail označí jako ověřený (`email_verified`). Když je vypnutá nebo e-mail ověřený není, takové přihlášení se odmítne.
+
+Zapínejte ji jen tehdy, když e-mailům od poskytovatele věříte: kdo u poskytovatele ovládá nějaký e-mail, dostane se do účtu v nimapu s tímto e-mailem.
+

@@ -6,6 +6,8 @@ export default {
       'Změňte své uživatelské jméno a e-mail. Potvrďte aktuálním heslem.',
     username: 'Uživatelské jméno',
     email: 'E-mail',
+    descriptionNoPassword:
+      'Změňte své uživatelské jméno a e-mail. Váš účet se přihlašuje přes jednotné přihlášení.',
     currentPassword: 'Aktuální heslo',
     accountUpdated: 'Účet upraven',
     accountNotUpdated: 'Účet se nepodařilo upravit',
@@ -48,5 +50,15 @@ export default {
     changed: 'Heslo změněno',
     couldNotChange: 'Heslo se nepodařilo změnit',
     notChanged: 'Heslo nebylo změněno',
+  },
+  setPassword: {
+    title: 'Heslo',
+    description:
+      'Přihlašujete se přes jednotné přihlášení. Nastavte si heslo o délce alespoň 8 znaků, abyste se mohli přihlásit i uživatelským jménem.',
+    submit: 'Nastavit heslo',
+    submitting: 'Nastavuji…',
+    changed: 'Heslo nastaveno',
+    couldNotChange: 'Heslo se nepodařilo nastavit',
+    notChanged: 'Heslo nebylo nastaveno',
   },
 }

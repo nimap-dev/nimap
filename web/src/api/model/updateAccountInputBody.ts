@@ -8,11 +8,8 @@
 export interface UpdateAccountInputBody {
   /** A URL to the JSON Schema for this object. */
   readonly $schema?: string;
-  /**
-     * Current account password, confirming the change
-     * @minLength 1
-     */
-  currentPassword: string;
+  /** Current account password, confirming the change; omitted when the account has none */
+  currentPassword?: string;
   /** New account email address */
   email: string;
   /**

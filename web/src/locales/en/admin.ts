@@ -37,6 +37,19 @@ export default {
     requestFailed: 'The request failed, check your connection and retry',
     deleted: '{{username}} was deleted',
   },
+  unlink: {
+    label: 'Unlink',
+    title: 'Unlink single sign-on from {{username}}?',
+    description:
+      'They can no longer log in with this provider account. If they try again, it is treated as a first login: linked anew by a verified email, or refused.',
+    descriptionLastWayIn:
+      'This is their only way to log in: they have no password. Until you set one or the account is linked again, they cannot log in.',
+    submit: 'Unlink',
+    submitting: 'Unlinking…',
+    couldNotUnlink: 'Could not unlink',
+    notUnlinked: 'The account is still linked',
+    unlinked: 'Single sign-on unlinked from {{username}}',
+  },
   self: {
     title: 'This is your account',
     description:
