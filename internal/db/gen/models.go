@@ -729,6 +729,8 @@ type DeviceModel struct {
 	PoeInStandard  NullPoeStandard
 	PoeOutStandard NullPoeStandard
 	PoeBudgetWatts *int32
+	EndOfSale      *time.Time
+	EndOfSupport   *time.Time
 }
 
 type DeviceType struct {

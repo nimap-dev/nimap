@@ -29,6 +29,8 @@ export const ListDeviceModelsResponseItem = zod.object({
   "name": zod.string(),
   "sortOrder": zod.int()
 }),
+  "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
+  "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().optional(),
   "id": zod.string(),
   "manufacturer": zod.object({
@@ -74,6 +76,8 @@ export const ListDeviceModelsResponse = zod.array(ListDeviceModelsResponseItem)
 export const CreateDeviceModelBody = zod.object({
   "depthMm": zod.int().min(1).optional(),
   "deviceTypeId": zod.string(),
+  "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
+  "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().min(1).optional(),
   "manufacturerId": zod.string(),
   "mounting": zod.enum(['rack', 'wall', 'desktop', 'din_rail', 'ceiling', 'pole', 'embedded', 'other']).optional(),
@@ -105,6 +109,8 @@ export const CreateDeviceModelResponse = zod.object({
   "name": zod.string(),
   "sortOrder": zod.int()
 }),
+  "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
+  "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().optional(),
   "id": zod.string(),
   "manufacturer": zod.object({
@@ -162,6 +168,8 @@ export const GetDeviceModelResponse = zod.object({
   "name": zod.string(),
   "sortOrder": zod.int()
 }),
+  "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
+  "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().optional(),
   "id": zod.string(),
   "manufacturer": zod.object({
@@ -210,6 +218,8 @@ export const UpdateDeviceModelParams = zod.object({
 export const UpdateDeviceModelBody = zod.object({
   "depthMm": zod.int().min(1).optional(),
   "deviceTypeId": zod.string(),
+  "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
+  "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().min(1).optional(),
   "manufacturerId": zod.string(),
   "mounting": zod.enum(['rack', 'wall', 'desktop', 'din_rail', 'ceiling', 'pole', 'embedded', 'other']).optional(),
@@ -240,6 +250,8 @@ export const UpdateDeviceModelResponse = zod.object({
   "name": zod.string(),
   "sortOrder": zod.int()
 }),
+  "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
+  "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().optional(),
   "id": zod.string(),
   "manufacturer": zod.object({
@@ -292,6 +304,8 @@ export const UpdateDeviceModelStatusResponse = zod.object({
   "name": zod.string(),
   "sortOrder": zod.int()
 }),
+  "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
+  "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().optional(),
   "id": zod.string(),
   "manufacturer": zod.object({

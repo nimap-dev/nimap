@@ -207,6 +207,42 @@ export function DeviceModelForm({
                 )}
               />
             </FormSection>
+            <FormSection
+              title={t('fields.support')}
+              description={t('form.supportDescription')}
+            >
+              <FormRow>
+                <form.Field
+                  name="endOfSale"
+                  children={(field) => (
+                    <TextField
+                      field={field}
+                      label={t('fields.endOfSale')}
+                      type="date"
+                    />
+                  )}
+                />
+                <form.Field
+                  name="endOfSupport"
+                  validators={{
+                    onChangeListenTo: ['endOfSale'],
+                    onChange: ({ value, fieldApi }) => {
+                      const endOfSale = fieldApi.form.getFieldValue('endOfSale')
+                      return value && endOfSale && value < endOfSale
+                        ? { message: t('form.supportOrder') }
+                        : undefined
+                    },
+                  }}
+                  children={(field) => (
+                    <TextField
+                      field={field}
+                      label={t('fields.endOfSupport')}
+                      type="date"
+                    />
+                  )}
+                />
+              </FormRow>
+            </FormSection>
             <FormSection title={t('fields.notes')}>
               <form.Field
                 name="notes"

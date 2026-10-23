@@ -121,6 +121,9 @@ export type DeviceModelFormValues = {
   poeOut: boolean
   poeOutStandard: PoeStandard | ''
   poeBudgetWatts: number | undefined
+  /** A day as YYYY-MM-DD, the way a date input holds it. */
+  endOfSale: string
+  endOfSupport: string
   notes: string
   status: LifecycleStatus
 }
@@ -143,6 +146,8 @@ export const emptyDeviceModelValues: DeviceModelFormValues = {
   poeOut: false,
   poeOutStandard: '',
   poeBudgetWatts: undefined,
+  endOfSale: '',
+  endOfSupport: '',
   notes: '',
   status: 'active',
 }
@@ -168,6 +173,8 @@ export function deviceModelToValues(
     poeOut: model.poeOut,
     poeOutStandard: model.poeOutStandard ?? '',
     poeBudgetWatts: model.poeBudgetWatts,
+    endOfSale: model.endOfSale ?? '',
+    endOfSupport: model.endOfSupport ?? '',
     notes: model.notes ?? '',
     status: model.status,
   }
@@ -216,6 +223,8 @@ export function deviceModelToRequest(values: DeviceModelFormValues) {
         ? values.poeOutStandard
         : undefined,
     poeBudgetWatts: values.poeOut ? values.poeBudgetWatts : undefined,
+    endOfSale: optional(values.endOfSale),
+    endOfSupport: optional(values.endOfSupport),
     notes: optional(values.notes),
   }
 }

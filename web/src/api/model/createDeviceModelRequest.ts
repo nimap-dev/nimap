@@ -15,6 +15,10 @@ export interface CreateDeviceModelRequest {
   /** @minimum 1 */
   depthMm?: number;
   deviceTypeId: string;
+  /** The day the manufacturer stops selling the model (EOS) */
+  endOfSale?: string;
+  /** The day the manufacturer stops supporting the model (EOL); not before endOfSale */
+  endOfSupport?: string;
   /** @minimum 1 */
   heightMm?: number;
   manufacturerId: string;

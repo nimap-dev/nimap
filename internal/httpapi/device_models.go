@@ -35,6 +35,8 @@ type DeviceModelResponse struct {
 	PoeInStandard  *apitypes.PoeStandard    `json:"poeInStandard,omitempty" doc:"The PoE standard the model needs when powered over Ethernet; only with poeIn"`
 	PoeOutStandard *apitypes.PoeStandard    `json:"poeOutStandard,omitempty" doc:"The highest PoE standard the model supplies; only with poeOut"`
 	PoeBudgetWatts *int32                   `json:"poeBudgetWatts,omitempty" doc:"Total power the model can supply over PoE, in watts; only with poeOut"`
+	EndOfSale      *apitypes.Date           `json:"endOfSale,omitempty" doc:"The day the manufacturer stops selling the model (EOS)"`
+	EndOfSupport   *apitypes.Date           `json:"endOfSupport,omitempty" doc:"The day the manufacturer stops supporting the model (EOL); not before endOfSale"`
 	Notes          *string                  `json:"notes,omitempty"`
 	Status         apitypes.LifecycleStatus `json:"status"`
 	CreatedAt      time.Time                `json:"createdAt"`
@@ -70,6 +72,8 @@ type CreateDeviceModelRequest struct {
 	PoeInStandard  *apitypes.PoeStandard    `json:"poeInStandard,omitempty" doc:"The PoE standard the model needs when powered over Ethernet; only with poeIn"`
 	PoeOutStandard *apitypes.PoeStandard    `json:"poeOutStandard,omitempty" doc:"The highest PoE standard the model supplies; only with poeOut"`
 	PoeBudgetWatts *int32                   `json:"poeBudgetWatts,omitempty" minimum:"1" doc:"Total power the model can supply over PoE, in watts; only with poeOut"`
+	EndOfSale      *apitypes.Date           `json:"endOfSale,omitempty" doc:"The day the manufacturer stops selling the model (EOS)"`
+	EndOfSupport   *apitypes.Date           `json:"endOfSupport,omitempty" doc:"The day the manufacturer stops supporting the model (EOL); not before endOfSale"`
 	Notes          *string                  `json:"notes,omitempty"`
 	Status         apitypes.LifecycleStatus `json:"status"`
 }
@@ -96,6 +100,8 @@ type UpdateDeviceModelRequest struct {
 	PoeInStandard  *apitypes.PoeStandard  `json:"poeInStandard,omitempty" doc:"The PoE standard the model needs when powered over Ethernet; only with poeIn"`
 	PoeOutStandard *apitypes.PoeStandard  `json:"poeOutStandard,omitempty" doc:"The highest PoE standard the model supplies; only with poeOut"`
 	PoeBudgetWatts *int32                 `json:"poeBudgetWatts,omitempty" minimum:"1" doc:"Total power the model can supply over PoE, in watts; only with poeOut"`
+	EndOfSale      *apitypes.Date         `json:"endOfSale,omitempty" doc:"The day the manufacturer stops selling the model (EOS)"`
+	EndOfSupport   *apitypes.Date         `json:"endOfSupport,omitempty" doc:"The day the manufacturer stops supporting the model (EOL); not before endOfSale"`
 	Notes          *string                `json:"notes,omitempty"`
 }
 
@@ -276,6 +282,8 @@ func RegisterDeviceModels(api huma.API, q *gen.Queries) {
 			PoeInStandard:  poeStandardParam(in.Body.PoeInStandard),
 			PoeOutStandard: poeStandardParam(in.Body.PoeOutStandard),
 			PoeBudgetWatts: in.Body.PoeBudgetWatts,
+			EndOfSale:      in.Body.EndOfSale.TimeOrNil(),
+			EndOfSupport:   in.Body.EndOfSupport.TimeOrNil(),
 			Notes:          in.Body.Notes,
 			Status:         gen.LifecycleStatus(in.Body.Status),
 		})
@@ -329,6 +337,8 @@ func RegisterDeviceModels(api huma.API, q *gen.Queries) {
 			PoeInStandard:  poeStandardParam(in.Body.PoeInStandard),
 			PoeOutStandard: poeStandardParam(in.Body.PoeOutStandard),
 			PoeBudgetWatts: in.Body.PoeBudgetWatts,
+			EndOfSale:      in.Body.EndOfSale.TimeOrNil(),
+			EndOfSupport:   in.Body.EndOfSupport.TimeOrNil(),
 			Notes:          in.Body.Notes,
 		})
 		if err != nil {
@@ -420,6 +430,10 @@ func deviceModelCheckError(err error) error {
 		case "device_model_poe_out_details":
 			return huma.Error422UnprocessableEntity(
 				"a PoE output standard or budget needs poeOut",
+			)
+		case "device_model_end_of_support_after_sale":
+			return huma.Error422UnprocessableEntity(
+				"end of support cannot come before end of sale",
 			)
 		case "device_model_poe_budget_positive":
 			return huma.Error422UnprocessableEntity("PoE budget must be positive")
@@ -532,6 +546,8 @@ func deviceModelResponse(
 		PoeInStandard:  poeStandardResponse(model.PoeInStandard),
 		PoeOutStandard: poeStandardResponse(model.PoeOutStandard),
 		PoeBudgetWatts: model.PoeBudgetWatts,
+		EndOfSale:      apitypes.DateFromTime(model.EndOfSale),
+		EndOfSupport:   apitypes.DateFromTime(model.EndOfSupport),
 		Notes:          model.Notes,
 		Status:         apitypes.LifecycleStatus(model.Status),
 		CreatedAt:      model.CreatedAt,

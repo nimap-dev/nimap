@@ -190,6 +190,14 @@ components:
           type: integer
         deviceTypeId:
           type: string
+        endOfSale:
+          description: The day the manufacturer stops selling the model (EOS)
+          format: date
+          type: string
+        endOfSupport:
+          description: The day the manufacturer stops supporting the model (EOL); not before endOfSale
+          format: date
+          type: string
         heightMm:
           format: int32
           minimum: 1
@@ -364,6 +372,14 @@ components:
           type: integer
         deviceType:
           $ref: "#/components/schemas/DeviceTypeResponse"
+        endOfSale:
+          description: The day the manufacturer stops selling the model (EOS)
+          format: date
+          type: string
+        endOfSupport:
+          description: The day the manufacturer stops supporting the model (EOL); not before endOfSale
+          format: date
+          type: string
         heightMm:
           format: int32
           type: integer
@@ -1003,6 +1019,14 @@ components:
           minimum: 1
           type: integer
         deviceTypeId:
+          type: string
+        endOfSale:
+          description: The day the manufacturer stops selling the model (EOS)
+          format: date
+          type: string
+        endOfSupport:
+          description: The day the manufacturer stops supporting the model (EOL); not before endOfSale
+          format: date
           type: string
         heightMm:
           format: int32

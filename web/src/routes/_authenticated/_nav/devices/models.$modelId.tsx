@@ -39,6 +39,7 @@ import {
   useMountingLabels,
   usePoeStandardLabels,
 } from '#/lib/device-models'
+import { formatDay, today } from '#/lib/format-date'
 import { useLifecycleStatusLabels } from '#/lib/lifecycle'
 import type { LifecycleStatus } from '#/lib/lifecycle'
 import { useQueryClient } from '@tanstack/react-query'
@@ -376,6 +377,33 @@ function ViewDeviceModel() {
                     )}
                   </Detail>
                 )}
+              </DetailList>
+
+              <DetailList title={t('fields.support')}>
+                {(
+                  [
+                    ['endOfSale', model.endOfSale],
+                    ['endOfSupport', model.endOfSupport],
+                  ] as const
+                ).map(([key, day]) => (
+                  <Detail key={key} label={t(`fields.${key}`)}>
+                    {day ? (
+                      <>
+                        {formatDay(day)}
+                        {day <= today() && (
+                          <>
+                            {' '}
+                            <DetailEmpty>{t('detail.ended')}</DetailEmpty>
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      <DetailEmpty>
+                        {t('common:states.notRecorded')}
+                      </DetailEmpty>
+                    )}
+                  </Detail>
+                ))}
               </DetailList>
 
               {model.notes && (

@@ -50,6 +50,8 @@ INSERT INTO device_models (
   poe_in_standard,
   poe_out_standard,
   poe_budget_watts,
+  end_of_sale,
+  end_of_support,
   notes,
   status
 )
@@ -71,6 +73,8 @@ VALUES (
   sqlc.narg(poe_in_standard),
   sqlc.narg(poe_out_standard),
   sqlc.narg(poe_budget_watts),
+  sqlc.narg(end_of_sale),
+  sqlc.narg(end_of_support),
   sqlc.narg(notes),
   sqlc.arg(status)
 )
@@ -96,6 +100,8 @@ SET
   poe_in_standard = sqlc.narg(poe_in_standard),
   poe_out_standard = sqlc.narg(poe_out_standard),
   poe_budget_watts = sqlc.narg(poe_budget_watts),
+  end_of_sale = sqlc.narg(end_of_sale),
+  end_of_support = sqlc.narg(end_of_support),
   notes = sqlc.narg(notes),
   updated_at = now()
 WHERE id = sqlc.arg(id)

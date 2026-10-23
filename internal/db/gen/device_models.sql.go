@@ -7,6 +7,7 @@ package gen
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -30,6 +31,8 @@ INSERT INTO device_models (
   poe_in_standard,
   poe_out_standard,
   poe_budget_watts,
+  end_of_sale,
+  end_of_support,
   notes,
   status
 )
@@ -52,7 +55,9 @@ VALUES (
   $16,
   $17,
   $18,
-  $19
+  $19,
+  $20,
+  $21
 )
 RETURNING id
 `
@@ -75,6 +80,8 @@ type CreateDeviceModelParams struct {
 	PoeInStandard  NullPoeStandard
 	PoeOutStandard NullPoeStandard
 	PoeBudgetWatts *int32
+	EndOfSale      *time.Time
+	EndOfSupport   *time.Time
 	Notes          *string
 	Status         LifecycleStatus
 }
@@ -98,6 +105,8 @@ func (q *Queries) CreateDeviceModel(ctx context.Context, arg CreateDeviceModelPa
 		arg.PoeInStandard,
 		arg.PoeOutStandard,
 		arg.PoeBudgetWatts,
+		arg.EndOfSale,
+		arg.EndOfSupport,
 		arg.Notes,
 		arg.Status,
 	)
@@ -121,7 +130,7 @@ func (q *Queries) DeleteDeviceModel(ctx context.Context, id uuid.UUID) (int64, e
 
 const getDeviceModel = `-- name: GetDeviceModel :one
 SELECT
-  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts,
+  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts, dm.end_of_sale, dm.end_of_support,
   dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at,
   m.id, m.name, m.website, m.notes, m.created_at, m.updated_at
 FROM device_models dm
@@ -162,6 +171,8 @@ func (q *Queries) GetDeviceModel(ctx context.Context, id uuid.UUID) (GetDeviceMo
 		&i.DeviceModel.PoeInStandard,
 		&i.DeviceModel.PoeOutStandard,
 		&i.DeviceModel.PoeBudgetWatts,
+		&i.DeviceModel.EndOfSale,
+		&i.DeviceModel.EndOfSupport,
 		&i.DeviceType.ID,
 		&i.DeviceType.Code,
 		&i.DeviceType.Name,
@@ -182,7 +193,7 @@ func (q *Queries) GetDeviceModel(ctx context.Context, id uuid.UUID) (GetDeviceMo
 
 const listDeviceModels = `-- name: ListDeviceModels :many
 SELECT
-  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts,
+  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts, dm.end_of_sale, dm.end_of_support,
   dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at,
   m.id, m.name, m.website, m.notes, m.created_at, m.updated_at
 FROM device_models dm
@@ -254,6 +265,8 @@ func (q *Queries) ListDeviceModels(ctx context.Context, arg ListDeviceModelsPara
 			&i.DeviceModel.PoeInStandard,
 			&i.DeviceModel.PoeOutStandard,
 			&i.DeviceModel.PoeBudgetWatts,
+			&i.DeviceModel.EndOfSale,
+			&i.DeviceModel.EndOfSupport,
 			&i.DeviceType.ID,
 			&i.DeviceType.Code,
 			&i.DeviceType.Name,
@@ -299,9 +312,11 @@ SET
   poe_in_standard = $15,
   poe_out_standard = $16,
   poe_budget_watts = $17,
-  notes = $18,
+  end_of_sale = $18,
+  end_of_support = $19,
+  notes = $20,
   updated_at = now()
-WHERE id = $19
+WHERE id = $21
 RETURNING id
 `
 
@@ -323,6 +338,8 @@ type UpdateDeviceModelParams struct {
 	PoeInStandard  NullPoeStandard
 	PoeOutStandard NullPoeStandard
 	PoeBudgetWatts *int32
+	EndOfSale      *time.Time
+	EndOfSupport   *time.Time
 	Notes          *string
 	ID             uuid.UUID
 }
@@ -346,6 +363,8 @@ func (q *Queries) UpdateDeviceModel(ctx context.Context, arg UpdateDeviceModelPa
 		arg.PoeInStandard,
 		arg.PoeOutStandard,
 		arg.PoeBudgetWatts,
+		arg.EndOfSale,
+		arg.EndOfSupport,
 		arg.Notes,
 		arg.ID,
 	)

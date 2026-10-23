@@ -73,3 +73,28 @@ export function formatAbsoluteDate(value: string | number | Date) {
   const date = value instanceof Date ? value : new Date(value)
   return Number.isNaN(date.getTime()) ? '' : date.toLocaleString(i18n.language)
 }
+
+/**
+ * Formats a calendar day sent as YYYY-MM-DD ("9 Aug 2026"). The day is read and
+ * written in UTC, so it never shifts by one in a zone behind or ahead of it.
+ */
+export function formatDay(value: string) {
+  const date = new Date(`${value}T00:00:00Z`)
+  if (Number.isNaN(date.getTime())) return ''
+
+  return date.toLocaleDateString(i18n.language, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
+/** Today as YYYY-MM-DD in the browser's zone, to compare days against. */
+export function today() {
+  const now = new Date()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+
+  return `${now.getFullYear()}-${month}-${day}`
+}

@@ -1,10 +1,12 @@
 import type { DeviceTypeResponse } from '#/api/model'
 import { cn } from '#/lib/utils'
 import {
+  Antenna,
   BatteryCharging,
   Box,
   Cable,
   Camera,
+  Cpu,
   EthernetPort,
   HardDrive,
   Monitor,
@@ -13,8 +15,11 @@ import {
   Plug,
   Printer,
   Router,
+  Rows3,
   Server,
   Shield,
+  SquareDot,
+  Thermometer,
   Wifi,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -22,7 +27,7 @@ import type { LucideIcon } from 'lucide-react'
 /**
  * The icons the seeded device types name, keyed the way the database stores
  * them. A static map rather than lucide's dynamic loader: the set is fixed by
- * the migration, so only these icons end up in the bundle and they render
+ * the migrations, so only these icons end up in the bundle and they render
  * without a loading flash in every table row.
  */
 const icons: Record<string, LucideIcon> = {
@@ -41,6 +46,11 @@ const icons: Record<string, LucideIcon> = {
   printer: Printer,
   monitor: Monitor,
   box: Box,
+  antenna: Antenna,
+  'rows-3': Rows3,
+  'square-dot': SquareDot,
+  thermometer: Thermometer,
+  cpu: Cpu,
 }
 
 /** A device type's icon in its colour, with the type's name for screen readers. */
