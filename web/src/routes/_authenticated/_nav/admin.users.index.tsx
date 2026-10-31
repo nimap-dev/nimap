@@ -8,7 +8,7 @@ import { TableSkeleton } from '#/components/data-table/table-skeleton'
 import { Panel } from '#/components/panel'
 import { RoleBadge } from '#/components/role-badge'
 import { Button } from '#/components/ui/button'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
+import { RelativeDate } from '#/components/formatted-date'
 import { asRole } from '#/lib/roles'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
@@ -89,12 +89,10 @@ function useColumns() {
           sortDescFirst: true,
           meta: { width: '9rem' },
           cell: ({ getValue }) => (
-            <span
+            <RelativeDate
+              value={getValue()}
               className="text-muted-foreground"
-              title={formatAbsoluteDate(getValue())}
-            >
-              {formatRelativeDate(getValue())}
-            </span>
+            />
           ),
         }),
       ]),

@@ -3,7 +3,7 @@ import { LifecycleBadge } from '#/components/lifecycle-badge'
 import type { DataTableFeatures } from '#/components/data-table/data-table-features'
 import { Button } from '#/components/ui/button'
 import { formatAddress } from '#/lib/address'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
+import { RelativeDate } from '#/components/formatted-date'
 import {
   DEFAULT_LIFECYCLE_STATUSES,
   isDefaultLifecycleStatuses,
@@ -117,12 +117,7 @@ function makeColumns(
       header: () => t('list.updated'),
       meta: { width: '9rem' },
       cell: ({ getValue }) => (
-        <span
-          className="text-muted-foreground"
-          title={formatAbsoluteDate(getValue())}
-        >
-          {formatRelativeDate(getValue())}
-        </span>
+        <RelativeDate value={getValue()} className="text-muted-foreground" />
       ),
     }),
   ])

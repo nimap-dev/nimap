@@ -1,6 +1,6 @@
 import type { Identity, User } from '#/api/model'
 import { Detail, DetailEmpty, DetailList } from '#/components/detail-list'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
+import { RelativeDate } from '#/components/formatted-date'
 import { cn } from '#/lib/utils'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -13,12 +13,6 @@ function issuerLabel(issuer: string) {
   } catch {
     return issuer
   }
-}
-
-function When({ value }: { value: string }) {
-  return (
-    <span title={formatAbsoluteDate(value)}>{formatRelativeDate(value)}</span>
-  )
 }
 
 export function IdentityList({
@@ -62,10 +56,10 @@ export function IdentityList({
             )}
           </Detail>
           <Detail label={t('identities.linkedAt')}>
-            <When value={identity.linkedAt} />
+            <RelativeDate value={identity.linkedAt} />
           </Detail>
           <Detail label={t('identities.lastLoginAt')}>
-            <When value={identity.lastLoginAt} />
+            <RelativeDate value={identity.lastLoginAt} />
           </Detail>
           {action && (
             <div className="flex justify-end px-3 py-2">{action(identity)}</div>

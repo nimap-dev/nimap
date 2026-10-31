@@ -1,4 +1,4 @@
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
+import { RelativeDate } from '#/components/formatted-date'
 import { cn } from '#/lib/utils'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -125,13 +125,13 @@ export function DetailMeta({
           <span aria-hidden="true">·</span>
         </>
       )}
-      <span title={formatAbsoluteDate(createdAt)}>
-        {t('meta.created', { when: formatRelativeDate(createdAt) })}
-      </span>
+      <RelativeDate value={createdAt}>
+        {(when) => t('meta.created', { when })}
+      </RelativeDate>
       <span aria-hidden="true">·</span>
-      <span title={formatAbsoluteDate(updatedAt)}>
-        {t('meta.updated', { when: formatRelativeDate(updatedAt) })}
-      </span>
+      <RelativeDate value={updatedAt}>
+        {(when) => t('meta.updated', { when })}
+      </RelativeDate>
     </p>
   )
 }

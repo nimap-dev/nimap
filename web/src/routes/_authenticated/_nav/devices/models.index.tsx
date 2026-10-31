@@ -23,7 +23,7 @@ import {
   useDeviceModelFormatters,
   useMountingOptions,
 } from '#/lib/device-models'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
+import { RelativeDate } from '#/components/formatted-date'
 import {
   DEFAULT_LIFECYCLE_STATUSES,
   isDefaultLifecycleStatuses,
@@ -183,12 +183,10 @@ function useColumns() {
           sortDescFirst: true,
           meta: { width: '9rem' },
           cell: ({ getValue }) => (
-            <span
+            <RelativeDate
+              value={getValue()}
               className="text-muted-foreground"
-              title={formatAbsoluteDate(getValue())}
-            >
-              {formatRelativeDate(getValue())}
-            </span>
+            />
           ),
         }),
       ]),

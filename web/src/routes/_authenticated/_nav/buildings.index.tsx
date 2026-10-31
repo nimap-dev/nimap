@@ -5,7 +5,7 @@ import { DataTableColumnHeader } from '#/components/data-table/data-table-column
 import type { DataTableFeatures } from '#/components/data-table/data-table-features'
 import { LifecycleBadge } from '#/components/lifecycle-badge'
 import { formatAddress } from '#/lib/address'
-import { formatAbsoluteDate, formatRelativeDate } from '#/lib/format-date'
+import { RelativeDate } from '#/components/formatted-date'
 import {
   DEFAULT_LIFECYCLE_STATUSES,
   isDefaultLifecycleStatuses,
@@ -106,12 +106,10 @@ function useColumns() {
           sortDescFirst: true,
           meta: { width: '9rem' },
           cell: ({ getValue }) => (
-            <span
+            <RelativeDate
+              value={getValue()}
               className="text-muted-foreground"
-              title={formatAbsoluteDate(getValue())}
-            >
-              {formatRelativeDate(getValue())}
-            </span>
+            />
           ),
         }),
       ]),

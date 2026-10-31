@@ -39,7 +39,7 @@ import {
   useMountingLabels,
   usePoeStandardLabels,
 } from '#/lib/device-models'
-import { formatDay, today } from '#/lib/format-date'
+import { FormattedDay } from '#/components/formatted-date'
 import { useLifecycleStatusLabels } from '#/lib/lifecycle'
 import type { LifecycleStatus } from '#/lib/lifecycle'
 import { useQueryClient } from '@tanstack/react-query'
@@ -389,8 +389,8 @@ function ViewDeviceModel() {
                   <Detail key={key} label={t(`fields.${key}`)}>
                     {day ? (
                       <>
-                        {formatDay(day)}
-                        {day <= today() && (
+                        <FormattedDay value={day} />
+                        {new Date(day) <= new Date() && (
                           <>
                             {' '}
                             <DetailEmpty>{t('detail.ended')}</DetailEmpty>
