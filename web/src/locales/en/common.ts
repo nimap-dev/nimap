@@ -14,6 +14,9 @@ export default {
     search: 'Search',
     clear: 'Clear',
     logOut: 'Log out',
+    copy: 'Copy {{value}}',
+    copied: '{{value}} copied',
+    copyFailed: 'Could not copy {{value}}',
   },
   states: {
     loading: 'Loading…',
@@ -21,7 +24,7 @@ export default {
     noResults: 'No results',
     unknown: 'Unknown',
     none: 'None',
-    notRecorded: 'Not recorded',
+    notRecorded: '-',
     notSpecified: 'Not specified',
     optional: 'Optional',
     yes: 'Yes',

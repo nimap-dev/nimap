@@ -24,12 +24,15 @@ import { Route as AuthenticatedMapLocationsNewRouteImport } from './routes/_auth
 import { Route as AuthenticatedNavAuthAccountRouteImport } from './routes/_authenticated/_nav/auth.account'
 import { Route as AuthenticatedNavBuildingsIndexRouteImport } from './routes/_authenticated/_nav/buildings.index'
 import { Route as AuthenticatedNavDevicesIndexRouteImport } from './routes/_authenticated/_nav/devices/index'
+import { Route as AuthenticatedNavDevicesDeviceIdRouteImport } from './routes/_authenticated/_nav/devices/$deviceId'
+import { Route as AuthenticatedNavDevicesNewRouteImport } from './routes/_authenticated/_nav/devices/new'
 import { Route as AuthenticatedNavLocationsIndexRouteImport } from './routes/_authenticated/_nav/locations.index'
 import { Route as AuthenticatedMapBuildingsBuildingIdEditRouteImport } from './routes/_authenticated/_map/buildings.$buildingId_.edit'
 import { Route as AuthenticatedMapLocationsLocationIdEditRouteImport } from './routes/_authenticated/_map/locations.$locationId_.edit'
 import { Route as AuthenticatedNavAdminUsersIndexRouteImport } from './routes/_authenticated/_nav/admin.users.index'
 import { Route as AuthenticatedNavAdminUsersUserIdRouteImport } from './routes/_authenticated/_nav/admin.users.$userId'
 import { Route as AuthenticatedNavAdminUsersNewRouteImport } from './routes/_authenticated/_nav/admin.users.new'
+import { Route as AuthenticatedNavDevicesDeviceIdEditRouteImport } from './routes/_authenticated/_nav/devices/$deviceId_.edit'
 import { Route as AuthenticatedNavDevicesManufacturersIndexRouteImport } from './routes/_authenticated/_nav/devices/manufacturers.index'
 import { Route as AuthenticatedNavDevicesManufacturersManufacturerIdRouteImport } from './routes/_authenticated/_nav/devices/manufacturers.$manufacturerId'
 import { Route as AuthenticatedNavDevicesManufacturersNewRouteImport } from './routes/_authenticated/_nav/devices/manufacturers.new'
@@ -120,6 +123,18 @@ const AuthenticatedNavDevicesIndexRoute =
     path: '/devices/',
     getParentRoute: () => AuthenticatedNavRoute,
   } as any)
+const AuthenticatedNavDevicesDeviceIdRoute =
+  AuthenticatedNavDevicesDeviceIdRouteImport.update({
+    id: '/devices/$deviceId',
+    path: '/devices/$deviceId',
+    getParentRoute: () => AuthenticatedNavRoute,
+  } as any)
+const AuthenticatedNavDevicesNewRoute =
+  AuthenticatedNavDevicesNewRouteImport.update({
+    id: '/devices/new',
+    path: '/devices/new',
+    getParentRoute: () => AuthenticatedNavRoute,
+  } as any)
 const AuthenticatedNavLocationsIndexRoute =
   AuthenticatedNavLocationsIndexRouteImport.update({
     id: '/locations/',
@@ -155,6 +170,12 @@ const AuthenticatedNavAdminUsersNewRoute =
     id: '/users/new',
     path: '/users/new',
     getParentRoute: () => AuthenticatedNavAdminRoute,
+  } as any)
+const AuthenticatedNavDevicesDeviceIdEditRoute =
+  AuthenticatedNavDevicesDeviceIdEditRouteImport.update({
+    id: '/devices/$deviceId_/edit',
+    path: '/devices/$deviceId/edit',
+    getParentRoute: () => AuthenticatedNavRoute,
   } as any)
 const AuthenticatedNavDevicesManufacturersIndexRoute =
   AuthenticatedNavDevicesManufacturersIndexRouteImport.update({
@@ -216,6 +237,8 @@ export interface FileRoutesByFullPath {
   '/locations/$locationId': typeof AuthenticatedMapLocationsLocationIdRoute
   '/locations/new': typeof AuthenticatedMapLocationsNewRoute
   '/auth/account': typeof AuthenticatedNavAuthAccountRoute
+  '/devices/$deviceId': typeof AuthenticatedNavDevicesDeviceIdRoute
+  '/devices/new': typeof AuthenticatedNavDevicesNewRoute
   '/buildings/': typeof AuthenticatedNavBuildingsIndexRoute
   '/devices/': typeof AuthenticatedNavDevicesIndexRoute
   '/locations/': typeof AuthenticatedNavLocationsIndexRoute
@@ -223,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/locations/$locationId/edit': typeof AuthenticatedMapLocationsLocationIdEditRoute
   '/admin/users/$userId': typeof AuthenticatedNavAdminUsersUserIdRoute
   '/admin/users/new': typeof AuthenticatedNavAdminUsersNewRoute
+  '/devices/$deviceId/edit': typeof AuthenticatedNavDevicesDeviceIdEditRoute
   '/devices/manufacturers/$manufacturerId': typeof AuthenticatedNavDevicesManufacturersManufacturerIdRoute
   '/devices/manufacturers/new': typeof AuthenticatedNavDevicesManufacturersNewRoute
   '/devices/models/$modelId': typeof AuthenticatedNavDevicesModelsModelIdRoute
@@ -244,11 +268,14 @@ export interface FileRoutesByTo {
   '/locations/$locationId': typeof AuthenticatedMapLocationsLocationIdRoute
   '/locations/new': typeof AuthenticatedMapLocationsNewRoute
   '/auth/account': typeof AuthenticatedNavAuthAccountRoute
+  '/devices/$deviceId': typeof AuthenticatedNavDevicesDeviceIdRoute
+  '/devices/new': typeof AuthenticatedNavDevicesNewRoute
   '/devices': typeof AuthenticatedNavDevicesIndexRoute
   '/buildings/$buildingId/edit': typeof AuthenticatedMapBuildingsBuildingIdEditRoute
   '/locations/$locationId/edit': typeof AuthenticatedMapLocationsLocationIdEditRoute
   '/admin/users/$userId': typeof AuthenticatedNavAdminUsersUserIdRoute
   '/admin/users/new': typeof AuthenticatedNavAdminUsersNewRoute
+  '/devices/$deviceId/edit': typeof AuthenticatedNavDevicesDeviceIdEditRoute
   '/devices/manufacturers/$manufacturerId': typeof AuthenticatedNavDevicesManufacturersManufacturerIdRoute
   '/devices/manufacturers/new': typeof AuthenticatedNavDevicesManufacturersNewRoute
   '/devices/models/$modelId': typeof AuthenticatedNavDevicesModelsModelIdRoute
@@ -274,6 +301,8 @@ export interface FileRoutesById {
   '/_authenticated/_map/locations/$locationId': typeof AuthenticatedMapLocationsLocationIdRoute
   '/_authenticated/_map/locations/new': typeof AuthenticatedMapLocationsNewRoute
   '/_authenticated/_nav/auth/account': typeof AuthenticatedNavAuthAccountRoute
+  '/_authenticated/_nav/devices/$deviceId': typeof AuthenticatedNavDevicesDeviceIdRoute
+  '/_authenticated/_nav/devices/new': typeof AuthenticatedNavDevicesNewRoute
   '/_authenticated/_nav/buildings/': typeof AuthenticatedNavBuildingsIndexRoute
   '/_authenticated/_nav/devices/': typeof AuthenticatedNavDevicesIndexRoute
   '/_authenticated/_nav/locations/': typeof AuthenticatedNavLocationsIndexRoute
@@ -281,6 +310,7 @@ export interface FileRoutesById {
   '/_authenticated/_map/locations/$locationId_/edit': typeof AuthenticatedMapLocationsLocationIdEditRoute
   '/_authenticated/_nav/admin/users/$userId': typeof AuthenticatedNavAdminUsersUserIdRoute
   '/_authenticated/_nav/admin/users/new': typeof AuthenticatedNavAdminUsersNewRoute
+  '/_authenticated/_nav/devices/$deviceId_/edit': typeof AuthenticatedNavDevicesDeviceIdEditRoute
   '/_authenticated/_nav/devices/manufacturers/$manufacturerId': typeof AuthenticatedNavDevicesManufacturersManufacturerIdRoute
   '/_authenticated/_nav/devices/manufacturers/new': typeof AuthenticatedNavDevicesManufacturersNewRoute
   '/_authenticated/_nav/devices/models/$modelId': typeof AuthenticatedNavDevicesModelsModelIdRoute
@@ -304,6 +334,8 @@ export interface FileRouteTypes {
     | '/locations/$locationId'
     | '/locations/new'
     | '/auth/account'
+    | '/devices/$deviceId'
+    | '/devices/new'
     | '/buildings/'
     | '/devices/'
     | '/locations/'
@@ -311,6 +343,7 @@ export interface FileRouteTypes {
     | '/locations/$locationId/edit'
     | '/admin/users/$userId'
     | '/admin/users/new'
+    | '/devices/$deviceId/edit'
     | '/devices/manufacturers/$manufacturerId'
     | '/devices/manufacturers/new'
     | '/devices/models/$modelId'
@@ -332,11 +365,14 @@ export interface FileRouteTypes {
     | '/locations/$locationId'
     | '/locations/new'
     | '/auth/account'
+    | '/devices/$deviceId'
+    | '/devices/new'
     | '/devices'
     | '/buildings/$buildingId/edit'
     | '/locations/$locationId/edit'
     | '/admin/users/$userId'
     | '/admin/users/new'
+    | '/devices/$deviceId/edit'
     | '/devices/manufacturers/$manufacturerId'
     | '/devices/manufacturers/new'
     | '/devices/models/$modelId'
@@ -361,6 +397,8 @@ export interface FileRouteTypes {
     | '/_authenticated/_map/locations/$locationId'
     | '/_authenticated/_map/locations/new'
     | '/_authenticated/_nav/auth/account'
+    | '/_authenticated/_nav/devices/$deviceId'
+    | '/_authenticated/_nav/devices/new'
     | '/_authenticated/_nav/buildings/'
     | '/_authenticated/_nav/devices/'
     | '/_authenticated/_nav/locations/'
@@ -368,6 +406,7 @@ export interface FileRouteTypes {
     | '/_authenticated/_map/locations/$locationId_/edit'
     | '/_authenticated/_nav/admin/users/$userId'
     | '/_authenticated/_nav/admin/users/new'
+    | '/_authenticated/_nav/devices/$deviceId_/edit'
     | '/_authenticated/_nav/devices/manufacturers/$manufacturerId'
     | '/_authenticated/_nav/devices/manufacturers/new'
     | '/_authenticated/_nav/devices/models/$modelId'
@@ -491,6 +530,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNavDevicesIndexRouteImport
       parentRoute: typeof AuthenticatedNavRoute
     }
+    '/_authenticated/_nav/devices/$deviceId': {
+      id: '/_authenticated/_nav/devices/$deviceId'
+      path: '/devices/$deviceId'
+      fullPath: '/devices/$deviceId'
+      preLoaderRoute: typeof AuthenticatedNavDevicesDeviceIdRouteImport
+      parentRoute: typeof AuthenticatedNavRoute
+    }
+    '/_authenticated/_nav/devices/new': {
+      id: '/_authenticated/_nav/devices/new'
+      path: '/devices/new'
+      fullPath: '/devices/new'
+      preLoaderRoute: typeof AuthenticatedNavDevicesNewRouteImport
+      parentRoute: typeof AuthenticatedNavRoute
+    }
     '/_authenticated/_nav/locations/': {
       id: '/_authenticated/_nav/locations/'
       path: '/locations'
@@ -532,6 +585,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/users/new'
       preLoaderRoute: typeof AuthenticatedNavAdminUsersNewRouteImport
       parentRoute: typeof AuthenticatedNavAdminRoute
+    }
+    '/_authenticated/_nav/devices/$deviceId_/edit': {
+      id: '/_authenticated/_nav/devices/$deviceId_/edit'
+      path: '/devices/$deviceId/edit'
+      fullPath: '/devices/$deviceId/edit'
+      preLoaderRoute: typeof AuthenticatedNavDevicesDeviceIdEditRouteImport
+      parentRoute: typeof AuthenticatedNavRoute
     }
     '/_authenticated/_nav/devices/manufacturers/': {
       id: '/_authenticated/_nav/devices/manufacturers/'
@@ -667,9 +727,12 @@ const AuthenticatedNavAdminRouteWithChildren =
 interface AuthenticatedNavRouteChildren {
   AuthenticatedNavAdminRoute: typeof AuthenticatedNavAdminRouteWithChildren
   AuthenticatedNavAuthAccountRoute: typeof AuthenticatedNavAuthAccountRoute
+  AuthenticatedNavDevicesDeviceIdRoute: typeof AuthenticatedNavDevicesDeviceIdRoute
+  AuthenticatedNavDevicesNewRoute: typeof AuthenticatedNavDevicesNewRoute
   AuthenticatedNavBuildingsIndexRoute: typeof AuthenticatedNavBuildingsIndexRoute
   AuthenticatedNavDevicesIndexRoute: typeof AuthenticatedNavDevicesIndexRoute
   AuthenticatedNavLocationsIndexRoute: typeof AuthenticatedNavLocationsIndexRoute
+  AuthenticatedNavDevicesDeviceIdEditRoute: typeof AuthenticatedNavDevicesDeviceIdEditRoute
   AuthenticatedNavDevicesManufacturersManufacturerIdRoute: typeof AuthenticatedNavDevicesManufacturersManufacturerIdRoute
   AuthenticatedNavDevicesManufacturersNewRoute: typeof AuthenticatedNavDevicesManufacturersNewRoute
   AuthenticatedNavDevicesModelsModelIdRoute: typeof AuthenticatedNavDevicesModelsModelIdRoute
@@ -683,9 +746,13 @@ interface AuthenticatedNavRouteChildren {
 const AuthenticatedNavRouteChildren: AuthenticatedNavRouteChildren = {
   AuthenticatedNavAdminRoute: AuthenticatedNavAdminRouteWithChildren,
   AuthenticatedNavAuthAccountRoute: AuthenticatedNavAuthAccountRoute,
+  AuthenticatedNavDevicesDeviceIdRoute: AuthenticatedNavDevicesDeviceIdRoute,
+  AuthenticatedNavDevicesNewRoute: AuthenticatedNavDevicesNewRoute,
   AuthenticatedNavBuildingsIndexRoute: AuthenticatedNavBuildingsIndexRoute,
   AuthenticatedNavDevicesIndexRoute: AuthenticatedNavDevicesIndexRoute,
   AuthenticatedNavLocationsIndexRoute: AuthenticatedNavLocationsIndexRoute,
+  AuthenticatedNavDevicesDeviceIdEditRoute:
+    AuthenticatedNavDevicesDeviceIdEditRoute,
   AuthenticatedNavDevicesManufacturersManufacturerIdRoute:
     AuthenticatedNavDevicesManufacturersManufacturerIdRoute,
   AuthenticatedNavDevicesManufacturersNewRoute:

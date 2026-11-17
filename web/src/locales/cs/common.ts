@@ -14,6 +14,9 @@ export default {
     search: 'Hledat',
     clear: 'Vymazat',
     logOut: 'Odhlásit se',
+    copy: 'Kopírovat {{value}}',
+    copied: '{{value}} zkopírováno',
+    copyFailed: '{{value}} se nepodařilo zkopírovat',
   },
   states: {
     loading: 'Načítám…',
@@ -21,7 +24,7 @@ export default {
     noResults: 'Žádné výsledky',
     unknown: 'Neznámé',
     none: 'Žádné',
-    notRecorded: 'Nezaznamenáno',
+    notRecorded: '-',
     notSpecified: 'Neuvedeno',
     optional: 'Nepovinné',
     yes: 'Ano',

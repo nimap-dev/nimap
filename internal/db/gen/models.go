@@ -7,6 +7,7 @@ package gen
 import (
 	"database/sql/driver"
 	"fmt"
+	"net/netip"
 	"time"
 
 	"github.com/google/uuid"
@@ -706,6 +707,23 @@ type Building struct {
 	LocationID          *uuid.UUID
 }
 
+type Device struct {
+	ID              uuid.UUID
+	Code            string
+	Name            string
+	PhysicalLabel   *string
+	DeviceModelID   *uuid.UUID
+	DeviceTypeID    *uuid.UUID
+	SerialNumber    *string
+	InventoryNumber *string
+	ManagementIp    *netip.Addr
+	Hostname        *string
+	Notes           *string
+	Status          LifecycleStatus
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+}
+
 type DeviceModel struct {
 	ID             uuid.UUID
 	DeviceTypeID   uuid.UUID
@@ -734,14 +752,16 @@ type DeviceModel struct {
 }
 
 type DeviceType struct {
-	ID        uuid.UUID
-	Code      string
-	Name      string
-	Icon      string
-	Color     string
-	SortOrder int16
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID         uuid.UUID
+	Code       string
+	Name       string
+	Icon       string
+	Color      string
+	SortOrder  int16
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	CodePrefix string
+	CodeNext   int32
 }
 
 type Location struct {

@@ -6,6 +6,7 @@ import {
   useUpdateDeviceModelStatus,
 } from '#/api/device-models/device-models'
 import { useListAssets } from '#/api/assets/assets'
+import { useListDevices } from '#/api/devices/devices'
 import { AssetList } from '#/components/asset-list'
 import {
   Detail,
@@ -40,7 +41,10 @@ import {
   usePoeStandardLabels,
 } from '#/lib/device-models'
 import { FormattedDay } from '#/components/formatted-date'
-import { useLifecycleStatusLabels } from '#/lib/lifecycle'
+import {
+  ALL_LIFECYCLE_STATUSES,
+  useLifecycleStatusLabels,
+} from '#/lib/lifecycle'
 import type { LifecycleStatus } from '#/lib/lifecycle'
 import { useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
@@ -49,10 +53,12 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import * as zod from 'zod'
 import { RecordTab, RecordTabs, RecordTabsList } from '#/components/record-tabs'
+import { RelatedLink, RelatedList } from '#/components/related-list'
+import { LifecycleBadge } from '#/components/lifecycle-badge'
 import { TabsContent } from '#/components/ui/tabs'
 
 /** The tabs this page has; anything else in the address falls back to the first. */
-const TABS = ['overview', 'files'] as const
+const TABS = ['overview', 'devices', 'files'] as const
 type Tab = (typeof TABS)[number]
 
 export const Route = createFileRoute(
@@ -83,6 +89,11 @@ function ViewDeviceModel() {
     resourceId: modelId,
   })
   const assets = assetsData?.status === 200 ? assetsData.data : undefined
+  const { data: devicesData } = useListDevices({
+    deviceModelId: modelId,
+    status: ALL_LIFECYCLE_STATUSES,
+  })
+  const devices = devicesData?.status === 200 ? devicesData.data : undefined
 
   const model = data?.status === 200 ? data.data : undefined
 
@@ -269,6 +280,9 @@ function ViewDeviceModel() {
               <RecordTab value="overview">
                 {t('common:tabs.overview')}
               </RecordTab>
+              <RecordTab value="devices" count={devices?.length}>
+                {t('tabs.devices')}
+              </RecordTab>
               <RecordTab value="files" count={assets?.length}>
                 {t('common:tabs.files')}
               </RecordTab>
@@ -415,6 +429,31 @@ function ViewDeviceModel() {
                 updatedAt={model.updatedAt}
               />
             </DetailGrid>
+          </TabsContent>
+
+          <TabsContent value="devices">
+            <div className="mx-auto w-full max-w-4xl">
+              <RelatedList count={devices?.length} empty={t('devices.empty')}>
+                {devices?.map((device) => (
+                  <li key={device.id}>
+                    <RelatedLink
+                      to="/devices/$deviceId"
+                      params={{ deviceId: device.id }}
+                      icon={<DeviceTypeIcon type={device.deviceType} />}
+                      meta={<LifecycleBadge status={device.status} />}
+                    >
+                      <span className="font-mono">{device.code}</span>{' '}
+                      {device.name}
+                      {device.serialNumber && (
+                        <span className="text-muted-foreground">
+                          {` · ${device.serialNumber}`}
+                        </span>
+                      )}
+                    </RelatedLink>
+                  </li>
+                ))}
+              </RelatedList>
+            </div>
           </TabsContent>
 
           <TabsContent value="files">

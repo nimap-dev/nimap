@@ -107,6 +107,12 @@ export default {
     notCreated: 'The device model was not created',
     created: '{{name}} was created',
   },
+  tabs: {
+    devices: 'Devices',
+  },
+  devices: {
+    empty: 'No devices of this model yet.',
+  },
   edit: {
     title: 'Edit {{name}}',
     notUpdated: 'The device model was not updated',

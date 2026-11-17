@@ -7,6 +7,7 @@ import assets from './assets'
 import map from './map'
 import form from './form'
 import deviceModels from './deviceModels'
+import devices from './devices'
 import manufacturers from './manufacturers'
 import buildings from './buildings'
 import locations from './locations'
@@ -22,6 +23,7 @@ export default {
   map,
   form,
   deviceModels,
+  devices,
   manufacturers,
   buildings,
   locations,

@@ -23,10 +23,12 @@ export const ListDeviceModelsResponseItem = zod.object({
   "depthMm": zod.int().optional(),
   "deviceType": zod.object({
   "code": zod.string(),
+  "codePrefix": zod.string().describe('Fixed prefix of the codes of devices of this type, such as SW'),
   "color": zod.string(),
   "icon": zod.string().describe('A lucide icon name'),
   "id": zod.string(),
   "name": zod.string(),
+  "nextCode": zod.string().optional().describe('The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created'),
   "sortOrder": zod.int()
 }),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
@@ -103,10 +105,12 @@ export const CreateDeviceModelResponse = zod.object({
   "depthMm": zod.int().optional(),
   "deviceType": zod.object({
   "code": zod.string(),
+  "codePrefix": zod.string().describe('Fixed prefix of the codes of devices of this type, such as SW'),
   "color": zod.string(),
   "icon": zod.string().describe('A lucide icon name'),
   "id": zod.string(),
   "name": zod.string(),
+  "nextCode": zod.string().optional().describe('The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created'),
   "sortOrder": zod.int()
 }),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
@@ -141,6 +145,7 @@ export const CreateDeviceModelResponse = zod.object({
 })
 
 /**
+ * Refused while any device is of the model.
  * @summary Deletes the device model with the provided id
  */
 export const DeleteDeviceModelParams = zod.object({
@@ -162,10 +167,12 @@ export const GetDeviceModelResponse = zod.object({
   "depthMm": zod.int().optional(),
   "deviceType": zod.object({
   "code": zod.string(),
+  "codePrefix": zod.string().describe('Fixed prefix of the codes of devices of this type, such as SW'),
   "color": zod.string(),
   "icon": zod.string().describe('A lucide icon name'),
   "id": zod.string(),
   "name": zod.string(),
+  "nextCode": zod.string().optional().describe('The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created'),
   "sortOrder": zod.int()
 }),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
@@ -244,10 +251,12 @@ export const UpdateDeviceModelResponse = zod.object({
   "depthMm": zod.int().optional(),
   "deviceType": zod.object({
   "code": zod.string(),
+  "codePrefix": zod.string().describe('Fixed prefix of the codes of devices of this type, such as SW'),
   "color": zod.string(),
   "icon": zod.string().describe('A lucide icon name'),
   "id": zod.string(),
   "name": zod.string(),
+  "nextCode": zod.string().optional().describe('The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created'),
   "sortOrder": zod.int()
 }),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
@@ -298,10 +307,12 @@ export const UpdateDeviceModelStatusResponse = zod.object({
   "depthMm": zod.int().optional(),
   "deviceType": zod.object({
   "code": zod.string(),
+  "codePrefix": zod.string().describe('Fixed prefix of the codes of devices of this type, such as SW'),
   "color": zod.string(),
   "icon": zod.string().describe('A lucide icon name'),
   "id": zod.string(),
   "name": zod.string(),
+  "nextCode": zod.string().optional().describe('The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created'),
   "sortOrder": zod.int()
 }),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),

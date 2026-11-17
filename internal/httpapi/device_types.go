@@ -11,12 +11,14 @@ import (
 )
 
 type DeviceTypeResponse struct {
-	ID        uuid.UUID `json:"id"`
-	Code      string    `json:"code"`
-	Name      string    `json:"name"`
-	Icon      string    `json:"icon" doc:"A lucide icon name"`
-	Color     string    `json:"color"`
-	SortOrder int16     `json:"sortOrder"`
+	ID         uuid.UUID `json:"id"`
+	Code       string    `json:"code"`
+	Name       string    `json:"name"`
+	Icon       string    `json:"icon" doc:"A lucide icon name"`
+	Color      string    `json:"color"`
+	SortOrder  int16     `json:"sortOrder"`
+	CodePrefix string    `json:"codePrefix" doc:"Fixed prefix of the codes of devices of this type, such as SW"`
+	NextCode   *string   `json:"nextCode,omitempty" doc:"The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created"`
 }
 
 type ListDeviceTypesOutput struct {
@@ -45,7 +47,9 @@ func RegisterDeviceTypes(api huma.API, q *gen.Queries) {
 		out := make([]DeviceTypeResponse, 0, len(device_types))
 
 		for _, dt := range device_types {
-			out = append(out, deviceTypeResponse(dt))
+			response := deviceTypeResponse(dt.DeviceType)
+			response.NextCode = &dt.NextCode
+			out = append(out, response)
 		}
 		return &ListDeviceTypesOutput{
 			Body: out,
@@ -56,11 +60,12 @@ func RegisterDeviceTypes(api huma.API, q *gen.Queries) {
 // deviceTypeResponse is shared with the device models, which nest their type.
 func deviceTypeResponse(deviceType gen.DeviceType) DeviceTypeResponse {
 	return DeviceTypeResponse{
-		ID:        deviceType.ID,
-		Code:      deviceType.Code,
-		Name:      deviceType.Name,
-		Icon:      deviceType.Icon,
-		Color:     deviceType.Color,
-		SortOrder: deviceType.SortOrder,
+		ID:         deviceType.ID,
+		Code:       deviceType.Code,
+		Name:       deviceType.Name,
+		Icon:       deviceType.Icon,
+		Color:      deviceType.Color,
+		SortOrder:  deviceType.SortOrder,
+		CodePrefix: deviceType.CodePrefix,
 	}
 }

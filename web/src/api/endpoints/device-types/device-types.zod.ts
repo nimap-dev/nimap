@@ -12,10 +12,12 @@ import * as zod from 'zod';
  */
 export const ListDeviceTypesResponseItem = zod.object({
   "code": zod.string(),
+  "codePrefix": zod.string().describe('Fixed prefix of the codes of devices of this type, such as SW'),
   "color": zod.string(),
   "icon": zod.string().describe('A lucide icon name'),
   "id": zod.string(),
   "name": zod.string(),
+  "nextCode": zod.string().optional().describe('The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created'),
   "sortOrder": zod.int()
 })
 export const ListDeviceTypesResponse = zod.array(ListDeviceTypesResponseItem)

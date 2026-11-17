@@ -281,6 +281,54 @@ components:
         - name
         - status
       type: object
+    CreateDeviceRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/CreateDeviceRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        code:
+          description: Leave it out or empty to get the next code of the device's type, such as SW-004. A code given here is used as is and does not move the type's counter.
+          type: string
+        deviceModelId:
+          description: Exactly one of deviceModelId and deviceTypeId; the type then comes from the model
+          type: string
+        deviceTypeId:
+          description: Exactly one of deviceModelId and deviceTypeId; for a device without a model
+          type: string
+        hostname:
+          description: DNS name; stored in lowercase
+          type: string
+        inventoryNumber:
+          type: string
+        managementIp:
+          description: One IPv4 or IPv6 address, not a network
+          type: string
+        name:
+          minLength: 1
+          type: string
+        notes:
+          type: string
+        physicalLabel:
+          description: What is actually written on the device
+          type: string
+        serialNumber:
+          type: string
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
+      required:
+        - name
+        - status
+      type: object
     CreateLocationRequest:
       additionalProperties: false
       properties:
@@ -353,6 +401,21 @@ components:
         - email
         - password
         - role
+      type: object
+    DeviceModelRef:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        partNumber:
+          type: string
+        variant:
+          type: string
+      required:
+        - id
+        - name
       type: object
     DeviceModelResponse:
       additionalProperties: false
@@ -467,10 +530,74 @@ components:
         - createdAt
         - updatedAt
       type: object
+    DeviceResponse:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/DeviceResponse.json
+          format: uri
+          readOnly: true
+          type: string
+        code:
+          description: Short code such as SW-001, unique regardless of case
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        deviceType:
+          $ref: "#/components/schemas/DeviceTypeResponse"
+          description: The model's type for a device with a model, the device's own otherwise
+        hostname:
+          type: string
+        id:
+          type: string
+        inventoryNumber:
+          type: string
+        managementIp:
+          description: The address the device is managed on, IPv4 or IPv6
+          type: string
+        manufacturer:
+          $ref: "#/components/schemas/ManufacturerRef"
+          description: The model's manufacturer; a device without a model has none
+        model:
+          $ref: "#/components/schemas/DeviceModelRef"
+        name:
+          type: string
+        notes:
+          type: string
+        physicalLabel:
+          description: What is actually written on the device
+          type: string
+        serialNumber:
+          type: string
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - code
+        - name
+        - deviceType
+        - status
+        - createdAt
+        - updatedAt
+      type: object
     DeviceTypeResponse:
       additionalProperties: false
       properties:
         code:
+          type: string
+        codePrefix:
+          description: Fixed prefix of the codes of devices of this type, such as SW
           type: string
         color:
           type: string
@@ -480,6 +607,9 @@ components:
         id:
           type: string
         name:
+          type: string
+        nextCode:
+          description: "The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created"
           type: string
         sortOrder:
           format: int32
@@ -491,6 +621,7 @@ components:
         - icon
         - color
         - sortOrder
+        - codePrefix
       type: object
     ErrorDetail:
       additionalProperties: false
@@ -648,6 +779,17 @@ components:
       required:
         - username
         - password
+      type: object
+    ManufacturerRef:
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
       type: object
     ManufacturerRequest:
       additionalProperties: false
@@ -1110,6 +1252,68 @@ components:
           description: A URL to the JSON Schema for this object.
           examples:
             - https://example.com/schemas/UpdateDeviceModelStatusRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        status:
+          enum:
+            - planned
+            - active
+            - decommissioned
+            - archived
+          type: string
+      required:
+        - status
+      type: object
+    UpdateDeviceRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateDeviceRequest.json
+          format: uri
+          readOnly: true
+          type: string
+        code:
+          description: Changing the model or type never changes the code; only this field does
+          minLength: 1
+          type: string
+        deviceModelId:
+          description: Exactly one of deviceModelId and deviceTypeId; the type then comes from the model
+          type: string
+        deviceTypeId:
+          description: Exactly one of deviceModelId and deviceTypeId; for a device without a model
+          type: string
+        hostname:
+          description: DNS name; stored in lowercase
+          type: string
+        inventoryNumber:
+          type: string
+        managementIp:
+          description: One IPv4 or IPv6 address, not a network
+          type: string
+        name:
+          minLength: 1
+          type: string
+        notes:
+          type: string
+        physicalLabel:
+          description: What is actually written on the device
+          type: string
+        serialNumber:
+          type: string
+      required:
+        - code
+        - name
+      type: object
+    UpdateDeviceStatusRequest:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/UpdateDeviceStatusRequest.json
           format: uri
           readOnly: true
           type: string
@@ -2073,6 +2277,7 @@ paths:
         - device-models
   /api/device-models/{id}:
     delete:
+      description: Refused while any device is of the model.
       operationId: delete-device-model
       parameters:
         - in: path
@@ -2198,6 +2403,195 @@ paths:
       summary: Returns all device types.
       tags:
         - device-types
+  /api/devices:
+    get:
+      operationId: list-devices
+      parameters:
+        - description: Lifecycle statuses to include. Defaults to planned and active.
+          explode: false
+          in: query
+          name: status
+          schema:
+            description: Lifecycle statuses to include. Defaults to planned and active.
+            items:
+              enum:
+                - planned
+                - active
+                - decommissioned
+                - archived
+              type: string
+            type: array
+        - description: Only return devices of this type, whether it comes from their model or not.
+          explode: false
+          in: query
+          name: deviceTypeId
+          schema:
+            description: Only return devices of this type, whether it comes from their model or not.
+            type: string
+        - description: Only return devices of this model.
+          explode: false
+          in: query
+          name: deviceModelId
+          schema:
+            description: Only return devices of this model.
+            type: string
+        - description: Only return devices whose model this manufacturer makes.
+          explode: false
+          in: query
+          name: manufacturerId
+          schema:
+            description: Only return devices whose model this manufacturer makes.
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/DeviceResponse"
+                type: array
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns all devices, optionally narrowed to a type, model or manufacturer
+      tags:
+        - devices
+    post:
+      description: Without a code, the device gets the next free code of its type.
+      operationId: create-device
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeviceRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceResponse"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Creates a device
+      tags:
+        - devices
+  /api/devices/{id}:
+    delete:
+      description: Its code is not handed out again.
+      operationId: delete-device
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Deletes the device with the provided id
+      tags:
+        - devices
+    get:
+      operationId: get-device
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns the device with the provided id
+      tags:
+        - devices
+    put:
+      operationId: update-device
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDeviceRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Updates the device with the provided id
+      tags:
+        - devices
+  /api/devices/{id}/status:
+    patch:
+      operationId: update-device-status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDeviceStatusRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceResponse"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Updates the status of the device with the provided id
+      tags:
+        - devices
   /api/locations:
     get:
       operationId: list-locations

@@ -68,6 +68,14 @@ var wantPolicy = map[string]policy{
 	"update-device-model-status": {permission: auth.WriteRecords},
 	"delete-device-model":        {permission: auth.WriteRecords},
 
+	// devices
+	"get-device":           {permission: auth.ReadRecords},
+	"list-devices":         {permission: auth.ReadRecords},
+	"create-device":        {permission: auth.WriteRecords},
+	"update-device":        {permission: auth.WriteRecords},
+	"update-device-status": {permission: auth.WriteRecords},
+	"delete-device":        {permission: auth.WriteRecords},
+
 	// manufacturers
 	"get-manufacturer":    {permission: auth.ReadRecords},
 	"list-manufacturers":  {permission: auth.ReadRecords},

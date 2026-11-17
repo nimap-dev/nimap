@@ -131,7 +131,7 @@ func (q *Queries) DeleteDeviceModel(ctx context.Context, id uuid.UUID) (int64, e
 const getDeviceModel = `-- name: GetDeviceModel :one
 SELECT
   dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts, dm.end_of_sale, dm.end_of_support,
-  dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at,
+  dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at, dt.code_prefix, dt.code_next,
   m.id, m.name, m.website, m.notes, m.created_at, m.updated_at
 FROM device_models dm
 JOIN device_types dt ON dt.id = dm.device_type_id
@@ -181,6 +181,8 @@ func (q *Queries) GetDeviceModel(ctx context.Context, id uuid.UUID) (GetDeviceMo
 		&i.DeviceType.SortOrder,
 		&i.DeviceType.CreatedAt,
 		&i.DeviceType.UpdatedAt,
+		&i.DeviceType.CodePrefix,
+		&i.DeviceType.CodeNext,
 		&i.Manufacturer.ID,
 		&i.Manufacturer.Name,
 		&i.Manufacturer.Website,
@@ -194,7 +196,7 @@ func (q *Queries) GetDeviceModel(ctx context.Context, id uuid.UUID) (GetDeviceMo
 const listDeviceModels = `-- name: ListDeviceModels :many
 SELECT
   dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts, dm.end_of_sale, dm.end_of_support,
-  dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at,
+  dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at, dt.code_prefix, dt.code_next,
   m.id, m.name, m.website, m.notes, m.created_at, m.updated_at
 FROM device_models dm
 JOIN device_types dt ON dt.id = dm.device_type_id
@@ -275,6 +277,8 @@ func (q *Queries) ListDeviceModels(ctx context.Context, arg ListDeviceModelsPara
 			&i.DeviceType.SortOrder,
 			&i.DeviceType.CreatedAt,
 			&i.DeviceType.UpdatedAt,
+			&i.DeviceType.CodePrefix,
+			&i.DeviceType.CodeNext,
 			&i.Manufacturer.ID,
 			&i.Manufacturer.Name,
 			&i.Manufacturer.Website,

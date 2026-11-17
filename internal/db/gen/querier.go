@@ -11,13 +11,16 @@ import (
 )
 
 type Querier interface {
+	AllocateDeviceCode(ctx context.Context, arg AllocateDeviceCodeParams) (string, error)
 	CountBuildingsInLocation(ctx context.Context, locationID uuid.UUID) (int64, error)
 	CountDeviceModelsWithManufacturer(ctx context.Context, manufacturerID uuid.UUID) (int64, error)
+	CountDevicesWithModel(ctx context.Context, deviceModelID *uuid.UUID) (int64, error)
 	CountLocationChildren(ctx context.Context, id uuid.UUID) (int64, error)
 	CountUsersWithRole(ctx context.Context, roleID int16) (int64, error)
 	CreateAsset(ctx context.Context, arg CreateAssetParams) (Asset, error)
 	CreateBuilding(ctx context.Context, arg CreateBuildingParams) (CreateBuildingRow, error)
 	CreateBuildingAssetAttachment(ctx context.Context, arg CreateBuildingAssetAttachmentParams) (AssetAttachment, error)
+	CreateDevice(ctx context.Context, arg CreateDeviceParams) (uuid.UUID, error)
 	CreateDeviceModel(ctx context.Context, arg CreateDeviceModelParams) (uuid.UUID, error)
 	CreateDeviceModelAssetAttachment(ctx context.Context, arg CreateDeviceModelAssetAttachmentParams) (AssetAttachment, error)
 	CreateLocation(ctx context.Context, arg CreateLocationParams) (CreateLocationRow, error)
@@ -28,6 +31,7 @@ type Querier interface {
 	DeleteAsset(ctx context.Context, id uuid.UUID) (string, error)
 	DeleteAssetAttachment(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 	DeleteBuilding(ctx context.Context, id uuid.UUID) (int64, error)
+	DeleteDevice(ctx context.Context, id uuid.UUID) (int64, error)
 	DeleteDeviceModel(ctx context.Context, id uuid.UUID) (int64, error)
 	DeleteLocation(ctx context.Context, id uuid.UUID) (int64, error)
 	DeleteManufacturer(ctx context.Context, id uuid.UUID) (int64, error)
@@ -35,6 +39,7 @@ type Querier interface {
 	DeleteUserIdentity(ctx context.Context, arg DeleteUserIdentityParams) (int64, error)
 	GetAsset(ctx context.Context, id uuid.UUID) (Asset, error)
 	GetBuilding(ctx context.Context, id uuid.UUID) (GetBuildingRow, error)
+	GetDevice(ctx context.Context, id uuid.UUID) (GetDeviceRow, error)
 	GetDeviceModel(ctx context.Context, id uuid.UUID) (GetDeviceModelRow, error)
 	GetLocation(ctx context.Context, id uuid.UUID) (GetLocationRow, error)
 	GetManufacturer(ctx context.Context, id uuid.UUID) (Manufacturer, error)
@@ -51,7 +56,8 @@ type Querier interface {
 	ListBuildings(ctx context.Context, arg ListBuildingsParams) ([]ListBuildingsRow, error)
 	ListDeviceModelAssets(ctx context.Context, deviceModelID *uuid.UUID) ([]ListDeviceModelAssetsRow, error)
 	ListDeviceModels(ctx context.Context, arg ListDeviceModelsParams) ([]ListDeviceModelsRow, error)
-	ListDeviceTypes(ctx context.Context) ([]DeviceType, error)
+	ListDeviceTypes(ctx context.Context) ([]ListDeviceTypesRow, error)
+	ListDevices(ctx context.Context, arg ListDevicesParams) ([]ListDevicesRow, error)
 	ListImageAssets(ctx context.Context) ([]ListImageAssetsRow, error)
 	ListLocationAssets(ctx context.Context, locationID *uuid.UUID) ([]ListLocationAssetsRow, error)
 	ListLocations(ctx context.Context, statuses []string) ([]ListLocationsRow, error)
@@ -70,8 +76,10 @@ type Querier interface {
 	UpdateAssetDimensions(ctx context.Context, arg UpdateAssetDimensionsParams) error
 	UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) (UpdateBuildingRow, error)
 	UpdateBuildingStatus(ctx context.Context, arg UpdateBuildingStatusParams) (UpdateBuildingStatusRow, error)
+	UpdateDevice(ctx context.Context, arg UpdateDeviceParams) (uuid.UUID, error)
 	UpdateDeviceModel(ctx context.Context, arg UpdateDeviceModelParams) (uuid.UUID, error)
 	UpdateDeviceModelStatus(ctx context.Context, arg UpdateDeviceModelStatusParams) (uuid.UUID, error)
+	UpdateDeviceStatus(ctx context.Context, arg UpdateDeviceStatusParams) (uuid.UUID, error)
 	// Leaves the status alone: taking a location out of service is its own
 	// operation, the same split the buildings queries make.
 	UpdateLocation(ctx context.Context, arg UpdateLocationParams) (UpdateLocationRow, error)

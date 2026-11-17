@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/nimap-dev/nimap/internal/auth"
 	"github.com/nimap-dev/nimap/internal/db/gen"
 	"github.com/nimap-dev/nimap/internal/httpapi/apitypes"
+	"github.com/nimap-dev/nimap/internal/text"
 )
 
 type DeviceModelResponse struct {
@@ -370,6 +372,7 @@ func RegisterDeviceModels(api huma.API, q *gen.Queries) {
 		Method:        http.MethodDelete,
 		Path:          "/api/device-models/{id}",
 		Summary:       "Deletes the device model with the provided id",
+		Description:   "Refused while any device is of the model.",
 		Tags:          []string{"device-models"},
 		DefaultStatus: http.StatusNoContent,
 		Metadata:      map[string]any{requirePermissionMetaKey: auth.WriteRecords},
@@ -379,9 +382,25 @@ func RegisterDeviceModels(api huma.API, q *gen.Queries) {
 	) (*struct{}, error) {
 		affected, err := q.DeleteDeviceModel(ctx, in.ID)
 		if err != nil {
-			return nil, huma.Error500InternalServerError(
-				"device model deletion failed",
-			)
+			var pgErr *pgconn.PgError
+			if !errors.As(err, &pgErr) ||
+				(pgErr.Code != "23001" && pgErr.Code != "23503") {
+				return nil, huma.Error500InternalServerError(
+					"device model deletion failed",
+				)
+			}
+
+			devices, err := q.CountDevicesWithModel(ctx, &in.ID)
+			if err != nil {
+				return nil, huma.Error500InternalServerError(
+					"device model deletion failed",
+				)
+			}
+
+			return nil, huma.Error409Conflict(fmt.Sprintf(
+				"device model still has %s and cannot be deleted",
+				text.Plural(devices, "device", "devices"),
+			))
 		}
 
 		if affected == 0 {

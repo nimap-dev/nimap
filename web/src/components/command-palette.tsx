@@ -88,6 +88,12 @@ function useGroups(): { heading: string; entries: PaletteEntry[] }[] {
           permission: 'records:write',
         },
         {
+          label: t('palette.newDevice'),
+          to: '/devices/new',
+          icon: Plus,
+          permission: 'records:write',
+        },
+        {
           label: t('palette.newUser'),
           to: '/admin/users/new',
           icon: Plus,

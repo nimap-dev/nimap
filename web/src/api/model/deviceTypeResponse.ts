@@ -7,10 +7,14 @@
 
 export interface DeviceTypeResponse {
   code: string;
+  /** Fixed prefix of the codes of devices of this type, such as SW */
+  codePrefix: string;
   color: string;
   /** A lucide icon name */
   icon: string;
   id: string;
   name: string;
+  /** The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created */
+  nextCode?: string;
   sortOrder: number;
 }

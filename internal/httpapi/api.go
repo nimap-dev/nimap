@@ -32,6 +32,7 @@ func NewAPI(router chi.Router, version string, pool *pgxpool.Pool, sessions *scs
 	RegisterAssets(api, q, pool, store)
 	RegisterDeviceTypes(api, q)
 	RegisterDeviceModels(api, q)
+	RegisterDevices(api, q, pool)
 	RegisterManufacturers(api, q)
 	return api
 }

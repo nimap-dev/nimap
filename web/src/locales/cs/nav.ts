@@ -18,6 +18,7 @@ export default {
     newBuilding: 'Nová budova',
     newManufacturer: 'Nový výrobce',
     newDeviceModel: 'Nový model zařízení',
+    newDevice: 'Nové zařízení',
     newUser: 'Nový uživatel',
   },
 }

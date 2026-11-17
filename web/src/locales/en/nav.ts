@@ -19,6 +19,7 @@ export default {
     newBuilding: 'New building',
     newManufacturer: 'New manufacturer',
     newDeviceModel: 'New device model',
+    newDevice: 'New device',
     newUser: 'New user',
   },
 }

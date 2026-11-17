@@ -342,6 +342,7 @@ export const getDeleteDeviceModelUrl = (id: string,) => {
 }
 
 /**
+ * Refused while any device is of the model.
  * @summary Deletes the device model with the provided id
  */
 export const deleteDeviceModel = async (id: string, options?: RequestInit): Promise<deleteDeviceModelResponse> => {

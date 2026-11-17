@@ -104,6 +104,12 @@ export default {
     notCreated: 'Model zařízení nebyl vytvořen',
     created: '{{name}} byl vytvořen',
   },
+  tabs: {
+    devices: 'Zařízení',
+  },
+  devices: {
+    empty: 'Tohoto modelu zatím není žádné zařízení.',
+  },
   edit: {
     title: 'Upravit {{name}}',
     notUpdated: 'Model zařízení se nepodařilo upravit',

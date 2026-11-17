@@ -11,36 +11,40 @@ import (
 
 const listDeviceTypes = `-- name: ListDeviceTypes :many
 SELECT
-  id,
-  code,
-  name,
-  icon,
-  color,
-  sort_order,
-  created_at,
-  updated_at
+  device_types.id, device_types.code, device_types.name, device_types.icon, device_types.color, device_types.sort_order, device_types.created_at, device_types.updated_at, device_types.code_prefix, device_types.code_next,
+  -- What the next generated code would be right now; a preview only, the
+  -- number is taken by AllocateDeviceCode when a device is created.
+  device_code_format(code_prefix, device_code_first_free(code_prefix, code_next))::text AS next_code
 FROM device_types
 ORDER BY sort_order, name
 `
 
-func (q *Queries) ListDeviceTypes(ctx context.Context) ([]DeviceType, error) {
+type ListDeviceTypesRow struct {
+	DeviceType DeviceType
+	NextCode   string
+}
+
+func (q *Queries) ListDeviceTypes(ctx context.Context) ([]ListDeviceTypesRow, error) {
 	rows, err := q.db.Query(ctx, listDeviceTypes)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []DeviceType
+	var items []ListDeviceTypesRow
 	for rows.Next() {
-		var i DeviceType
+		var i ListDeviceTypesRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.Code,
-			&i.Name,
-			&i.Icon,
-			&i.Color,
-			&i.SortOrder,
-			&i.CreatedAt,
-			&i.UpdatedAt,
+			&i.DeviceType.ID,
+			&i.DeviceType.Code,
+			&i.DeviceType.Name,
+			&i.DeviceType.Icon,
+			&i.DeviceType.Color,
+			&i.DeviceType.SortOrder,
+			&i.DeviceType.CreatedAt,
+			&i.DeviceType.UpdatedAt,
+			&i.DeviceType.CodePrefix,
+			&i.DeviceType.CodeNext,
+			&i.NextCode,
 		); err != nil {
 			return nil, err
 		}

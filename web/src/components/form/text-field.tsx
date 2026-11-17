@@ -1,5 +1,10 @@
-import type { ComponentProps } from 'react'
-import { Field, FieldError, FieldLabel } from '#/components/ui/field'
+import type { ComponentProps, ReactNode } from 'react'
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 
 /**
@@ -29,6 +34,7 @@ export type StringField = {
 export function TextField({
   field,
   label,
+  description,
   ...input
 }: Omit<
   ComponentProps<typeof Input>,
@@ -36,6 +42,7 @@ export function TextField({
 > & {
   field: StringField
   label: string
+  description?: ReactNode
 }) {
   const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid
 
@@ -51,6 +58,7 @@ export function TextField({
         aria-invalid={isInvalid}
         {...input}
       />
+      {description && <FieldDescription>{description}</FieldDescription>}
       {isInvalid && <FieldError errors={field.state.meta.errors} />}
     </Field>
   )
