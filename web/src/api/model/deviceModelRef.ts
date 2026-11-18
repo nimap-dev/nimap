@@ -6,6 +6,7 @@
  */
 
 export interface DeviceModelRef {
+  displayName?: string;
   id: string;
   name: string;
   partNumber?: string;

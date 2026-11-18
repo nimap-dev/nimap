@@ -13,7 +13,7 @@ Seznam otevřete v postranním panelu pod **Modely zařízení**. Modely vidí k
 
 | Sekce | Pole |
 |---|---|
-| Model | Výrobce, název, varianta a typ. Povinné je vše kromě varianty. |
+| Model | Výrobce, název, varianta, zobrazovaný název a typ. Varianta a zobrazovaný název jsou nepovinné. |
 | Identifikace | Katalogové číslo a odkaz na stránku produktu. |
 | Prodej a podpora | Den, kdy výrobce model přestane prodávat (EOS) a podporovat (EOL). Konec podpory nemůže být dřív než konec prodeje. |
 | Fyzické parametry | Šířka, výška a hloubka v milimetrech, montáž (rack, na zeď, na stůl, DIN lišta, na strop, na sloup, vestavěné nebo jiné) a výška v U. |
@@ -29,6 +29,10 @@ Standardy jsou 802.3af (PoE), 802.3at (PoE+), 802.3bt (PoE++) a pasivní PoE.
 
 Typ určuje prefix kódů, které dostanou zařízení tohoto modelu, třeba `SW` u switche. Viz [Zařízení](../devices/#kódy).
 
+### Zobrazovaný název
+
+Některé názvy modelů se špatně čtou, třeba `C52iG-5HaxD2HaxD-TC`. Vyplňte modelu **Zobrazovaný název**, třeba `hAP ax²`, a všude se zobrazí místo názvu. Původní název zůstane na stránce modelu a v seznamu pod zobrazovaným názvem.
+
 ### Varianty
 
 Výrobce může pod stejným názvem prodávat různý hardware, třeba druhou revizi nebo regionální verzi. Rozdíl zapište do pole **Varianta**, třeba `rev2`. Stejný název a varianta mohou u jednoho výrobce existovat jen jednou.
@@ -37,7 +41,7 @@ Variantu existujícího modelu přidáte tak, že model otevřete a použijete *
 
 ## Seznam
 
-Seznam ukazuje typ, model s katalogovým číslem, výrobce, provedení, PoE, stav a poslední změnu. Vyhledávání prochází názvy, varianty, katalogová čísla, výrobce a typy. Filtrovat lze podle typu, výrobce, montáže a stavu. Filtry se drží v adrese, takže filtrovaný seznam jde uložit do záložek nebo poslat.
+Seznam ukazuje typ, model s katalogovým číslem, výrobce, provedení, PoE, stav a poslední změnu. Vyhledávání prochází názvy, zobrazované názvy, varianty, katalogová čísla, výrobce a typy. Filtrovat lze podle typu, výrobce, montáže a stavu. Filtry se drží v adrese, takže filtrovaný seznam jde uložit do záložek nebo poslat.
 
 Ve výchozím stavu seznam ukazuje plánované a aktivní modely. Vyřazené a archivované přidáte filtrem stavu.
 

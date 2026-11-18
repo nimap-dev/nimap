@@ -53,11 +53,16 @@ export function usePoeStandardOptions() {
   return Object.entries(usePoeStandardLabels()) as Array<[PoeStandard, string]>
 }
 
-/** The model's name with its variant, if it has one: "CRS326 (rev2)". */
+/**
+ * The model's display name, or its name when it has none, with its variant if
+ * it has one.
+ */
 export function formatModelName(
-  model: Pick<DeviceModelResponse, 'name' | 'variant'>,
+  model: Pick<DeviceModelResponse, 'name' | 'displayName' | 'variant'>,
 ): string {
-  return model.variant ? `${model.name} (${model.variant})` : model.name
+  const name = model.displayName ?? model.name
+
+  return model.variant ? `${name} (${model.variant})` : name
 }
 
 /** The list's summaries of a model, in the interface language. */
@@ -107,6 +112,7 @@ export type DeviceModelFormValues = {
   deviceTypeId: string
   manufacturerId: string
   name: string
+  displayName: string
   variant: string
   partNumber: string
   website: string
@@ -132,6 +138,7 @@ export const emptyDeviceModelValues: DeviceModelFormValues = {
   deviceTypeId: '',
   manufacturerId: '',
   name: '',
+  displayName: '',
   variant: '',
   partNumber: '',
   website: '',
@@ -159,6 +166,7 @@ export function deviceModelToValues(
     deviceTypeId: model.deviceType.id,
     manufacturerId: model.manufacturer.id,
     name: model.name,
+    displayName: model.displayName ?? '',
     variant: model.variant ?? '',
     partNumber: model.partNumber ?? '',
     website: model.website ?? '',
@@ -201,6 +209,7 @@ export function deviceModelToRequest(values: DeviceModelFormValues) {
     deviceTypeId: values.deviceTypeId,
     manufacturerId: values.manufacturerId,
     name: values.name,
+    displayName: optional(values.displayName),
     variant: optional(values.variant),
     partNumber: optional(values.partNumber),
     website: optional(values.website),

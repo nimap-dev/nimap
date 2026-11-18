@@ -190,6 +190,9 @@ components:
           type: integer
         deviceTypeId:
           type: string
+        displayName:
+          description: A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC
+          type: string
         endOfSale:
           description: The day the manufacturer stops selling the model (EOS)
           format: date
@@ -405,6 +408,8 @@ components:
     DeviceModelRef:
       additionalProperties: false
       properties:
+        displayName:
+          type: string
         id:
           type: string
         name:
@@ -435,6 +440,9 @@ components:
           type: integer
         deviceType:
           $ref: "#/components/schemas/DeviceTypeResponse"
+        displayName:
+          description: A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC
+          type: string
         endOfSale:
           description: The day the manufacturer stops selling the model (EOS)
           format: date
@@ -1161,6 +1169,9 @@ components:
           minimum: 1
           type: integer
         deviceTypeId:
+          type: string
+        displayName:
+          description: A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC
           type: string
         endOfSale:
           description: The day the manufacturer stops selling the model (EOS)

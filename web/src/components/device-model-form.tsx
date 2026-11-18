@@ -159,6 +159,18 @@ export function DeviceModelForm({
                 />
               </FormRow>
               <form.Field
+                name="displayName"
+                children={(field) => (
+                  <TextField
+                    field={field}
+                    label={t('fields.displayName')}
+                    placeholder="hAP ax²"
+                    description={t('form.displayNameDescription')}
+                    autoComplete="off"
+                  />
+                )}
+              />
+              <form.Field
                 name="deviceTypeId"
                 validators={{
                   onChange: requiredChoice(t('form.pickType')),

@@ -23,6 +23,7 @@ type DeviceModelResponse struct {
 	DeviceType     DeviceTypeResponse       `json:"deviceType"`
 	Manufacturer   ManufacturerResponse     `json:"manufacturer"`
 	Name           string                   `json:"name"`
+	DisplayName    *string                  `json:"displayName,omitempty" doc:"A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC"`
 	PartNumber     *string                  `json:"partNumber,omitempty"`
 	Website        *string                  `json:"website,omitempty" doc:"The model's page on the manufacturer's site"`
 	Variant        *string                  `json:"variant,omitempty" doc:"A hardware revision or variant sold under the same name, such as rev 2"`
@@ -60,6 +61,7 @@ type CreateDeviceModelRequest struct {
 	DeviceTypeID   uuid.UUID                `json:"deviceTypeId"`
 	ManufacturerID uuid.UUID                `json:"manufacturerId"`
 	Name           string                   `json:"name" minLength:"1"`
+	DisplayName    *string                  `json:"displayName,omitempty" doc:"A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC"`
 	PartNumber     *string                  `json:"partNumber,omitempty"`
 	Website        *string                  `json:"website,omitempty" doc:"The model's page on the manufacturer's site"`
 	Variant        *string                  `json:"variant,omitempty" doc:"A hardware revision or variant sold under the same name, such as rev 2"`
@@ -88,6 +90,7 @@ type UpdateDeviceModelRequest struct {
 	DeviceTypeID   uuid.UUID              `json:"deviceTypeId"`
 	ManufacturerID uuid.UUID              `json:"manufacturerId"`
 	Name           string                 `json:"name" minLength:"1"`
+	DisplayName    *string                `json:"displayName,omitempty" doc:"A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC"`
 	PartNumber     *string                `json:"partNumber,omitempty"`
 	Website        *string                `json:"website,omitempty" doc:"The model's page on the manufacturer's site"`
 	Variant        *string                `json:"variant,omitempty" doc:"A hardware revision or variant sold under the same name, such as rev 2"`
@@ -270,6 +273,7 @@ func RegisterDeviceModels(api huma.API, q *gen.Queries) {
 			DeviceTypeID:   in.Body.DeviceTypeID,
 			ManufacturerID: in.Body.ManufacturerID,
 			Name:           in.Body.Name,
+			DisplayName:    in.Body.DisplayName,
 			PartNumber:     in.Body.PartNumber,
 			Website:        in.Body.Website,
 			Variant:        in.Body.Variant,
@@ -325,6 +329,7 @@ func RegisterDeviceModels(api huma.API, q *gen.Queries) {
 			DeviceTypeID:   in.Body.DeviceTypeID,
 			ManufacturerID: in.Body.ManufacturerID,
 			Name:           in.Body.Name,
+			DisplayName:    in.Body.DisplayName,
 			PartNumber:     in.Body.PartNumber,
 			Website:        in.Body.Website,
 			Variant:        in.Body.Variant,
@@ -436,6 +441,8 @@ func deviceModelCheckError(err error) error {
 		switch pgErr.ConstraintName {
 		case "device_model_name_not_blank":
 			return huma.Error422UnprocessableEntity("name cannot be blank")
+		case "device_model_display_name_not_blank":
+			return huma.Error422UnprocessableEntity("display name cannot be blank")
 		case "device_model_part_number_not_blank":
 			return huma.Error422UnprocessableEntity("part number cannot be blank")
 		case "device_model_website_not_blank":
@@ -551,6 +558,7 @@ func deviceModelResponse(
 		DeviceType:     deviceTypeResponse(deviceType),
 		Manufacturer:   manufacturerResponse(manufacturer),
 		Name:           model.Name,
+		DisplayName:    model.DisplayName,
 		PartNumber:     model.PartNumber,
 		Website:        model.Website,
 		Variant:        model.Variant,

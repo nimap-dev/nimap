@@ -90,7 +90,8 @@ function useColumns() {
             </span>
           ),
         }),
-        columnHelper.accessor('name', {
+        columnHelper.accessor((model) => formatModelName(model), {
+          id: 'name',
           header: ({ column }) => (
             <DataTableColumnHeader column={column}>
               {t('fields.model')}
@@ -103,6 +104,7 @@ function useColumns() {
 
             return [
               model.name,
+              model.displayName,
               model.variant,
               model.partNumber,
               model.manufacturer.name,
@@ -118,12 +120,14 @@ function useColumns() {
               >
                 {formatModelName(row.original)}
               </Link>
-              {row.original.partNumber && (
-                <span
-                  className="block truncate text-xs text-muted-foreground"
-                  title={row.original.partNumber}
-                >
-                  {row.original.partNumber}
+              {(row.original.displayName || row.original.partNumber) && (
+                <span className="block truncate text-xs text-muted-foreground">
+                  {[
+                    row.original.displayName && row.original.name,
+                    row.original.partNumber,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </span>
               )}
             </div>

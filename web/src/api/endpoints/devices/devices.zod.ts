@@ -40,6 +40,7 @@ export const ListDevicesResponseItem = zod.object({
   "name": zod.string()
 }).optional().describe('The model\'s manufacturer; a device without a model has none'),
   "model": zod.object({
+  "displayName": zod.string().optional(),
   "id": zod.string(),
   "name": zod.string(),
   "partNumber": zod.string().optional(),
@@ -98,6 +99,7 @@ export const CreateDeviceResponse = zod.object({
   "name": zod.string()
 }).optional().describe('The model\'s manufacturer; a device without a model has none'),
   "model": zod.object({
+  "displayName": zod.string().optional(),
   "id": zod.string(),
   "name": zod.string(),
   "partNumber": zod.string().optional(),
@@ -151,6 +153,7 @@ export const GetDeviceResponse = zod.object({
   "name": zod.string()
 }).optional().describe('The model\'s manufacturer; a device without a model has none'),
   "model": zod.object({
+  "displayName": zod.string().optional(),
   "id": zod.string(),
   "name": zod.string(),
   "partNumber": zod.string().optional(),
@@ -211,6 +214,7 @@ export const UpdateDeviceResponse = zod.object({
   "name": zod.string()
 }).optional().describe('The model\'s manufacturer; a device without a model has none'),
   "model": zod.object({
+  "displayName": zod.string().optional(),
   "id": zod.string(),
   "name": zod.string(),
   "partNumber": zod.string().optional(),
@@ -258,6 +262,7 @@ export const UpdateDeviceStatusResponse = zod.object({
   "name": zod.string()
 }).optional().describe('The model\'s manufacturer; a device without a model has none'),
   "model": zod.object({
+  "displayName": zod.string().optional(),
   "id": zod.string(),
   "name": zod.string(),
   "partNumber": zod.string().optional(),

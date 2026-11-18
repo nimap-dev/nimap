@@ -22,6 +22,7 @@ export default {
     manufacturer: 'Manufacturer',
     type: 'Type',
     name: 'Name',
+    displayName: 'Display name',
     identification: 'Identification',
     variant: 'Variant',
     partNumber: 'Part number',
@@ -50,6 +51,8 @@ export default {
     updated: 'Updated',
   },
   form: {
+    displayNameDescription:
+      'A friendlier name shown instead of the model name, if it is hard to read.',
     pickManufacturer: 'Pick a manufacturer',
     pickType: 'Pick a device type',
     notListed: 'Not listed? <link>Add a manufacturer</link> first.',

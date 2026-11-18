@@ -31,6 +31,7 @@ export const ListDeviceModelsResponseItem = zod.object({
   "nextCode": zod.string().optional().describe('The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created'),
   "sortOrder": zod.int()
 }),
+  "displayName": zod.string().optional().describe('A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC'),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
   "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().optional(),
@@ -78,6 +79,7 @@ export const ListDeviceModelsResponse = zod.array(ListDeviceModelsResponseItem)
 export const CreateDeviceModelBody = zod.object({
   "depthMm": zod.int().min(1).optional(),
   "deviceTypeId": zod.string(),
+  "displayName": zod.string().optional().describe('A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC'),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
   "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().min(1).optional(),
@@ -113,6 +115,7 @@ export const CreateDeviceModelResponse = zod.object({
   "nextCode": zod.string().optional().describe('The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created'),
   "sortOrder": zod.int()
 }),
+  "displayName": zod.string().optional().describe('A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC'),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
   "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().optional(),
@@ -175,6 +178,7 @@ export const GetDeviceModelResponse = zod.object({
   "nextCode": zod.string().optional().describe('The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created'),
   "sortOrder": zod.int()
 }),
+  "displayName": zod.string().optional().describe('A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC'),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
   "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().optional(),
@@ -225,6 +229,7 @@ export const UpdateDeviceModelParams = zod.object({
 export const UpdateDeviceModelBody = zod.object({
   "depthMm": zod.int().min(1).optional(),
   "deviceTypeId": zod.string(),
+  "displayName": zod.string().optional().describe('A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC'),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
   "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().min(1).optional(),
@@ -259,6 +264,7 @@ export const UpdateDeviceModelResponse = zod.object({
   "nextCode": zod.string().optional().describe('The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created'),
   "sortOrder": zod.int()
 }),
+  "displayName": zod.string().optional().describe('A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC'),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
   "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().optional(),
@@ -315,6 +321,7 @@ export const UpdateDeviceModelStatusResponse = zod.object({
   "nextCode": zod.string().optional().describe('The code the next device of this type would get, such as SW-004; only in the type list, and a preview: the number is taken when a device is created'),
   "sortOrder": zod.int()
 }),
+  "displayName": zod.string().optional().describe('A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC'),
   "endOfSale": zod.iso.date().optional().describe('The day the manufacturer stops selling the model (EOS)'),
   "endOfSupport": zod.iso.date().optional().describe('The day the manufacturer stops supporting the model (EOL); not before endOfSale'),
   "heightMm": zod.int().optional(),

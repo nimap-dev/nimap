@@ -292,6 +292,9 @@ function ViewDeviceModel() {
           <TabsContent value="overview">
             <DetailGrid>
               <DetailList title={t('fields.identification')}>
+                {model.displayName && (
+                  <Detail label={t('fields.name')}>{model.name}</Detail>
+                )}
                 <Detail label={t('fields.variant')}>
                   {model.variant ?? (
                     <DetailEmpty>{t('common:states.none')}</DetailEmpty>

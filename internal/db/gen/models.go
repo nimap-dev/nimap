@@ -749,6 +749,7 @@ type DeviceModel struct {
 	PoeBudgetWatts *int32
 	EndOfSale      *time.Time
 	EndOfSupport   *time.Time
+	DisplayName    *string
 }
 
 type DeviceType struct {

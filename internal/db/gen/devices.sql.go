@@ -128,6 +128,7 @@ SELECT
   d.id, d.code, d.name, d.physical_label, d.device_model_id, d.device_type_id, d.serial_number, d.inventory_number, d.management_ip, d.hostname, d.notes, d.status, d.created_at, d.updated_at,
   dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at, dt.code_prefix, dt.code_next,
   dm.name AS model_name,
+  dm.display_name AS model_display_name,
   dm.variant AS model_variant,
   dm.part_number AS model_part_number,
   m.id AS manufacturer_id,
@@ -143,6 +144,7 @@ type GetDeviceRow struct {
 	Device           Device
 	DeviceType       DeviceType
 	ModelName        *string
+	ModelDisplayName *string
 	ModelVariant     *string
 	ModelPartNumber  *string
 	ManufacturerID   *uuid.UUID
@@ -178,6 +180,7 @@ func (q *Queries) GetDevice(ctx context.Context, id uuid.UUID) (GetDeviceRow, er
 		&i.DeviceType.CodePrefix,
 		&i.DeviceType.CodeNext,
 		&i.ModelName,
+		&i.ModelDisplayName,
 		&i.ModelVariant,
 		&i.ModelPartNumber,
 		&i.ManufacturerID,
@@ -191,6 +194,7 @@ SELECT
   d.id, d.code, d.name, d.physical_label, d.device_model_id, d.device_type_id, d.serial_number, d.inventory_number, d.management_ip, d.hostname, d.notes, d.status, d.created_at, d.updated_at,
   dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at, dt.code_prefix, dt.code_next,
   dm.name AS model_name,
+  dm.display_name AS model_display_name,
   dm.variant AS model_variant,
   dm.part_number AS model_part_number,
   m.id AS manufacturer_id,
@@ -226,6 +230,7 @@ type ListDevicesRow struct {
 	Device           Device
 	DeviceType       DeviceType
 	ModelName        *string
+	ModelDisplayName *string
 	ModelVariant     *string
 	ModelPartNumber  *string
 	ManufacturerID   *uuid.UUID
@@ -272,6 +277,7 @@ func (q *Queries) ListDevices(ctx context.Context, arg ListDevicesParams) ([]Lis
 			&i.DeviceType.CodePrefix,
 			&i.DeviceType.CodeNext,
 			&i.ModelName,
+			&i.ModelDisplayName,
 			&i.ModelVariant,
 			&i.ModelPartNumber,
 			&i.ManufacturerID,

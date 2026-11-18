@@ -17,6 +17,7 @@ INSERT INTO device_models (
   device_type_id,
   manufacturer_id,
   name,
+  display_name,
   part_number,
   website,
   variant,
@@ -57,7 +58,8 @@ VALUES (
   $18,
   $19,
   $20,
-  $21
+  $21,
+  $22
 )
 RETURNING id
 `
@@ -66,6 +68,7 @@ type CreateDeviceModelParams struct {
 	DeviceTypeID   uuid.UUID
 	ManufacturerID uuid.UUID
 	Name           string
+	DisplayName    *string
 	PartNumber     *string
 	Website        *string
 	Variant        *string
@@ -91,6 +94,7 @@ func (q *Queries) CreateDeviceModel(ctx context.Context, arg CreateDeviceModelPa
 		arg.DeviceTypeID,
 		arg.ManufacturerID,
 		arg.Name,
+		arg.DisplayName,
 		arg.PartNumber,
 		arg.Website,
 		arg.Variant,
@@ -130,7 +134,7 @@ func (q *Queries) DeleteDeviceModel(ctx context.Context, id uuid.UUID) (int64, e
 
 const getDeviceModel = `-- name: GetDeviceModel :one
 SELECT
-  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts, dm.end_of_sale, dm.end_of_support,
+  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts, dm.end_of_sale, dm.end_of_support, dm.display_name,
   dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at, dt.code_prefix, dt.code_next,
   m.id, m.name, m.website, m.notes, m.created_at, m.updated_at
 FROM device_models dm
@@ -173,6 +177,7 @@ func (q *Queries) GetDeviceModel(ctx context.Context, id uuid.UUID) (GetDeviceMo
 		&i.DeviceModel.PoeBudgetWatts,
 		&i.DeviceModel.EndOfSale,
 		&i.DeviceModel.EndOfSupport,
+		&i.DeviceModel.DisplayName,
 		&i.DeviceType.ID,
 		&i.DeviceType.Code,
 		&i.DeviceType.Name,
@@ -195,7 +200,7 @@ func (q *Queries) GetDeviceModel(ctx context.Context, id uuid.UUID) (GetDeviceMo
 
 const listDeviceModels = `-- name: ListDeviceModels :many
 SELECT
-  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts, dm.end_of_sale, dm.end_of_support,
+  dm.id, dm.device_type_id, dm.manufacturer_id, dm.name, dm.part_number, dm.width_mm, dm.height_mm, dm.depth_mm, dm.rack_units, dm.mounting, dm.power_watts_max, dm.poe_in, dm.poe_out, dm.notes, dm.status, dm.created_at, dm.updated_at, dm.website, dm.variant, dm.poe_in_standard, dm.poe_out_standard, dm.poe_budget_watts, dm.end_of_sale, dm.end_of_support, dm.display_name,
   dt.id, dt.code, dt.name, dt.icon, dt.color, dt.sort_order, dt.created_at, dt.updated_at, dt.code_prefix, dt.code_next,
   m.id, m.name, m.website, m.notes, m.created_at, m.updated_at
 FROM device_models dm
@@ -214,7 +219,7 @@ WHERE dm.status::text = ANY($1::text[])
     $4::mounting_type IS NULL
     OR dm.mounting = $4::mounting_type
   )
-ORDER BY lower(m.name), lower(dm.name), lower(coalesce(dm.variant, ''))
+ORDER BY lower(m.name), lower(coalesce(dm.display_name, dm.name)), lower(coalesce(dm.variant, ''))
 `
 
 type ListDeviceModelsParams struct {
@@ -269,6 +274,7 @@ func (q *Queries) ListDeviceModels(ctx context.Context, arg ListDeviceModelsPara
 			&i.DeviceModel.PoeBudgetWatts,
 			&i.DeviceModel.EndOfSale,
 			&i.DeviceModel.EndOfSupport,
+			&i.DeviceModel.DisplayName,
 			&i.DeviceType.ID,
 			&i.DeviceType.Code,
 			&i.DeviceType.Name,
@@ -302,25 +308,26 @@ SET
   device_type_id = $1,
   manufacturer_id = $2,
   name = $3,
-  part_number = $4,
-  website = $5,
-  variant = $6,
-  width_mm = $7,
-  height_mm = $8,
-  depth_mm = $9,
-  rack_units = $10,
-  mounting = $11,
-  power_watts_max = $12,
-  poe_in = $13,
-  poe_out = $14,
-  poe_in_standard = $15,
-  poe_out_standard = $16,
-  poe_budget_watts = $17,
-  end_of_sale = $18,
-  end_of_support = $19,
-  notes = $20,
+  display_name = $4,
+  part_number = $5,
+  website = $6,
+  variant = $7,
+  width_mm = $8,
+  height_mm = $9,
+  depth_mm = $10,
+  rack_units = $11,
+  mounting = $12,
+  power_watts_max = $13,
+  poe_in = $14,
+  poe_out = $15,
+  poe_in_standard = $16,
+  poe_out_standard = $17,
+  poe_budget_watts = $18,
+  end_of_sale = $19,
+  end_of_support = $20,
+  notes = $21,
   updated_at = now()
-WHERE id = $21
+WHERE id = $22
 RETURNING id
 `
 
@@ -328,6 +335,7 @@ type UpdateDeviceModelParams struct {
 	DeviceTypeID   uuid.UUID
 	ManufacturerID uuid.UUID
 	Name           string
+	DisplayName    *string
 	PartNumber     *string
 	Website        *string
 	Variant        *string
@@ -353,6 +361,7 @@ func (q *Queries) UpdateDeviceModel(ctx context.Context, arg UpdateDeviceModelPa
 		arg.DeviceTypeID,
 		arg.ManufacturerID,
 		arg.Name,
+		arg.DisplayName,
 		arg.PartNumber,
 		arg.Website,
 		arg.Variant,

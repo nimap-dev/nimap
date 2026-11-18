@@ -29,13 +29,14 @@ WHERE dm.status::text = ANY(sqlc.arg(statuses)::text[])
     sqlc.narg(mounting)::mounting_type IS NULL
     OR dm.mounting = sqlc.narg(mounting)::mounting_type
   )
-ORDER BY lower(m.name), lower(dm.name), lower(coalesce(dm.variant, ''));
+ORDER BY lower(m.name), lower(coalesce(dm.display_name, dm.name)), lower(coalesce(dm.variant, ''));
 
 -- name: CreateDeviceModel :one
 INSERT INTO device_models (
   device_type_id,
   manufacturer_id,
   name,
+  display_name,
   part_number,
   website,
   variant,
@@ -59,6 +60,7 @@ VALUES (
   sqlc.arg(device_type_id),
   sqlc.arg(manufacturer_id),
   sqlc.arg(name),
+  sqlc.narg(display_name),
   sqlc.narg(part_number),
   sqlc.narg(website),
   sqlc.narg(variant),
@@ -86,6 +88,7 @@ SET
   device_type_id = sqlc.arg(device_type_id),
   manufacturer_id = sqlc.arg(manufacturer_id),
   name = sqlc.arg(name),
+  display_name = sqlc.narg(display_name),
   part_number = sqlc.narg(part_number),
   website = sqlc.narg(website),
   variant = sqlc.narg(variant),

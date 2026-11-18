@@ -22,10 +22,11 @@ import (
 const codeAllocationAttempts = 5
 
 type DeviceModelRef struct {
-	ID         uuid.UUID `json:"id"`
-	Name       string    `json:"name"`
-	Variant    *string   `json:"variant,omitempty"`
-	PartNumber *string   `json:"partNumber,omitempty"`
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	DisplayName *string   `json:"displayName,omitempty"`
+	Variant     *string   `json:"variant,omitempty"`
+	PartNumber  *string   `json:"partNumber,omitempty"`
 }
 
 type ManufacturerRef struct {
@@ -521,10 +522,11 @@ func deviceResponse(row gen.GetDeviceRow) DeviceResponse {
 	var model *DeviceModelRef
 	if d.DeviceModelID != nil && row.ModelName != nil {
 		model = &DeviceModelRef{
-			ID:         *d.DeviceModelID,
-			Name:       *row.ModelName,
-			Variant:    row.ModelVariant,
-			PartNumber: row.ModelPartNumber,
+			ID:          *d.DeviceModelID,
+			Name:        *row.ModelName,
+			DisplayName: row.ModelDisplayName,
+			Variant:     row.ModelVariant,
+			PartNumber:  row.ModelPartNumber,
 		}
 	}
 

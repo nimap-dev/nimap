@@ -13,7 +13,7 @@ Open **Device models** in the sidebar. Anyone who can sign in can view models. C
 
 | Section | Fields |
 |---|---|
-| Model | Manufacturer, name, variant and type. All but the variant are required. |
+| Model | Manufacturer, name, variant, display name and type. The variant and display name are optional. |
 | Identification | Part number and a link to the product page. |
 | Sale and support | The day the manufacturer stops selling the model (EOS) and stops supporting it (EOL). End of support cannot come before end of sale. |
 | Physical | Width, height and depth in millimeters, mounting (rack, wall, desktop, DIN rail, ceiling, pole, embedded or other) and height in rack units. |
@@ -29,6 +29,10 @@ The standards are 802.3af (PoE), 802.3at (PoE+), 802.3bt (PoE++) and passive PoE
 
 The type decides the prefix of the codes that devices of this model get, such as `SW` for a switch. See [Devices](../devices/#codes).
 
+### Display name
+
+Some model names are hard to read, such as `C52iG-5HaxD2HaxD-TC`. Give the model a **Display name**, for example `hAP ax²`, and it is shown everywhere instead of the name. The name stays on the model's page and under the display name in the list.
+
 ### Variants
 
 A manufacturer can sell different hardware under the same name, such as a second revision or a regional version. Put that difference in **Variant**, for example `rev2`. A manufacturer can have the same name and variant only once.
@@ -37,7 +41,7 @@ To add a variant of an existing model, open the model and use **Duplicate**. Eve
 
 ## The list
 
-The list shows the type, model with its part number, manufacturer, form factor, PoE, status and last change. The search box matches names, variants, part numbers, manufacturers and types. Filter by type, manufacturer, mounting or status. The filters stay in the address, so you can bookmark or share a filtered list.
+The list shows the type, model with its part number, manufacturer, form factor, PoE, status and last change. The search box matches names, display names, variants, part numbers, manufacturers and types. Filter by type, manufacturer, mounting or status. The filters stay in the address, so you can bookmark or share a filtered list.
 
 By default the list shows planned and active models. Use the status filter to include decommissioned and archived ones.
 

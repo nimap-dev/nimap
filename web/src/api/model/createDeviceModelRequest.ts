@@ -15,6 +15,8 @@ export interface CreateDeviceModelRequest {
   /** @minimum 1 */
   depthMm?: number;
   deviceTypeId: string;
+  /** A friendlier name shown instead of the model name, such as hAP ax² for C52iG-5HaxD2HaxD-TC */
+  displayName?: string;
   /** The day the manufacturer stops selling the model (EOS) */
   endOfSale?: string;
   /** The day the manufacturer stops supporting the model (EOL); not before endOfSale */

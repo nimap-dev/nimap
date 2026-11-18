@@ -20,6 +20,7 @@ export default {
     manufacturer: 'Výrobce',
     type: 'Typ',
     name: 'Název',
+    displayName: 'Zobrazovaný název',
     identification: 'Identifikace',
     variant: 'Varianta',
     partNumber: 'Katalogové číslo',
@@ -48,6 +49,8 @@ export default {
     updated: 'Upraveno',
   },
   form: {
+    displayNameDescription:
+      'Čitelnější název, který se zobrazí místo názvu modelu, pokud se špatně čte.',
     pickManufacturer: 'Vyberte výrobce',
     pickType: 'Vyberte typ zařízení',
     notListed: 'Není v seznamu? Nejdřív <link>přidejte výrobce</link>.',
