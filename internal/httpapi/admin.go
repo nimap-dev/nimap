@@ -67,7 +67,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 		Path:        "/api/admin/users",
 		Summary:     "Returns all user accounts",
 		Tags:        []string{"admin"},
-		Metadata:    map[string]any{requirePermissionMetaKey: auth.ManageUsers},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.ManageUsers, requireSessionMetaKey: true},
 	}, func(ctx context.Context, _ *struct{}) (*ListUsersOutput, error) {
 		users, err := q.ListUsers(ctx)
 		if err != nil {
@@ -103,7 +103,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 		Path:        "/api/admin/users/{id}",
 		Summary:     "Returns the user account with the provided id",
 		Tags:        []string{"admin"},
-		Metadata:    map[string]any{requirePermissionMetaKey: auth.ManageUsers},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.ManageUsers, requireSessionMetaKey: true},
 	}, func(ctx context.Context, in *UserIDInput) (*UserOutput, error) {
 		user, err := q.GetUserByID(ctx, in.ID)
 		if err != nil {
@@ -138,7 +138,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 		Summary:       "Creates a user account",
 		Tags:          []string{"admin"},
 		DefaultStatus: http.StatusCreated,
-		Metadata:      map[string]any{requirePermissionMetaKey: auth.ManageUsers},
+		Metadata:      map[string]any{requirePermissionMetaKey: auth.ManageUsers, requireSessionMetaKey: true},
 	}, func(ctx context.Context, in *CreateUserInput) (*UserOutput, error) {
 		roleID, ok := auth.RoleID(string(in.Body.Role))
 		if !ok {
@@ -189,7 +189,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 		Path:        "/api/admin/users/{id}",
 		Summary:     "Updates the username and email of the account with the provided id",
 		Tags:        []string{"admin"},
-		Metadata:    map[string]any{requirePermissionMetaKey: auth.ManageUsers},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.ManageUsers, requireSessionMetaKey: true},
 	}, func(ctx context.Context, in *UpdateUserInput) (*UserOutput, error) {
 		if err := forbidSelf(ctx, in.ID); err != nil {
 			return nil, err
@@ -236,7 +236,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 		Path:        "/api/admin/users/{id}/role",
 		Summary:     "Changes the role of the account with the provided id",
 		Tags:        []string{"admin"},
-		Metadata:    map[string]any{requirePermissionMetaKey: auth.ManageUsers},
+		Metadata:    map[string]any{requirePermissionMetaKey: auth.ManageUsers, requireSessionMetaKey: true},
 	}, func(ctx context.Context, in *UpdateUserRoleInput) (*UserOutput, error) {
 		if err := forbidSelf(ctx, in.ID); err != nil {
 			return nil, err
@@ -294,7 +294,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 		Summary:       "Sets a new password on the account with the provided id",
 		Tags:          []string{"admin"},
 		DefaultStatus: http.StatusNoContent,
-		Metadata:      map[string]any{requirePermissionMetaKey: auth.ManageUsers},
+		Metadata:      map[string]any{requirePermissionMetaKey: auth.ManageUsers, requireSessionMetaKey: true},
 	}, func(ctx context.Context, in *ResetUserPasswordInput) (*struct{}, error) {
 		if err := forbidSelf(ctx, in.ID); err != nil {
 			return nil, err
@@ -330,7 +330,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 		Description:   "The user can no longer log in with that account. Logging in with it again is treated as a first login: it may be linked anew by email, or refused.",
 		Tags:          []string{"admin"},
 		DefaultStatus: http.StatusNoContent,
-		Metadata:      map[string]any{requirePermissionMetaKey: auth.ManageUsers},
+		Metadata:      map[string]any{requirePermissionMetaKey: auth.ManageUsers, requireSessionMetaKey: true},
 	}, func(ctx context.Context, in *UserIdentityInput) (*struct{}, error) {
 		if err := forbidSelf(ctx, in.ID); err != nil {
 			return nil, err
@@ -358,7 +358,7 @@ func RegisterAdmin(api huma.API, q *gen.Queries) {
 		Summary:       "Deletes the user account with the provided id",
 		Tags:          []string{"admin"},
 		DefaultStatus: http.StatusNoContent,
-		Metadata:      map[string]any{requirePermissionMetaKey: auth.ManageUsers},
+		Metadata:      map[string]any{requirePermissionMetaKey: auth.ManageUsers, requireSessionMetaKey: true},
 	}, func(ctx context.Context, in *UserIDInput) (*struct{}, error) {
 		if err := forbidSelf(ctx, in.ID); err != nil {
 			return nil, err

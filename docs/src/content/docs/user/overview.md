@@ -32,4 +32,4 @@ What you can do depends on your role:
 | Editor | also create, edit and delete records |
 | Administrator | also manage users |
 
-Your own name, password, language, theme, time zone and date format are under your account in the user menu.
+Your own name, password, language, theme, time zone and date format are under your account in the user menu. That is also where you create [API keys](../api-keys/) for scripts and other tools.

@@ -24,7 +24,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  APIKey,
   AuthProviders,
+  CreateAPIKeyInputBody,
+  CreatedAPIKey,
   ErrorModel,
   LoginInputBody,
   Preferences,
@@ -499,6 +502,325 @@ export const useUpdateAccountPreferences = <TError = ErrorModel,
         TContext
       > => {
       return useMutation(getUpdateAccountPreferencesMutationOptions(options), queryClient);
+    }
+    export type listApiKeysResponse200 = {
+  data: APIKey[]
+  status: 200
+}
+
+export type listApiKeysResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 200>
+}
+
+export type listApiKeysResponseSuccess = (listApiKeysResponse200) & {
+  headers: Headers;
+};
+export type listApiKeysResponseError = (listApiKeysResponseDefault) & {
+  headers: Headers;
+};
+
+export type listApiKeysResponse = (listApiKeysResponseSuccess | listApiKeysResponseError)
+
+export const getListApiKeysUrl = () => {
+
+
+
+
+  return `/api/auth/api-keys`
+}
+
+/**
+ * @summary Returns the current user's API keys
+ */
+export const listApiKeys = async ( options?: RequestInit): Promise<listApiKeysResponse> => {
+
+  const res = await fetch(getListApiKeysUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: listApiKeysResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as listApiKeysResponse
+}
+
+
+
+
+
+export const getListApiKeysQueryKey = () => {
+    return [
+    `/api/auth/api-keys`
+    ] as const;
+    }
+
+
+export const getListApiKeysQueryOptions = <TData = Awaited<ReturnType<typeof listApiKeys>>, TError = ErrorModel>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiKeys>>, TError, TData>>, fetch?: RequestInit}
+) => {
+
+const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListApiKeysQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listApiKeys>>> = ({ signal }) => listApiKeys({ signal, ...fetchOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listApiKeys>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListApiKeysQueryResult = NonNullable<Awaited<ReturnType<typeof listApiKeys>>>
+export type ListApiKeysQueryError = ErrorModel
+
+
+export function useListApiKeys<TData = Awaited<ReturnType<typeof listApiKeys>>, TError = ErrorModel>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiKeys>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listApiKeys>>,
+          TError,
+          Awaited<ReturnType<typeof listApiKeys>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListApiKeys<TData = Awaited<ReturnType<typeof listApiKeys>>, TError = ErrorModel>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiKeys>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listApiKeys>>,
+          TError,
+          Awaited<ReturnType<typeof listApiKeys>>
+        > , 'initialData'
+      >, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListApiKeys<TData = Awaited<ReturnType<typeof listApiKeys>>, TError = ErrorModel>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiKeys>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Returns the current user's API keys
+ */
+
+export function useListApiKeys<TData = Awaited<ReturnType<typeof listApiKeys>>, TError = ErrorModel>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listApiKeys>>, TError, TData>>, fetch?: RequestInit}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListApiKeysQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export type createApiKeyResponse201 = {
+  data: CreatedAPIKey
+  status: 201
+}
+
+export type createApiKeyResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 201>
+}
+
+export type createApiKeyResponseSuccess = (createApiKeyResponse201) & {
+  headers: Headers;
+};
+export type createApiKeyResponseError = (createApiKeyResponseDefault) & {
+  headers: Headers;
+};
+
+export type createApiKeyResponse = (createApiKeyResponseSuccess | createApiKeyResponseError)
+
+export const getCreateApiKeyUrl = () => {
+
+
+
+
+  return `/api/auth/api-keys`
+}
+
+/**
+ * The key acts as the user, with the user's role, everywhere but the operations that need a session. The response is the only time the whole key is returned.
+ * @summary Creates an API key for the current user
+ */
+export const createApiKey = async (createAPIKeyInputBody: NonReadonly<CreateAPIKeyInputBody>, options?: RequestInit): Promise<createApiKeyResponse> => {
+
+  const res = await fetch(getCreateApiKeyUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createAPIKeyInputBody)
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: createApiKeyResponse['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as createApiKeyResponse
+}
+
+
+
+
+
+export const getCreateApiKeyMutationOptions = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createApiKey>>, TError,{data: NonReadonly<CreateAPIKeyInputBody>}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof createApiKey>>, TError,{data: NonReadonly<CreateAPIKeyInputBody>}, TContext> => {
+
+const mutationKey = ['createApiKey'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createApiKey>>, {data: NonReadonly<CreateAPIKeyInputBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createApiKey(data,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateApiKeyMutationResult = NonNullable<Awaited<ReturnType<typeof createApiKey>>>
+    export type CreateApiKeyMutationBody = NonReadonly<CreateAPIKeyInputBody>
+    export type CreateApiKeyMutationError = ErrorModel
+
+    /**
+ * @summary Creates an API key for the current user
+ */
+export const useCreateApiKey = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createApiKey>>, TError,{data: NonReadonly<CreateAPIKeyInputBody>}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createApiKey>>,
+        TError,
+        {data: NonReadonly<CreateAPIKeyInputBody>},
+        TContext
+      > => {
+      return useMutation(getCreateApiKeyMutationOptions(options), queryClient);
+    }
+    export type deleteApiKeyResponse204 = {
+  data: void
+  status: 204
+}
+
+export type deleteApiKeyResponseDefault = {
+  data: ErrorModel
+  status: Exclude<HTTPStatusCodes, 204>
+}
+
+export type deleteApiKeyResponseSuccess = (deleteApiKeyResponse204) & {
+  headers: Headers;
+};
+export type deleteApiKeyResponseError = (deleteApiKeyResponseDefault) & {
+  headers: Headers;
+};
+
+export type deleteApiKeyResponse = (deleteApiKeyResponseSuccess | deleteApiKeyResponseError)
+
+export const getDeleteApiKeyUrl = (id: string,) => {
+
+
+
+
+  return `/api/auth/api-keys/${id}`
+}
+
+/**
+ * @summary Revokes one of the current user's API keys
+ */
+export const deleteApiKey = async (id: string, options?: RequestInit): Promise<deleteApiKeyResponse> => {
+
+  const res = await fetch(getDeleteApiKeyUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+)
+
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
+
+  const data: deleteApiKeyResponse['data'] = body ? JSON.parse(body) : undefined
+  return { data, status: res.status, headers: res.headers } as deleteApiKeyResponse
+}
+
+
+
+
+
+export const getDeleteApiKeyMutationOptions = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiKey>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteApiKey>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteApiKey'];
+const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, fetch: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiKey>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteApiKey(id,fetchOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteApiKeyMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiKey>>>
+
+    export type DeleteApiKeyMutationError = ErrorModel
+
+    /**
+ * @summary Revokes one of the current user's API keys
+ */
+export const useDeleteApiKey = <TError = ErrorModel,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiKey>>, TError,{id: string}, TContext>, fetch?: RequestInit}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteApiKey>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteApiKeyMutationOptions(options), queryClient);
     }
     export type loginResponse200 = {
   data: User

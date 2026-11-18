@@ -655,6 +655,17 @@ type AssetAttachment struct {
 	DeviceModelID *uuid.UUID
 }
 
+type AuthApiKey struct {
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	Name       string
+	Prefix     string
+	TokenHash  []byte
+	CreatedAt  time.Time
+	LastUsedAt *time.Time
+	ExpiresAt  *time.Time
+}
+
 type AuthRole struct {
 	ID   int16
 	Name string

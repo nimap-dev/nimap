@@ -274,7 +274,7 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 		Path:          "/api/auth/account/password",
 		Summary:       "Change the current user's password",
 		Tags:          []string{"auth"},
-		Metadata:      map[string]any{requireAuthMetaKey: true},
+		Metadata:      map[string]any{requireSessionMetaKey: true},
 		DefaultStatus: http.StatusNoContent,
 	}, func(ctx context.Context, in *UpdatePasswordInput) (*struct{}, error) {
 		// The auth middleware guarantees a user id is present on the context
@@ -316,7 +316,7 @@ func RegisterAuth(api huma.API, q *gen.Queries, sm *scs.SessionManager) {
 		Path:        "/api/auth/account",
 		Summary:     "Update the current user's username and email",
 		Tags:        []string{"auth"},
-		Metadata:    map[string]any{requireAuthMetaKey: true},
+		Metadata:    map[string]any{requireSessionMetaKey: true},
 	}, func(ctx context.Context, in *UpdateAccountInput) (*UserOutput, error) {
 		id, _ := UserIDFromContext(ctx)
 

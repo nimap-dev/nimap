@@ -87,6 +87,52 @@ export const UpdateAccountPreferencesResponse = zod.object({
 })
 
 /**
+ * @summary Returns the current user's API keys
+ */
+export const ListApiKeysResponseItem = zod.object({
+  "createdAt": zod.iso.datetime({"offset":true}),
+  "expiresAt": zod.iso.datetime({"offset":true}).optional().describe('When the key stops working; absent never expires'),
+  "id": zod.string(),
+  "lastUsedAt": zod.iso.datetime({"offset":true}).optional().describe('When the key last authenticated a request, to the minute'),
+  "name": zod.string(),
+  "prefix": zod.string().describe('The start of the key, to tell keys apart')
+})
+export const ListApiKeysResponse = zod.array(ListApiKeysResponseItem)
+
+/**
+ * The key acts as the user, with the user's role, everywhere but the operations that need a session. The response is the only time the whole key is returned.
+ * @summary Creates an API key for the current user
+ */
+export const createApiKeyBodyNameMax = 100;
+
+
+
+export const CreateApiKeyBody = zod.object({
+  "expiresAt": zod.iso.datetime({"offset":true}).optional().describe('When the key stops working, in the future; omit it for a key that never expires'),
+  "name": zod.string().min(1).max(createApiKeyBodyNameMax).describe('What the key is for, such as Ansible')
+})
+
+export const CreateApiKeyResponse = zod.object({
+  "$schema": zod.url().optional().describe('A URL to the JSON Schema for this object.'),
+  "createdAt": zod.iso.datetime({"offset":true}),
+  "expiresAt": zod.iso.datetime({"offset":true}).optional().describe('When the key stops working; absent never expires'),
+  "id": zod.string(),
+  "lastUsedAt": zod.iso.datetime({"offset":true}).optional().describe('When the key last authenticated a request, to the minute'),
+  "name": zod.string(),
+  "prefix": zod.string().describe('The start of the key, to tell keys apart'),
+  "token": zod.string().describe('The whole key. It is shown only this once; send it as Authorization: Bearer <token>')
+})
+
+/**
+ * @summary Revokes one of the current user's API keys
+ */
+export const DeleteApiKeyParams = zod.object({
+  "id": zod.string()
+})
+
+export const DeleteApiKeyResponse = zod.void()
+
+/**
  * @summary Log in with username and password
  */
 

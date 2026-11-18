@@ -11,6 +11,8 @@ import (
 type policy struct {
 	public     bool
 	permission auth.Permission
+	// session is true for operations an API key may not call.
+	session bool
 }
 
 var wantPolicy = map[string]policy{
@@ -19,10 +21,13 @@ var wantPolicy = map[string]policy{
 	"list-auth-providers":        {public: true},
 	"logout":                     {public: true},
 	"get-current-user":           {},
-	"update-password":            {},
-	"update-account":             {},
+	"update-password":            {session: true},
+	"update-account":             {session: true},
 	"get-account-preferences":    {},
 	"update-account-preferences": {},
+	"list-api-keys":              {session: true},
+	"create-api-key":             {session: true},
+	"delete-api-key":             {session: true},
 
 	// buildings
 	"get-building":           {permission: auth.ReadRecords},
@@ -48,14 +53,14 @@ var wantPolicy = map[string]policy{
 	"delete-asset-attachment": {permission: auth.WriteRecords},
 
 	// admin
-	"list-users":           {permission: auth.ManageUsers},
-	"get-user":             {permission: auth.ManageUsers},
-	"create-user":          {permission: auth.ManageUsers},
-	"update-user":          {permission: auth.ManageUsers},
-	"update-user-role":     {permission: auth.ManageUsers},
-	"reset-user-password":  {permission: auth.ManageUsers},
-	"delete-user":          {permission: auth.ManageUsers},
-	"unlink-user-identity": {permission: auth.ManageUsers},
+	"list-users":           {permission: auth.ManageUsers, session: true},
+	"get-user":             {permission: auth.ManageUsers, session: true},
+	"create-user":          {permission: auth.ManageUsers, session: true},
+	"update-user":          {permission: auth.ManageUsers, session: true},
+	"update-user-role":     {permission: auth.ManageUsers, session: true},
+	"reset-user-password":  {permission: auth.ManageUsers, session: true},
+	"delete-user":          {permission: auth.ManageUsers, session: true},
+	"unlink-user-identity": {permission: auth.ManageUsers, session: true},
 
 	// device types
 	"list-device-types": {permission: auth.ReadRecords},
@@ -91,7 +96,7 @@ func TestEveryOperationIsGuarded(t *testing.T) {
 		}
 
 		_, needsPermission := requiresPermission(op)
-		if !needsPermission && !requiresAuth(op) {
+		if !needsPermission && !requiresAuth(op) && !requiresSession(op) {
 			t.Errorf("%s %s (%s) is reachable without a session: "+
 				"give it requirePermissionMetaKey, or requireAuthMetaKey, "+
 				"or list it as public in wantPolicy",
@@ -113,8 +118,9 @@ func TestOperationPolicies(t *testing.T) {
 
 		permission, needsPermission := requiresPermission(op)
 		got := policy{
-			public:     !needsPermission && !requiresAuth(op),
+			public:     !needsPermission && !requiresAuth(op) && !requiresSession(op),
 			permission: permission,
+			session:    requiresSession(op),
 		}
 
 		if got != want {
@@ -135,6 +141,10 @@ func describe(p policy) string {
 	switch {
 	case p.public:
 		return "nothing (public)"
+	case p.session && p.permission != "":
+		return string(p.permission) + " with a session, not an API key"
+	case p.session:
+		return "a logged-in user with a session, not an API key"
 	case p.permission != "":
 		return string(p.permission)
 	default:

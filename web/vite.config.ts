@@ -16,7 +16,13 @@ const config = defineConfig({
       registerType: 'autoUpdate',
       injectRegister: false,
       workbox: {
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: [
+          /^\/api\//,
+          /^\/docs(\/|$)/,
+          /^\/openapi[^/]*$/,
+          /^\/schemas\//,
+          /^\/(healthz|readyz)$/,
+        ],
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
       },
       manifest: {

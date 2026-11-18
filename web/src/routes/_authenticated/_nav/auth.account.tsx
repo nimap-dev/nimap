@@ -21,6 +21,7 @@ import {
   UpdateAccountPreferencesBody,
   UpdatePasswordBody,
 } from '#/api/endpoints/auth/auth.zod'
+import { ApiKeys } from '#/components/api-keys'
 import { IdentityList } from '#/components/identity-list'
 import { Panel } from '#/components/panel'
 import { RoleBadge } from '#/components/role-badge'
@@ -79,6 +80,7 @@ function Account() {
                 <IdentityList identities={user.identities} hideEmpty />
                 <Preferences />
               </DetailColumn>
+              <ApiKeys />
               <DetailMeta
                 id={user.id}
                 createdAt={user.createdAt}

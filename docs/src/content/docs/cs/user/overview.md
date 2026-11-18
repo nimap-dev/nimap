@@ -32,4 +32,4 @@ Co můžete dělat, záleží na vaší roli:
 | Editor | navíc vytvářet, upravovat a mazat záznamy |
 | Správce | navíc spravovat uživatele |
 
-Vlastní jméno, heslo, jazyk, motiv, časové pásmo a formát data najdete u svého účtu v uživatelském menu.
+Vlastní jméno, heslo, jazyk, motiv, časové pásmo a formát data najdete u svého účtu v uživatelském menu. Tam také vytvoříte [API klíče](../api-keys/) pro skripty a další nástroje.

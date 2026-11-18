@@ -17,6 +17,7 @@ type Querier interface {
 	CountDevicesWithModel(ctx context.Context, deviceModelID *uuid.UUID) (int64, error)
 	CountLocationChildren(ctx context.Context, id uuid.UUID) (int64, error)
 	CountUsersWithRole(ctx context.Context, roleID int16) (int64, error)
+	CreateAPIKey(ctx context.Context, arg CreateAPIKeyParams) (CreateAPIKeyRow, error)
 	CreateAsset(ctx context.Context, arg CreateAssetParams) (Asset, error)
 	CreateBuilding(ctx context.Context, arg CreateBuildingParams) (CreateBuildingRow, error)
 	CreateBuildingAssetAttachment(ctx context.Context, arg CreateBuildingAssetAttachmentParams) (AssetAttachment, error)
@@ -28,6 +29,7 @@ type Querier interface {
 	CreateManufacturer(ctx context.Context, arg CreateManufacturerParams) (Manufacturer, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	CreateUserIdentity(ctx context.Context, arg CreateUserIdentityParams) error
+	DeleteAPIKey(ctx context.Context, arg DeleteAPIKeyParams) (int64, error)
 	DeleteAsset(ctx context.Context, id uuid.UUID) (string, error)
 	DeleteAssetAttachment(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 	DeleteBuilding(ctx context.Context, id uuid.UUID) (int64, error)
@@ -43,6 +45,7 @@ type Querier interface {
 	GetDeviceModel(ctx context.Context, id uuid.UUID) (GetDeviceModelRow, error)
 	GetLocation(ctx context.Context, id uuid.UUID) (GetLocationRow, error)
 	GetManufacturer(ctx context.Context, id uuid.UUID) (Manufacturer, error)
+	GetUserByAPIKey(ctx context.Context, tokenHash []byte) (GetUserByAPIKeyRow, error)
 	GetUserByEmail(ctx context.Context, lower string) (GetUserByEmailRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
 	GetUserByIdentity(ctx context.Context, arg GetUserByIdentityParams) (GetUserByIdentityRow, error)
@@ -63,6 +66,7 @@ type Querier interface {
 	ListLocations(ctx context.Context, statuses []string) ([]ListLocationsRow, error)
 	ListManufacturers(ctx context.Context) ([]Manufacturer, error)
 	ListUnreferencedAssets(ctx context.Context) ([]ListUnreferencedAssetsRow, error)
+	ListUserAPIKeys(ctx context.Context, userID uuid.UUID) ([]ListUserAPIKeysRow, error)
 	ListUserIdentities(ctx context.Context, userID uuid.UUID) ([]ListUserIdentitiesRow, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	// Picks the location whose area a footprint overlaps the most, so a building
@@ -72,6 +76,7 @@ type Querier interface {
 	// front, where the GIST index can use it, instead of leaving it to
 	// ST_Intersects returning NULL.
 	SuggestLocationForFootprint(ctx context.Context, footprint string) (SuggestLocationForFootprintRow, error)
+	TouchAPIKey(ctx context.Context, id uuid.UUID) error
 	TouchUserIdentity(ctx context.Context, arg TouchUserIdentityParams) error
 	UpdateAssetDimensions(ctx context.Context, arg UpdateAssetDimensionsParams) error
 	UpdateBuilding(ctx context.Context, arg UpdateBuildingParams) (UpdateBuildingRow, error)

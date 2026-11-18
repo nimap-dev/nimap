@@ -1,5 +1,32 @@
 components:
   schemas:
+    APIKey:
+      additionalProperties: false
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        expiresAt:
+          description: When the key stops working; absent never expires
+          format: date-time
+          type: string
+        id:
+          type: string
+        lastUsedAt:
+          description: When the key last authenticated a request, to the minute
+          format: date-time
+          type: string
+        name:
+          type: string
+        prefix:
+          description: The start of the key, to tell keys apart
+          type: string
+      required:
+        - id
+        - name
+        - prefix
+        - createdAt
+      type: object
     Address:
       additionalProperties: false
       properties:
@@ -139,6 +166,28 @@ components:
         - status
         - createdAt
         - updatedAt
+      type: object
+    CreateAPIKeyInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/CreateAPIKeyInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        expiresAt:
+          description: When the key stops working, in the future; omit it for a key that never expires
+          format: date-time
+          type: string
+        name:
+          description: What the key is for, such as Ansible
+          maxLength: 100
+          minLength: 1
+          type: string
+      required:
+        - name
       type: object
     CreateBuildingRequest:
       additionalProperties: false
@@ -404,6 +453,44 @@ components:
         - email
         - password
         - role
+      type: object
+    CreatedAPIKey:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/CreatedAPIKey.json
+          format: uri
+          readOnly: true
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        expiresAt:
+          description: When the key stops working; absent never expires
+          format: date-time
+          type: string
+        id:
+          type: string
+        lastUsedAt:
+          description: When the key last authenticated a request, to the minute
+          format: date-time
+          type: string
+        name:
+          type: string
+        prefix:
+          description: The start of the key, to tell keys apart
+          type: string
+        token:
+          description: "The whole key. It is shown only this once; send it as Authorization: Bearer <token>"
+          type: string
+      required:
+        - token
+        - id
+        - name
+        - prefix
+        - createdAt
       type: object
     DeviceModelRef:
       additionalProperties: false
@@ -1499,6 +1586,16 @@ components:
         - hasPassword
         - identities
       type: object
+  securitySchemes:
+    apiKey:
+      description: "An API key from the account page, sent as Authorization: Bearer <key>. It acts as its user, except for the operations that need a session."
+      scheme: bearer
+      type: http
+    session:
+      description: The session cookie set by logging in through the web interface or POST /api/auth/login.
+      in: cookie
+      name: nimap_session
+      type: apiKey
 info:
   title: nimap API
   version: dev
@@ -1522,6 +1619,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
       summary: Returns all user accounts
       tags:
         - admin
@@ -1546,6 +1645,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
       summary: Creates a user account
       tags:
         - admin
@@ -1567,6 +1668,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
       summary: Deletes the user account with the provided id
       tags:
         - admin
@@ -1591,6 +1694,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
       summary: Returns the user account with the provided id
       tags:
         - admin
@@ -1621,6 +1726,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
       summary: Updates the username and email of the account with the provided id
       tags:
         - admin
@@ -1648,6 +1755,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
       summary: Unlinks a single sign-on account from the user
       tags:
         - admin
@@ -1675,6 +1784,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
       summary: Sets a new password on the account with the provided id
       tags:
         - admin
@@ -1706,6 +1817,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
       summary: Changes the role of the account with the provided id
       tags:
         - admin
@@ -1744,6 +1857,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Lists the files attached to a location or a building
       tags:
         - assets
@@ -1795,6 +1911,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Uploads a file, optionally attaching it to a location or a building
       tags:
         - assets
@@ -1831,6 +1950,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns the bytes of the asset with the provided id
       tags:
         - assets
@@ -1853,6 +1975,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Removes a file from the location or building it is attached to
       tags:
         - assets
@@ -1878,6 +2003,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
       summary: Update the current user's username and email
       tags:
         - auth
@@ -1899,6 +2026,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
       summary: Change the current user's password
       tags:
         - auth
@@ -1918,6 +2047,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Return the current user's display preferences
       tags:
         - auth
@@ -1942,7 +2074,83 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Update the current user's display preferences
+      tags:
+        - auth
+  /api/auth/api-keys:
+    get:
+      operationId: list-api-keys
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/APIKey"
+                type: array
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - session: []
+      summary: Returns the current user's API keys
+      tags:
+        - auth
+    post:
+      description: The key acts as the user, with the user's role, everywhere but the operations that need a session. The response is the only time the whole key is returned.
+      operationId: create-api-key
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAPIKeyInputBody"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedAPIKey"
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - session: []
+      summary: Creates an API key for the current user
+      tags:
+        - auth
+  /api/auth/api-keys/{id}:
+    delete:
+      operationId: delete-api-key
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      security:
+        - session: []
+      summary: Revokes one of the current user's API keys
       tags:
         - auth
   /api/auth/login:
@@ -2001,6 +2209,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Return the currently authenticated user
       tags:
         - auth
@@ -2063,6 +2274,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns all buildings, optionally narrowed to a single location
       tags:
         - buildings
@@ -2087,6 +2301,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Creates a building
       tags:
         - buildings
@@ -2108,6 +2325,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Deletes the building with the provided id
       tags:
         - buildings
@@ -2132,6 +2352,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns building with the provided id
       tags:
         - buildings
@@ -2162,6 +2385,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Updates the building with the provided id
       tags:
         - buildings
@@ -2193,6 +2419,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Updates the building status of the building with provided id
       tags:
         - buildings
@@ -2259,6 +2488,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns all device models, optionally narrowed to a device type or a manufacturer
       tags:
         - device-models
@@ -2283,6 +2515,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Creates a device model
       tags:
         - device-models
@@ -2305,6 +2540,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Deletes the device model with the provided id
       tags:
         - device-models
@@ -2329,6 +2567,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns the device model with the provided id
       tags:
         - device-models
@@ -2359,6 +2600,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Updates the device model with the provided id
       tags:
         - device-models
@@ -2390,6 +2634,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Updates the status of the device model with the provided id
       tags:
         - device-models
@@ -2411,6 +2658,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns all device types.
       tags:
         - device-types
@@ -2468,6 +2718,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns all devices, optionally narrowed to a type, model or manufacturer
       tags:
         - devices
@@ -2493,6 +2746,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Creates a device
       tags:
         - devices
@@ -2515,6 +2771,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Deletes the device with the provided id
       tags:
         - devices
@@ -2539,6 +2798,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns the device with the provided id
       tags:
         - devices
@@ -2569,6 +2831,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Updates the device with the provided id
       tags:
         - devices
@@ -2600,6 +2865,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Updates the status of the device with the provided id
       tags:
         - devices
@@ -2636,6 +2904,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns all locations
       tags:
         - locations
@@ -2660,6 +2931,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Creates a location
       tags:
         - locations
@@ -2685,6 +2959,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Suggests a location fitting provided area the best.
       tags:
         - locations
@@ -2706,6 +2983,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Deletes the location with the provided id
       tags:
         - locations
@@ -2730,6 +3010,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns location with the provided id
       tags:
         - locations
@@ -2760,6 +3043,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Updates the location with the provided id
       tags:
         - locations
@@ -2791,6 +3077,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Updates the location status of the location with provided id
       tags:
         - locations
@@ -2812,6 +3101,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns all manufacturers
       tags:
         - manufacturers
@@ -2836,6 +3128,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Creates a manufacturer
       tags:
         - manufacturers
@@ -2858,6 +3153,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Deletes the manufacturer with the provided id
       tags:
         - manufacturers
@@ -2882,6 +3180,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Returns the manufacturer with the provided id
       tags:
         - manufacturers
@@ -2912,6 +3213,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
+      security:
+        - session: []
+        - apiKey: []
       summary: Updates the manufacturer with the provided id
       tags:
         - manufacturers
