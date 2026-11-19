@@ -1,7 +1,8 @@
+import { useListDeviceModels } from '#/api/device-models/device-models'
 import { useListDevices } from '#/api/devices/devices'
 import { useListDeviceTypes } from '#/api/device-types/device-types'
 import { useListManufacturers } from '#/api/manufacturers/manufacturers'
-import { DeviceResponseStatus } from '#/api/model'
+import { DeviceResponseStatus, ListDeviceModelsStatusItem } from '#/api/model'
 import type { DeviceResponse } from '#/api/model'
 import { DataTable } from '#/components/data-table/data-table'
 import { DataTableColumnHeader } from '#/components/data-table/data-table-column-header'
@@ -16,6 +17,7 @@ import { Panel } from '#/components/panel'
 import { StatusFilter } from '#/components/status-filter'
 import { Button } from '#/components/ui/button'
 import { useCan } from '#/lib/auth'
+import { formatModelName } from '#/lib/device-models'
 import { formatDeviceModel } from '#/lib/devices'
 import {
   DEFAULT_LIFECYCLE_STATUSES,
@@ -37,6 +39,7 @@ const searchSchema = zod.object({
     .optional()
     .catch(undefined),
   deviceTypeId: zod.string().optional().catch(undefined),
+  deviceModelId: zod.string().optional().catch(undefined),
   manufacturerId: zod.string().optional().catch(undefined),
 })
 
@@ -193,7 +196,7 @@ function AllDevices() {
   const navigate = useNavigate()
   const search = Route.useSearch()
   const navigateSearch = Route.useNavigate()
-  const { deviceTypeId, manufacturerId } = search
+  const { deviceTypeId, deviceModelId, manufacturerId } = search
   const statuses = search.status ?? DEFAULT_LIFECYCLE_STATUSES
 
   function setFilter(patch: Partial<DeviceListSearch>) {
@@ -204,11 +207,16 @@ function AllDevices() {
   }
 
   const { data: devices, isPending } = useListDevices(
-    { status: statuses, deviceTypeId, manufacturerId },
+    { status: statuses, deviceTypeId, deviceModelId, manufacturerId },
     { query: { placeholderData: keepPreviousData } },
   )
   const { data: types } = useListDeviceTypes()
   const { data: manufacturers } = useListManufacturers()
+  const { data: models } = useListDeviceModels({
+    status: Object.values(ListDeviceModelsStatusItem),
+    deviceTypeId,
+    manufacturerId,
+  })
 
   const typeOptions =
     types?.status === 200
@@ -224,6 +232,16 @@ function AllDevices() {
           value: manufacturer.id,
           label: manufacturer.name,
         }))
+      : []
+
+  const modelOptions =
+    models?.status === 200
+      ? models.data
+          .map((model) => ({
+            value: model.id,
+            label: `${model.manufacturer.name} ${formatModelName(model)}`,
+          }))
+          .sort((a, b) => a.label.localeCompare(b.label))
       : []
 
   const newDevice = canWrite && (
@@ -276,6 +294,13 @@ function AllDevices() {
               onChange={(value) => setFilter({ manufacturerId: value })}
               options={manufacturerOptions}
             />
+            <FilterSelect
+              label={t('list.filterModel')}
+              anyLabel={t('list.anyModel')}
+              value={deviceModelId}
+              onChange={(value) => setFilter({ deviceModelId: value })}
+              options={modelOptions}
+            />
             <StatusFilter
               value={statuses}
               onChange={(value) =>
@@ -287,7 +312,7 @@ function AllDevices() {
           </>
         }
         onClearFilters={
-          deviceTypeId || manufacturerId || search.status
+          deviceTypeId || deviceModelId || manufacturerId || search.status
             ? () => navigateSearch({ search: {}, replace: true })
             : undefined
         }

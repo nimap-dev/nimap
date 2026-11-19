@@ -46,6 +46,8 @@ export default {
     anyType: 'Všechny typy',
     filterManufacturer: 'Filtrovat podle výrobce',
     anyManufacturer: 'Všichni výrobci',
+    filterModel: 'Filtrovat podle modelu',
+    anyModel: 'Všechny modely',
     noModel: 'Bez modelu',
   },
   detail: {

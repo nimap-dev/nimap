@@ -47,6 +47,8 @@ export default {
     anyType: 'Any type',
     filterManufacturer: 'Filter by manufacturer',
     anyManufacturer: 'Any manufacturer',
+    filterModel: 'Filter by model',
+    anyModel: 'Any model',
     noModel: 'No model',
   },
   detail: {
