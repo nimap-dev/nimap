@@ -56,6 +56,10 @@ export default {
     noResults: 'Žádné výsledky.',
     shown: '{{count}} z {{total}}',
     clearFilters: 'Zrušit filtry',
+    previousPage: 'Předchozí stránka',
+    nextPage: 'Další stránka',
+    range: '{{from}}–{{to}}',
+    pageSize: 'Na stránku',
   },
   meta: {
     created: 'Vytvořeno {{when}}',

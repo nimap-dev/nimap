@@ -54,6 +54,10 @@ export default {
     noResults: 'No results.',
     shown: '{{count}} of {{total}}',
     clearFilters: 'Clear filters',
+    previousPage: 'Previous page',
+    nextPage: 'Next page',
+    range: '{{from}}–{{to}}',
+    pageSize: 'Per page',
   },
   /** The created/updated line under a record. */
   meta: {
