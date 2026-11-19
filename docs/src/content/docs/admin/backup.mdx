@@ -1,0 +1,101 @@
+---
+title: Backup
+description: Back up and restore the nimap database and uploaded files.
+sidebar:
+  order: 4
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+nimap keeps its data in two places: the PostgreSQL database and the directory with uploaded files. A complete backup always contains both. The steps below assume an installation made by the [Installation](../installation/) guide and run every command from the directory with `compose.yaml`.
+
+## What to back up
+
+| What | Where | Note |
+| --- | --- | --- |
+| Database | `db-data` volume | Back it up with `pg_dump`, not by copying the volume's files. |
+| Uploaded files | `/data/media/blobs` in the `media` volume | The original photos and floor plans. Nothing can replace them. |
+| Configuration | `compose.yaml` and `.env` | They hold the database password and, if used, the [single sign-on](../single-sign-on/) client secret. Store them securely, apart from the data backup. |
+
+The `/data/media/gen` directory holds thumbnails that nimap generates again, so it does not need backing up.
+
+## Backing up
+
+The backup runs while nimap is up, there is no need to stop it.
+
+<Steps>
+
+1. Back up the database:
+
+   ```sh
+   docker compose exec -T db pg_dump -U nimap --clean --if-exists --create nimap > nimap-$(date +%F).sql
+   ```
+
+2. Only then back up the uploaded files:
+
+   ```sh
+   docker compose exec -T nimap tar -czf - -C /data/media blobs > nimap-media-$(date +%F).tar.gz
+   ```
+
+</Steps>
+
+<Aside>
+The order matters. A file uploaded between the two steps ends up in the file backup but not in the database. Such a file does no harm and `nimap media check --delete` removes it after a restore. In the opposite order the database could point at files missing from the backup.
+</Aside>
+
+Copy both files off the nimap server. A backup kept only on the same disk does not help when you lose that disk.
+
+## Restoring
+
+A restore overwrites the current database and uploaded files. On a new server, first follow steps 1 and 2 of [Installation](../installation/#installation) and put the original `DB_PASSWORD` into `.env`.
+
+<Steps>
+
+1. Stop nimap and keep only the database running:
+
+   ```sh
+   docker compose stop nimap
+   docker compose up -d db
+   ```
+
+2. Restore the database. The command drops the existing database and creates it again from the backup:
+
+   ```sh
+   docker compose exec -T db psql -U nimap -d postgres -v ON_ERROR_STOP=1 < nimap-2026-11-19.sql
+   ```
+
+   `ON_ERROR_STOP` makes the restore stop at the first error instead of carrying on with a half-restored database.
+
+3. Restore the uploaded files:
+
+   ```sh
+   docker compose run --rm -T --no-deps --entrypoint sh nimap -c 'rm -rf /data/media/blobs && tar -xzf - -C /data/media' < nimap-media-2026-11-19.tar.gz
+   ```
+
+4. Start nimap:
+
+   ```sh
+   docker compose up -d
+   ```
+
+   If the image is newer than the backup, nimap migrates the database to the current schema on startup. A backup cannot be restored into an older nimap version.
+
+5. Generate the thumbnails:
+
+   ```sh
+   docker compose exec nimap /nimap media thumbnails
+   ```
+
+6. Check that the database and the files match:
+
+   ```sh
+   docker compose exec nimap /nimap media check
+   ```
+
+   The command lists files nothing points at and records whose file is missing. Missing files mean the backup is incomplete. Remove the extra files by adding `--delete`.
+
+</Steps>
+
+## Testing backups
+
+A backup you have never restored may not work. Now and then try a restore on another machine or in a separate directory with its own `compose.yaml`, and check that you can sign in to nimap and the photos show up.

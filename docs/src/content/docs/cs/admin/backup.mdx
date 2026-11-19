@@ -1,0 +1,101 @@
+---
+title: Zálohování
+description: Záloha a obnova databáze a nahraných souborů nimapu.
+sidebar:
+  order: 4
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+nimap ukládá data na dvě místa: do databáze PostgreSQL a do adresáře s nahranými soubory. Úplná záloha vždy obsahuje obojí. Postup níže předpokládá instalaci podle návodu [Instalace](../installation/) a spouští všechny příkazy z adresáře s `compose.yaml`.
+
+## Co zálohovat
+
+| Co | Kde | Poznámka |
+| --- | --- | --- |
+| Databáze | volume `db-data` | Zálohujte přes `pg_dump`, ne kopírováním souborů volume. |
+| Nahrané soubory | `/data/media/blobs` ve volume `media` | Originály fotek a plánů. Nedají se ničím nahradit. |
+| Konfigurace | `compose.yaml` a `.env` | Obsahují heslo k databázi a případně tajný klíč pro [jednotné přihlášení](../single-sign-on/). Uložte je bezpečně, mimo běžnou zálohu dat. |
+
+Adresář `/data/media/gen` obsahuje náhledy, které nimap vygeneruje znovu, proto ho zálohovat nemusíte.
+
+## Záloha
+
+Záloha probíhá za běhu a nimap není potřeba zastavovat.
+
+<Steps>
+
+1. Zazálohujte databázi:
+
+   ```sh
+   docker compose exec -T db pg_dump -U nimap --clean --if-exists --create nimap > nimap-$(date +%F).sql
+   ```
+
+2. Až potom zazálohujte nahrané soubory:
+
+   ```sh
+   docker compose exec -T nimap tar -czf - -C /data/media blobs > nimap-media-$(date +%F).tar.gz
+   ```
+
+</Steps>
+
+<Aside>
+Pořadí je důležité. Soubor nahraný mezi oběma kroky je v záloze souborů, ale ne v databázi. Takový soubor nevadí a po obnově ho odstraní `nimap media check --delete`. Při opačném pořadí by databáze mohla odkazovat na soubory, které v záloze chybí.
+</Aside>
+
+Oba soubory zkopírujte mimo server s nimapem. Záloha uložená jen na stejném disku nepomůže, když o disk přijdete.
+
+## Obnova
+
+Obnova přepíše současnou databázi i nahrané soubory. Na novém serveru nejdřív proveďte kroky 1 a 2 z [Instalace](../installation/#instalace) a do `.env` vložte původní `DB_PASSWORD`.
+
+<Steps>
+
+1. Zastavte nimap a nechte běžet jen databázi:
+
+   ```sh
+   docker compose stop nimap
+   docker compose up -d db
+   ```
+
+2. Obnovte databázi. Příkaz původní databázi smaže a vytvoří znovu ze zálohy:
+
+   ```sh
+   docker compose exec -T db psql -U nimap -d postgres -v ON_ERROR_STOP=1 < nimap-2026-11-19.sql
+   ```
+
+   Díky `ON_ERROR_STOP` se obnova při první chybě zastaví a nepokračuje s napůl obnovenou databází.
+
+3. Obnovte nahrané soubory:
+
+   ```sh
+   docker compose run --rm -T --no-deps --entrypoint sh nimap -c 'rm -rf /data/media/blobs && tar -xzf - -C /data/media' < nimap-media-2026-11-19.tar.gz
+   ```
+
+4. Spusťte nimap:
+
+   ```sh
+   docker compose up -d
+   ```
+
+   Pokud je image novější než záloha, nimap při startu databázi sám převede na aktuální schéma. Obnovovat zálohu do starší verze nimapu nelze.
+
+5. Vygenerujte náhledy:
+
+   ```sh
+   docker compose exec nimap /nimap media thumbnails
+   ```
+
+6. Ověřte, že databáze a soubory k sobě sedí:
+
+   ```sh
+   docker compose exec nimap /nimap media check
+   ```
+
+   Příkaz vypíše soubory, na které nic neodkazuje, a záznamy, jejichž soubor chybí. Chybějící soubory znamenají neúplnou zálohu. Nadbytečné soubory odstraníte přidáním `--delete`.
+
+</Steps>
+
+## Ověření záloh
+
+Záloha, kterou jste nikdy neobnovili, nemusí fungovat. Čas od času obnovu vyzkoušejte na jiném stroji nebo v samostatném adresáři s vlastním `compose.yaml` a zkontrolujte, že se do nimapu přihlásíte a fotky se zobrazují.
