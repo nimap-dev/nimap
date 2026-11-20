@@ -188,10 +188,13 @@ export function AppSidebarNav() {
 
 export function MapPanel({
   open,
+  wide = false,
   onClose,
   children,
 }: {
   open: boolean
+  /** Room for a table rather than a single record. */
+  wide?: boolean
   onClose: () => void
   children: React.ReactNode
 }) {
@@ -207,7 +210,9 @@ export function MapPanel({
         data-state={open ? 'expanded' : 'collapsed'}
         inert={!open}
         className={cn(
-          '[--map-panel-width:min(20rem,85vw)] md:[--map-panel-width:var(--sidebar-width)]',
+          wide
+            ? '[--map-panel-width:min(36rem,95vw)] md:[--map-panel-width:min(36rem,50vw)]'
+            : '[--map-panel-width:min(20rem,85vw)] md:[--map-panel-width:var(--sidebar-width)]',
           '[--panel-bg:var(--color-sidebar)]',
           'fixed top-0 right-0 bottom-16 z-20 shrink-0 overflow-hidden bg-sidebar text-sidebar-foreground shadow-lg transition-[width] duration-200 ease-linear',
           'md:static md:h-svh md:border-l md:shadow-none',

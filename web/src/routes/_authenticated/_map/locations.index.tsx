@@ -26,7 +26,7 @@ import { Panel } from '#/components/panel'
 import { TableSkeleton } from '#/components/data-table/table-skeleton'
 import { useCan } from '#/lib/auth'
 
-export const Route = createFileRoute('/_authenticated/_nav/locations/')({
+export const Route = createFileRoute('/_authenticated/_map/locations/')({
   component: AllLocations,
 })
 

@@ -17,6 +17,8 @@ function RouteComponent() {
   const { t } = useTranslation('map')
   const matchRoute = useMatchRoute()
   const withPanel = !matchRoute({ to: '/' })
+  const wide =
+    !!matchRoute({ to: '/buildings' }) || !!matchRoute({ to: '/locations' })
   const [panelOpen, setPanelOpen] = useState(true)
 
   // Arriving from the bare map opens the panel again, whatever the last
@@ -47,7 +49,11 @@ function RouteComponent() {
         )}
       </SidebarInset>
       {withPanel && (
-        <MapPanel open={panelOpen} onClose={() => setPanelOpen(false)}>
+        <MapPanel
+          open={panelOpen}
+          wide={wide}
+          onClose={() => setPanelOpen(false)}
+        >
           <Outlet />
         </MapPanel>
       )}
